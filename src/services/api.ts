@@ -220,8 +220,14 @@ export const productService = {
   },
   create: async (data: any) => {
     const payload = toProduct(data);
-    const response = await api.post('products/', payload);
-    return fromProduct(response.data);
+    console.log("Creating product with payload:", payload);
+    try {
+      const response = await api.post('products/', payload);
+      return fromProduct(response.data);
+    } catch (error: any) {
+      console.error("Product creation failed detail:", error.response?.data?.detail);
+      throw error;
+    }
   },
   update: async (id: string, data: any) => {
     console.warn("Update product not strictly implemented in backend yet");

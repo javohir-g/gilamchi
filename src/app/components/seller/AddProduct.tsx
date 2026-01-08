@@ -25,7 +25,7 @@ import { BottomNav } from "../shared/BottomNav";
 export function AddProduct() {
   const navigate = useNavigate();
   const { id } = useParams(); // Get product ID from URL if editing
-  const { user, addProduct, updateProduct, products } = useApp();
+  const { user, addProduct, updateProduct, products, branches } = useApp();
 
   const isEditMode = Boolean(id);
 
@@ -46,6 +46,16 @@ export function AddProduct() {
   const [collection, setCollection] = useState("");
   const [availableSizes, setAvailableSizes] = useState<string[]>([]);
   const [sizeInput, setSizeInput] = useState("");
+  const [branchId, setBranchId] = useState<string>(user?.branchId || (branches.length > 0 ? branches[0].id : ""));
+
+  // Update branchId if user or branches load
+  useEffect(() => {
+    if (user?.branchId) {
+      setBranchId(user.branchId);
+    } else if (branches.length > 0 && !branchId) {
+      setBranchId(branches[0].id);
+    }
+  }, [user, branches]);
 
   // Populate form if in edit mode
   useEffect(() => {
@@ -58,13 +68,13 @@ export function AddProduct() {
         setType(productToEdit.type);
         setBuyPrice(productToEdit.buyPrice.toString());
         setSellPrice(productToEdit.sellPrice.toString());
-        
+
         if (productToEdit.type === "unit") {
-           setQuantity(productToEdit.quantity?.toString() || "");
+          setQuantity(productToEdit.quantity?.toString() || "");
         } else {
-           setTotalLength(productToEdit.totalLength?.toString() || "");
-           setWidth(productToEdit.width?.toString() || "");
-           setSellPricePerMeter(productToEdit.sellPricePerMeter?.toString() || "");
+          setTotalLength(productToEdit.totalLength?.toString() || "");
+          setWidth(productToEdit.width?.toString() || "");
+          setSellPricePerMeter(productToEdit.sellPricePerMeter?.toString() || "");
         }
       } else {
         toast.error("Mahsulot topilmadi");
@@ -104,88 +114,88 @@ export function AddProduct() {
     const typeSpecificData = type === "unit"
       ? { quantity: parseInt(quantity) }
       : {
-          totalLength: parseFloat(totalLength),
-          remainingLength: parseFloat(totalLength), // Reset remaining length on edit? Or keep? 
-          // If editing, we probably shouldn't reset remainingLength unless user explicitly changes totalLength?
-          // For simplicity in this "Add/Edit" unified form, if user changes totalLength, we might need logic.
-          // But here we are just constructing the object.
-          // IMPORTANT: If editing, we should preserve remainingLength if not changed, or adjust it?
-          // Let's assume for now we overwrite it with totalLength if it's a new product.
-          // If it's an update, we should be careful.
-          width: width ? parseFloat(width) : undefined,
-          sellPricePerMeter: parseFloat(sellPricePerMeter),
-        };
+        totalLength: parseFloat(totalLength),
+        remainingLength: parseFloat(totalLength), // Reset remaining length on edit? Or keep? 
+        // If editing, we probably shouldn't reset remainingLength unless user explicitly changes totalLength?
+        // For simplicity in this "Add/Edit" unified form, if user changes totalLength, we might need logic.
+        // But here we are just constructing the object.
+        // IMPORTANT: If editing, we should preserve remainingLength if not changed, or adjust it?
+        // Let's assume for now we overwrite it with totalLength if it's a new product.
+        // If it's an update, we should be careful.
+        width: width ? parseFloat(width) : undefined,
+        sellPricePerMeter: parseFloat(sellPricePerMeter),
+      };
 
     if (isEditMode && id) {
-       // logic for update
-       // For meter products, if we update, we usually don't reset remainingLength to totalLength automatically unless intended.
-       // But the user input is "totalLength".
-       // Let's check if we should update remainingLength.
-       // If I change total length from 100 to 120, remaining length should probably increase by 20?
-       // Or is this form "Restock"?
-       // This form is "Edit Product Details".
-       // If I edit the product, I might be correcting a mistake.
-       
-       // For now, I'll spread typeSpecificData. 
-       // Note: If type is 'meter', `remainingLength` is in `typeSpecificData` as `parseFloat(totalLength)`.
-       // This effectively resets remainingLength to totalLength. 
-       // This might be what is expected if I'm "fixing" the product definition.
-       // But if I sold some, and I edit the name, I don't want to reset remainingLength.
-       
-       const productToEdit = products.find((p) => p.id === id);
-       let finalTypeData = { ...typeSpecificData };
-       
-       if (productToEdit && productToEdit.type === 'meter' && type === 'meter') {
-          // If we are just updating name/price, we shouldn't reset remainingLength to totalLength
-          // But if we changed totalLength, maybe we should?
-          if (productToEdit.totalLength === parseFloat(totalLength)) {
-             // Total length didn't change, preserve remainingLength
-             finalTypeData.remainingLength = productToEdit.remainingLength || parseFloat(totalLength);
+      // logic for update
+      // For meter products, if we update, we usually don't reset remainingLength to totalLength automatically unless intended.
+      // But the user input is "totalLength".
+      // Let's check if we should update remainingLength.
+      // If I change total length from 100 to 120, remaining length should probably increase by 20?
+      // Or is this form "Restock"?
+      // This form is "Edit Product Details".
+      // If I edit the product, I might be correcting a mistake.
+
+      // For now, I'll spread typeSpecificData. 
+      // Note: If type is 'meter', `remainingLength` is in `typeSpecificData` as `parseFloat(totalLength)`.
+      // This effectively resets remainingLength to totalLength. 
+      // This might be what is expected if I'm "fixing" the product definition.
+      // But if I sold some, and I edit the name, I don't want to reset remainingLength.
+
+      const productToEdit = products.find((p) => p.id === id);
+      let finalTypeData = { ...typeSpecificData };
+
+      if (productToEdit && productToEdit.type === 'meter' && type === 'meter') {
+        // If we are just updating name/price, we shouldn't reset remainingLength to totalLength
+        // But if we changed totalLength, maybe we should?
+        if (productToEdit.totalLength === parseFloat(totalLength)) {
+          // Total length didn't change, preserve remainingLength
+          finalTypeData.remainingLength = productToEdit.remainingLength || parseFloat(totalLength);
+        } else {
+          // Total length changed. 
+          // Option 1: Reset remaining to new total (assuming it's a correction)
+          // Option 2: Adjust remaining by the difference?
+          // Let's go with Option 1: Reset. The user sees "Umumiy uzunlik" and sets it.
+          // Actually, if I just correct a typo in name, I don't want to reset stock.
+          finalTypeData.remainingLength = productToEdit.remainingLength;
+          // If I change totalLength, `typeSpecificData` has `remainingLength: totalLength`.
+          // I need to decide.
+          // Let's use `remainingLength: parseFloat(totalLength)` ONLY if creating.
+          // If updating, exclude `remainingLength` unless we want to force it.
+
+          // Let's simplify: If editing, DO NOT update remainingLength here unless we want to support restocking here.
+          // But the form has "Total Length".
+          // If I change total length, I expect the stock to reflect that.
+          // If I just change name, I don't touch total length field.
+
+          // Better approach:
+          if (productToEdit.totalLength !== parseFloat(totalLength)) {
+            // If total length changed, reset remaining length to match new total?
+            // Or maybe the user implies "I have this much now"?
+            finalTypeData.remainingLength = parseFloat(totalLength);
           } else {
-             // Total length changed. 
-             // Option 1: Reset remaining to new total (assuming it's a correction)
-             // Option 2: Adjust remaining by the difference?
-             // Let's go with Option 1: Reset. The user sees "Umumiy uzunlik" and sets it.
-             // Actually, if I just correct a typo in name, I don't want to reset stock.
-             finalTypeData.remainingLength = productToEdit.remainingLength; 
-             // If I change totalLength, `typeSpecificData` has `remainingLength: totalLength`.
-             // I need to decide.
-             // Let's use `remainingLength: parseFloat(totalLength)` ONLY if creating.
-             // If updating, exclude `remainingLength` unless we want to force it.
-             
-             // Let's simplify: If editing, DO NOT update remainingLength here unless we want to support restocking here.
-             // But the form has "Total Length".
-             // If I change total length, I expect the stock to reflect that.
-             // If I just change name, I don't touch total length field.
-             
-             // Better approach:
-             if (productToEdit.totalLength !== parseFloat(totalLength)) {
-                // If total length changed, reset remaining length to match new total?
-                // Or maybe the user implies "I have this much now"?
-                finalTypeData.remainingLength = parseFloat(totalLength);
-             } else {
-                 finalTypeData.remainingLength = productToEdit.remainingLength;
-             }
+            finalTypeData.remainingLength = productToEdit.remainingLength;
           }
-       }
-       
-       updateProduct(id, {
-         ...commonData,
-         ...finalTypeData
-       });
-       toast.success("Mahsulot yangilandi!");
-       navigate(-1); // Go back
+        }
+      }
+
+      updateProduct(id, {
+        ...commonData,
+        ...finalTypeData
+      });
+      toast.success("Mahsulot yangilandi!");
+      navigate(-1); // Go back
     } else {
-       // Create
-       const newProduct = {
+      // Create
+      const newProduct = {
         id: `p${Date.now()}`,
-        branchId: user?.branchId || "b1",
+        branchId: branchId,
         ...commonData,
         ...typeSpecificData
-       };
-       addProduct(newProduct);
-       toast.success("Mahsulot qo'shildi!");
-       navigate("/seller/home");
+      };
+      addProduct(newProduct);
+      toast.success("Mahsulot qo'shildi!");
+      navigate("/seller/home");
     }
   };
 
@@ -245,6 +255,30 @@ export function AddProduct() {
             className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"
           />
         </Card>
+
+        {/* Branch Selection for Admin */}
+        {user?.role === "admin" && (
+          <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
+            <Label className="mb-4 block dark:text-white">
+              Filialni tanlang
+            </Label>
+            <Select
+              value={branchId}
+              onValueChange={setBranchId}
+            >
+              <SelectTrigger className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                <SelectValue placeholder="Filialni tanlang" />
+              </SelectTrigger>
+              <SelectContent>
+                {branches.map(branch => (
+                  <SelectItem key={branch.id} value={branch.id}>
+                    {branch.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Card>
+        )}
 
         {/* Category */}
         <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
