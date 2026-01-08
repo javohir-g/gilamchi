@@ -35,7 +35,6 @@ services:
 staticSites:
   # Frontend Service (React/Vite)
   - name: gilamchi-web
-    runtime: node
     rootDir: .
     buildCommand: npm install && npm run build
     publishDir: dist
