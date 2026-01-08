@@ -109,6 +109,8 @@ export function AddProduct() {
       photo,
       buyPrice: parseFloat(buyPrice),
       sellPrice: parseFloat(sellPrice),
+      collection,
+      availableSizes,
     };
 
     const typeSpecificData = type === "unit"
@@ -255,6 +257,84 @@ export function AddProduct() {
             className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"
           />
         </Card>
+
+        {/* Collection */}
+        <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
+          <Label
+            htmlFor="collection"
+            className="mb-4 block dark:text-white"
+          >
+            Kolleksiya nomi
+          </Label>
+          <Input
+            id="collection"
+            value={collection}
+            onChange={(e) => setCollection(e.target.value)}
+            placeholder="Kolleksiya..."
+            className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"
+          />
+        </Card>
+
+        {/* Available Sizes for Unit Products */}
+        {type === "unit" && (
+          <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
+            <Label className="mb-4 block dark:text-white">
+              O'lchamlar (masalan: 2x3, 3x4)
+            </Label>
+            <div className="flex space-x-2">
+              <Input
+                value={sizeInput}
+                onChange={(e) => setSizeInput(e.target.value)}
+                placeholder="O'lcham (masalan: 2x3)"
+                className="h-12 flex-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (sizeInput && !availableSizes.includes(sizeInput)) {
+                      setAvailableSizes([...availableSizes, sizeInput]);
+                      setSizeInput("");
+                    }
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                className="h-12 px-4 bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (sizeInput && !availableSizes.includes(sizeInput)) {
+                    setAvailableSizes([...availableSizes, sizeInput]);
+                    setSizeInput("");
+                  }
+                }}
+              >
+                <Plus className="h-5 w-5" />
+              </Button>
+            </div>
+            {availableSizes.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {availableSizes.map((size) => (
+                  <Badge
+                    key={size}
+                    variant="secondary"
+                    className="flex items-center py-1 px-3 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 hover:bg-blue-200"
+                  >
+                    {size}
+                    <X
+                      className="ml-2 h-3 w-3 cursor-pointer"
+                      onClick={() =>
+                        setAvailableSizes(
+                          availableSizes.filter((s) => s !== size),
+                        )
+                      }
+                    />
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </Card>
+        )}
+
 
         {/* Branch Selection for Admin */}
         {user?.role === "admin" && (

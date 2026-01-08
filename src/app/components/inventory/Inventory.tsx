@@ -196,11 +196,14 @@ export function Inventory() {
     const uniqueCollections = Array.from(
       new Set(
         relevantProducts
-          .map((p) => p.collection)
-          .filter(Boolean),
+          .map((p) => p.collection || "Kolleksiyasiz")
       ),
     ) as string[];
-    return uniqueCollections.sort();
+    return uniqueCollections.sort((a, b) => {
+      if (a === "Kolleksiyasiz") return 1;
+      if (b === "Kolleksiyasiz") return -1;
+      return a.localeCompare(b);
+    });
   }, [
     products,
     user?.branchId,
@@ -252,7 +255,7 @@ export function Inventory() {
       const isCorrectBranch =
         targetBranchId === "all" ||
         p.branchId === targetBranchId;
-      const matchesCollection = p.collection === collectionName;
+      const matchesCollection = (p.collection || "Kolleksiyasiz") === collectionName;
 
       // Category match logic
       let matchesCategory = false;
@@ -291,7 +294,7 @@ export function Inventory() {
         targetBranchId === "all" ||
         p.branchId === targetBranchId;
       const matchesCollection =
-        p.collection === selectedCollection;
+        (p.collection || "Kolleksiyasiz") === selectedCollection;
 
       // Category match logic
       let matchesCategory = false;
@@ -320,13 +323,15 @@ export function Inventory() {
     // Aggregate all available sizes and extract widths
     const widthSet = new Set<string>();
     relevantProducts.forEach((p) => {
-      if (p.availableSizes) {
+      if (p.availableSizes && p.availableSizes.length > 0) {
         p.availableSizes.forEach((s) => {
           const parts = s.split(/×|x/);
           if (parts.length >= 1) {
             widthSet.add(parts[0].trim());
           }
         });
+      } else {
+        widthSet.add("O'lchamsiz");
       }
     });
 
@@ -355,12 +360,14 @@ export function Inventory() {
         targetBranchId === "all" ||
         p.branchId === targetBranchId;
       const matchesCollection =
-        p.collection === selectedCollection;
-      const hasWidth = p.availableSizes?.some(
-        (s) =>
-          s.startsWith(width + "x") ||
-          s.startsWith(width + "×"),
-      );
+        (p.collection || "Kolleksiyasiz") === selectedCollection;
+      const hasWidth = width === "O'lchamsiz"
+        ? (!p.availableSizes || p.availableSizes.length === 0)
+        : p.availableSizes?.some(
+          (s) =>
+            s.startsWith(width + "x") ||
+            s.startsWith(width + "×"),
+        );
 
       // Category match logic
       let matchesCategory = false;
@@ -402,12 +409,14 @@ export function Inventory() {
         targetBranchId === "all" ||
         p.branchId === targetBranchId;
       const matchesCollection =
-        p.collection === selectedCollection;
-      const hasWidth = p.availableSizes?.some(
-        (s) =>
-          s.startsWith(width + "x") ||
-          s.startsWith(width + "×"),
-      );
+        (p.collection || "Kolleksiyasiz") === selectedCollection;
+      const hasWidth = width === "O'lchamsiz"
+        ? (!p.availableSizes || p.availableSizes.length === 0)
+        : p.availableSizes?.some(
+          (s) =>
+            s.startsWith(width + "x") ||
+            s.startsWith(width + "×"),
+        );
 
       // Category match logic
       let matchesCategory = false;
@@ -457,7 +466,7 @@ export function Inventory() {
         targetBranchId === "all" ||
         p.branchId === targetBranchId;
       const matchesCollection =
-        p.collection === selectedCollection;
+        (p.collection || "Kolleksiyasiz") === selectedCollection;
 
       // Category match logic
       let matchesCategory = false;
@@ -486,7 +495,11 @@ export function Inventory() {
     // Find sizes that match the selected width
     const matchingSizes = new Set<string>();
     relevantProducts.forEach((p) => {
-      if (p.availableSizes) {
+      if (selectedWidth === "O'lchamsiz") {
+        if (!p.availableSizes || p.availableSizes.length === 0) {
+          matchingSizes.add("O'lchamsiz");
+        }
+      } else if (p.availableSizes) {
         p.availableSizes.forEach((s) => {
           const parts = s.split(/×|x/);
           if (
@@ -531,8 +544,10 @@ export function Inventory() {
         targetBranchId === "all" ||
         p.branchId === targetBranchId;
       const matchesCollection =
-        p.collection === selectedCollection;
-      const hasSize = p.availableSizes?.includes(size);
+        (p.collection || "Kolleksiyasiz") === selectedCollection;
+      const hasSize = size === "O'lchamsiz"
+        ? (!p.availableSizes || p.availableSizes.length === 0)
+        : p.availableSizes?.includes(size);
 
       // Category match logic
       let matchesCategory = false;
@@ -581,7 +596,7 @@ export function Inventory() {
       (p) =>
         (targetBranchId === "all" ||
           p.branchId === targetBranchId) &&
-        p.collection === selectedCollection,
+        (p.collection || "Kolleksiyasiz") === selectedCollection,
     );
 
     // Aggregate all available sizes
@@ -628,8 +643,10 @@ export function Inventory() {
         targetBranchId === "all" ||
         p.branchId === targetBranchId;
       const matchesCollection =
-        p.collection === selectedCollection;
-      const hasSize = p.availableSizes?.includes(selectedSize);
+        (p.collection || "Kolleksiyasiz") === selectedCollection;
+      const hasSize = selectedSize === "O'lchamsiz"
+        ? (!p.availableSizes || p.availableSizes.length === 0)
+        : p.availableSizes?.includes(selectedSize);
 
       // Category match logic
       let matchesCategory = false;
