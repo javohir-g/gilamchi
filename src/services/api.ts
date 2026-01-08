@@ -13,7 +13,7 @@ if (envApiUrl && !envApiUrl.startsWith('http')) {
 // If envApiUrl is just the host, it's "https://gilamchi.onrender.com".
 // We need "https://gilamchi.onrender.com/api".
 
-const API_URL = envApiUrl ? `${envApiUrl}/api` : 'http://localhost:8000/api';
+const API_URL = envApiUrl ? `${envApiUrl}/api/` : 'http://localhost:8000/api/';
 // Note: If envApiUrl already has /api (unlikely from Render 'host'), this might double it. 
 // But 'host' is just domain. So this is safe for Render.
 
@@ -166,48 +166,48 @@ const toDebt = (data: any): any => ({
 
 export const authService = {
   login: async (formData: URLSearchParams) => {
-    const response = await api.post('/auth/login', formData, {
+    const response = await api.post('auth/login', formData, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     });
     return response.data;
   },
   getMe: async () => {
-    const response = await api.get('/auth/me');
+    const response = await api.get('auth/me');
     return fromUser(response.data);
   },
   register: async (userData: any) => {
-    const response = await api.post('/auth/register', userData);
+    const response = await api.post('auth/register', userData);
     return fromUser(response.data);
   }
 };
 
 export const branchService = {
   getAll: async () => {
-    const response = await api.get('/branches/');
+    const response = await api.get('branches/');
     return response.data.map(fromBranch);
   },
   getOne: async (id: string) => {
-    const response = await api.get(`/branches/${id}`);
+    const response = await api.get(`branches/${id}`);
     return fromBranch(response.data);
   },
   create: async (data: any) => {
-    const response = await api.post('/branches/', data); // No mapper needed for simple branch create yet
+    const response = await api.post('branches/', data); // No mapper needed for simple branch create yet
     return fromBranch(response.data);
   }
 };
 
 export const productService = {
   getAll: async (filters?: any) => {
-    const response = await api.get('/products/', { params: filters });
+    const response = await api.get('products/', { params: filters });
     return response.data.map(fromProduct);
   },
   getOne: async (id: string) => {
-    const response = await api.get(`/products/${id}`);
+    const response = await api.get(`products/${id}`);
     return fromProduct(response.data);
   },
   create: async (data: any) => {
     const payload = toProduct(data);
-    const response = await api.post('/products/', payload);
+    const response = await api.post('products/', payload);
     return fromProduct(response.data);
   },
   update: async (id: string, data: any) => {
@@ -219,28 +219,28 @@ export const productService = {
 export const salesService = {
   create: async (data: any) => {
     const payload = toSale(data);
-    const response = await api.post('/sales/', payload);
+    const response = await api.post('sales/', payload);
     return fromSale(response.data);
   },
   getAll: async (filters?: any) => {
-    const response = await api.get('/sales/', { params: filters });
+    const response = await api.get('sales/', { params: filters });
     return response.data.map(fromSale);
   }
 };
 
 export const debtService = {
   getAll: async () => {
-    const response = await api.get('/debts/');
+    const response = await api.get('debts/');
     return response.data.map(fromDebt);
   },
   create: async (data: any) => {
     const payload = toDebt(data);
-    const response = await api.post('/debts/', payload);
+    const response = await api.post('debts/', payload);
     return fromDebt(response.data);
   },
   addPayment: async (debtId: string, data: any) => {
     // Payment payload: amount, note?
-    const response = await api.post(`/debts/${debtId}/payments`, data);
+    const response = await api.post(`debts/${debtId}/payments`, data);
     return response.data;
   }
 }
