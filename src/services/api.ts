@@ -1,7 +1,22 @@
 import axios, { AxiosError } from 'axios';
 
 // Get API URL from env or default to localhost
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+let envApiUrl = import.meta.env.VITE_API_URL;
+
+if (envApiUrl && !envApiUrl.startsWith('http')) {
+  // If just a host (e.g. from Render), assume HTTPS and prepend
+  envApiUrl = `https://${envApiUrl}`;
+}
+
+// Ensure /api suffix if not present (Render host implies root, but our prefix is /api)
+// But wait, if defaults to localhost:8000/api, we want consistency.
+// If envApiUrl is just the host, it's "https://gilamchi.onrender.com".
+// We need "https://gilamchi.onrender.com/api".
+
+const API_URL = envApiUrl ? `${envApiUrl}/api` : 'http://localhost:8000/api';
+// Note: If envApiUrl already has /api (unlikely from Render 'host'), this might double it. 
+// But 'host' is just domain. So this is safe for Render.
+
 
 const api = axios.create({
   baseURL: API_URL,
