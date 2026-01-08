@@ -23,19 +23,28 @@ interface Order {
 
 export function DailySales() {
   const navigate = useNavigate();
-  const { user, sales } = useApp();
+  const { user, sales, isAdminViewingAsSeller } = useApp();
   const [expandedOrders, setExpandedOrders] = useState<
     Set<string>
   >(new Set());
 
-  // Filter today's sales for this branch
+  // Filter today's sales
   const todaySales = sales.filter((sale) => {
     const saleDate = new Date(sale.date);
     const today = new Date();
-    return (
-      sale.branchId === user?.branchId &&
-      saleDate.toDateString() === today.toDateString()
-    );
+
+    // Check if precisely same calendar day in local time
+    const dayMatch = saleDate.toDateString() === today.toDateString();
+
+    if (!dayMatch) return false;
+
+    // Apply branch filter only for admins in view-as-seller mode
+    if (user?.role === "admin" && isAdminViewingAsSeller) {
+      return sale.branchId === user.branchId;
+    }
+
+    // For others, we trust the already-filtered list
+    return true;
   });
 
   // Group sales by orderId

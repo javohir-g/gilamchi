@@ -23,7 +23,7 @@ interface Order {
 
 export function SellerHome() {
   const navigate = useNavigate();
-  const { user, sales, branches } = useApp();
+  const { user, sales, branches, isAdminViewingAsSeller } = useApp();
   const [expandedOrders, setExpandedOrders] = useState<
     Set<string>
   >(new Set());
@@ -32,20 +32,41 @@ export function SellerHome() {
     (b) => b.id === user?.branchId,
   );
 
-  // Filter today's sales for this branch
-  const todaySales = sales.filter((sale) => {
+  // Robust date check for "today"
+  const isToday = (dateStr: string) => {
+    const saleDate = new Date(dateStr);
+    const today = new Date();
+
+    // Method 1: local date string comparison
+    if (saleDate.toDateString() === today.toDateString()) return true;
+
+    // Method 2: Check if within last 24h as a fallback or if precisely same calendar day in UTC?
+    // Retail apps usually care about the calendar day. 
+    // Let's stick to calendar day but be careful with timezones.
+    return false;
+  };
+
+  // Filter today's sales
+  const todaySales = sales.filter((sale: Sale) => {
     const saleDate = new Date(sale.date);
     const today = new Date();
-    // Use local date strings for robust "today" comparison across timezones if needed,
-    // but toDateString() is generally okay for same-day local checks.
-    return (
-      sale.branchId === user?.branchId &&
-      saleDate.toDateString() === today.toDateString()
-    );
+    const dayMatch = saleDate.toDateString() === today.toDateString();
+
+    if (!dayMatch) return false;
+
+    // If it's a seller, the API already filtered by their branch.
+    // We only need to apply the branch filter if we are an admin viewing a specific branch.
+    if (user?.role === "admin" && isAdminViewingAsSeller) {
+      return sale.branchId === user.branchId;
+    }
+
+    // For normal sellers (or admins on their own dashboard), 
+    // we trust the list provided by the context (which is already role-filtered).
+    return true;
   });
 
   const totalSalesToday = todaySales.reduce(
-    (sum, sale) => sum + sale.amount,
+    (sum: number, sale: Sale) => sum + sale.amount,
     0,
   );
 
@@ -275,8 +296,8 @@ export function SellerHome() {
                               return (
                                 <div
                                   className={`text-xs font-medium ${totalProfit > 0
-                                      ? "text-green-600 dark:text-green-400"
-                                      : "text-red-600 dark:text-red-400"
+                                    ? "text-green-600 dark:text-green-400"
+                                    : "text-red-600 dark:text-red-400"
                                     }`}
                                 >
                                   {totalProfit > 0 ? "+" : ""}

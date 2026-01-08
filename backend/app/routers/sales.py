@@ -54,9 +54,15 @@ from sqlalchemy.orm import joinedload
 
 @router.get("/", response_model=List[SaleResponse])
 def read_sales(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
-    # Add filtering logic based on user role (Seller sees own branch, Admin sees all)
-    query = db.query(Sale).options(joinedload(Sale.product))
+    # Newest first sorting is critical for the dashboard
+    query = db.query(Sale).options(joinedload(Sale.product)).order_by(Sale.date.desc())
+    
     if current_user.role == "seller":
-        query = query.filter(Sale.branch_id == current_user.branch_id)
+        # Ensure seller only sees their branch
+        if current_user.branch_id:
+            query = query.filter(Sale.branch_id == current_user.branch_id)
+        else:
+            # If for some reason branch_id is missing, show their own sales as fallback
+            query = query.filter(Sale.seller_id == current_user.id)
         
     return query.offset(skip).limit(limit).all()
