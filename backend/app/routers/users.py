@@ -4,7 +4,8 @@ from typing import List
 from ..database import get_db
 from ..models.user import User, UserRole
 from ..schemas.user import UserCreate, UserResponse, UserUpdate
-from ..utils.dependencies import get_current_user, get_admin_user, get_password_hash
+from ..utils.security import get_password_hash
+from ..utils.dependencies import get_current_user, get_admin_user
 
 router = APIRouter()
 
