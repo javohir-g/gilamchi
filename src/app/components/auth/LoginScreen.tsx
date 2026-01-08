@@ -1,63 +1,53 @@
-import { Send } from "lucide-react";
 import { useState } from "react";
+import React from 'react';
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { useApp } from "../../context/AppContext";
+import { authService } from "../../services/api";
 import { toast } from "sonner";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 
 export function LoginScreen() {
   const navigate = useNavigate();
   const { setUser } = useApp();
-  const [code, setCode] = useState("");
-  const [isCodeSent, setIsCodeSent] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleGetCode = () => {
-    // Open Telegram bot in new tab/window
-    // window.open("https://t.me/YOUR_BOT_USERNAME", "_blank");
-    setIsCodeSent(true);
-    // toast("Telegram botga o'ting va kodni oling", {
-    //   duration: 2000,
-    // });
-  };
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-  const handleCodeChange = (value: string) => {
-    // Only allow digits
-    const digits = value.replace(/\D/g, "");
-    if (digits.length <= 5) {
-      setCode(digits);
+    try {
+      const formData = new URLSearchParams();
+      formData.append('username', username);
+      formData.append('password', password);
 
-      // Auto-verify when 5 digits are entered
-      if (digits.length === 5) {
-        verifyCode(digits);
+      const data = await authService.login(formData);
+
+      // Store token
+      localStorage.setItem('token', data.access_token);
+
+      // Get user details
+      const user = await authService.getMe();
+      setUser(user);
+
+      toast.success(`Xush kelibsiz, ${user.name}!`);
+
+      // Redirect based on role
+      if (user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/seller/home');
       }
+    } catch (error) {
+      console.error("Login failed", error);
+      toast.error("Kirishda xatolik! Login yoki parol noto'g'ri.");
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const verifyCode = (enteredCode: string) => {
-    // Mock verification - in real app, this would call an API
-    // For demo: codes ending in 1 = admin, others = seller
-    const isAdmin = enteredCode.endsWith("1");
-
-    const mockUser = {
-      id: enteredCode,
-      name: isAdmin ? "Abdulatif Abdullayev" : "Aziz Gofurov",
-      phone: "+998901234567",
-      role: isAdmin ? ("admin" as const) : ("seller" as const),
-      branchId: isAdmin ? undefined : "b1",
-      branchName: isAdmin ? undefined : "Chilonzor filiali",
-    };
-
-    setUser(mockUser);
-    // toast.success("Xush kelibsiz!", {
-    //   duration: 1000,
-    // });
-
-    // Redirect based on role
-    const redirectPath = isAdmin
-      ? "/admin/dashboard"
-      : "/seller/home";
-    navigate(redirectPath);
   };
 
   return (
@@ -82,55 +72,40 @@ export function LoginScreen() {
         </div>
 
         <Card className="p-6 bg-white dark:bg-white border-gray-200 dark:border-gray-200">
-          <div className="space-y-6">
-            <div className="space-y-2 text-center">
-              <h2 className="text-xl text-gray-900 dark:text-gray-900">
-                Telegram orqali kirish
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-500">
-                Telegram botdan 5 xonali kodni oling va bu yerga
-                kiriting
-              </p>
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-2">
+              <Label className="text-gray-900 dark:text-gray-900">Login</Label>
+              <Input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="admin"
+                className="bg-white dark:bg-white text-gray-900 dark:text-gray-900 border-gray-300 dark:border-gray-300"
+                required
+              />
             </div>
 
-            <div className="space-y-4">
-              <Button
-                onClick={handleGetCode}
-                className="h-14 w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white dark:text-white"
-                size="lg"
-              >
-                <Send className="mr-2 h-5 w-5" />
-                Kodni olish
-              </Button>
-
-              {isCodeSent && (
-                <div className="space-y-3">
-                  <div className="h-px bg-gray-200 dark:bg-gray-200"></div>
-
-                  <div className="space-y-2">
-                    <label className="block text-center text-sm text-gray-700 dark:text-gray-700">
-                      5 xonali kodni kiriting
-                    </label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={code}
-                      onChange={(e) =>
-                        handleCodeChange(e.target.value)
-                      }
-                      placeholder="12345"
-                      className="h-16 w-full rounded-lg border-2 border-gray-300 dark:border-gray-300 bg-white dark:bg-white text-gray-900 dark:text-gray-900 text-center text-2xl tracking-widest focus:border-blue-600 dark:focus:border-blue-600 focus:outline-none placeholder:text-gray-400 dark:placeholder:text-gray-400"
-                      autoFocus
-                    />
-                  </div>
-
-                  <p className="text-center text-xs text-gray-500 dark:text-gray-500">
-                    Kod avtomatik tekshiriladi
-                  </p>
-                </div>
-              )}
+            <div className="space-y-2">
+              <Label className="text-gray-900 dark:text-gray-900">Parol</Label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="********"
+                className="bg-white dark:bg-white text-gray-900 dark:text-gray-900 border-gray-300 dark:border-gray-300"
+                required
+              />
             </div>
-          </div>
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white"
+              size="lg"
+            >
+              {loading ? "Kirish..." : "Kirish"}
+            </Button>
+          </form>
         </Card>
 
         <div className="text-center text-sm text-gray-500 dark:text-gray-500">
