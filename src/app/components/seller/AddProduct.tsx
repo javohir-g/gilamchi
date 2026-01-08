@@ -486,6 +486,12 @@ export function AddProduct() {
               <SelectItem value="Metrajlar">
                 Metrajlar
               </SelectItem>
+              <SelectItem value="Ovalniy">
+                Ovalniy
+              </SelectItem>
+              <SelectItem value="Kovrik">
+                Kovrik
+              </SelectItem>
             </SelectContent>
           </Select>
         </Card>

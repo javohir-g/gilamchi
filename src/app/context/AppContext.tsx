@@ -17,11 +17,10 @@ import {
 export type UserRole = "admin" | "seller";
 export type ProductType = "unit" | "meter";
 export type PaymentType = "cash" | "card" | "transfer";
-export type Category =
-  | "Gilamlar"
-  | "Paloslar"
   | "Joynamozlar"
-  | "Metrajlar";
+  | "Metrajlar"
+  | "Ovalniy"
+  | "Kovrik";
 export type Theme = "light" | "dark";
 
 export interface User {
@@ -261,7 +260,7 @@ export function AppProvider({
         if (token) {
           const userData = await authService.getMe();
           setUser(userData);
-          fetchData(); 
+          fetchData();
         }
       } catch (error) {
         console.error("Auth check failed", error);
@@ -289,7 +288,7 @@ export function AppProvider({
       await productService.create(product);
       await fetchData();
     } catch (error) {
-       console.error("Failed to add product", error);
+      console.error("Failed to add product", error);
     }
   };
 

@@ -68,7 +68,7 @@ type CategoryType =
   | "Gilamlar"
   | "Metrajlar"
   | "Ovalniy"
-  | "Kovriy";
+  | "Kovrik";
 
 export function Inventory() {
   const navigate = useNavigate();
@@ -149,7 +149,7 @@ export function Inventory() {
       bgColor:
         "bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800",
     },
-    Kovriy: {
+    Kovrik: {
       icon: "🔶",
       color: "text-orange-700 dark:text-orange-400",
       bgColor:
