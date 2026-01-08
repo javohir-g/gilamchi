@@ -4,6 +4,11 @@ import axios, { AxiosError } from 'axios';
 let envApiUrl = import.meta.env.VITE_API_URL;
 
 if (envApiUrl && !envApiUrl.startsWith('http')) {
+  // If it's a Render internal host (no dots), it won't resolve in the browser.
+  // We append .onrender.com to make it the public URL.
+  if (!envApiUrl.includes('.')) {
+    envApiUrl = `${envApiUrl}.onrender.com`;
+  }
   envApiUrl = `https://${envApiUrl}`;
 }
 
