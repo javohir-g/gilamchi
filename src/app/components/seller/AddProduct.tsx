@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
-import { ArrowLeft, Upload, X, Plus } from "lucide-react";
+import { useState, useEffect, useMemo, useRef, ChangeEvent } from "react";
+import { ArrowLeft, Upload, X, Plus, Camera, Image as ImageIcon } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
@@ -69,6 +69,30 @@ export function AddProduct() {
       setBranchId(branches[0].id);
     }
   }, [user, branches]);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhoto(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerFileInput = (useCamera: boolean) => {
+    if (fileInputRef.current) {
+      if (useCamera) {
+        fileInputRef.current.setAttribute("capture", "environment");
+      } else {
+        fileInputRef.current.removeAttribute("capture");
+      }
+      fileInputRef.current.click();
+    }
+  };
 
   // Populate form if in edit mode
   useEffect(() => {
@@ -239,18 +263,55 @@ export function AddProduct() {
             Mahsulot rasmi
           </Label>
           <div className="space-y-4">
-            <img
-              src={photo}
-              alt="Product"
-              className="h-48 w-full rounded-lg object-cover"
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept="image/*"
+              className="hidden"
             />
-            <Button
-              variant="outline"
-              className="w-full h-12 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
-            >
-              <Upload className="mr-2 h-5 w-5" />
-              Rasm yuklash
-            </Button>
+            {photo ? (
+              <div className="relative">
+                <img
+                  src={photo}
+                  alt="Product"
+                  className="h-48 w-full rounded-lg object-cover"
+                />
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2 rounded-full"
+                  onClick={() => setPhoto("https://via.placeholder.com/400x500?text=Kafit+Rasm")}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="h-48 w-full rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600">
+                <ImageIcon className="h-12 w-12 text-gray-400" />
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-12 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
+                onClick={() => triggerFileInput(true)}
+              >
+                <Camera className="mr-2 h-5 w-5" />
+                Rasmga olish
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-12 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
+                onClick={() => triggerFileInput(false)}
+              >
+                <ImageIcon className="mr-2 h-5 w-5" />
+                Galereyadan
+              </Button>
+            </div>
           </div>
         </Card>
 

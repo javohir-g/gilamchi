@@ -25,9 +25,6 @@ export function SellProduct() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] =
     useState<Category | null>(null);
-  const [selectedCollection, setSelectedCollection] = useState<
-    string | null
-  >(null);
   const navigate = useNavigate();
   const { products, user, basket, addToBasket } = useApp();
 
@@ -36,37 +33,32 @@ export function SellProduct() {
     label: string;
     icon: string;
   }[] = [
-    { name: "Gilamlar", label: "Gilamlar", icon: "🧵" },
-    { name: "Metrajlar", label: "Metrajlar", icon: "📏" },
-    { name: "Paloslar", label: "Paloslar", icon: "🧶" },
-    { name: "Joynamozlar", label: "Joynamozlar", icon: "🕌" },
-    { name: "Ovalniy", label: "Ovalniy", icon: "⭕" },
-    { name: "Kovrik", label: "Kovrik", icon: "🔲" },
-  ];
+      { name: "Gilamlar", label: "Gilamlar", icon: "🧵" },
+      { name: "Metrajlar", label: "Metrajlar", icon: "📏" },
+      { name: "Paloslar", label: "Paloslar", icon: "🧶" },
+      { name: "Joynamozlar", label: "Joynamozlar", icon: "🕌" },
+      { name: "Ovalniy", label: "Ovalniy", icon: "⭕" },
+      { name: "Kovrik", label: "Kovrik", icon: "🔲" },
+    ];
 
-  // Collections for Gilamlar category
-  const collections = [
-    { name: "Lara", icon: "🌺" },
-    { name: "Emili", icon: "🌸" },
-    { name: "Melord", icon: "👑" },
-    { name: "Mashad", icon: "🎨" },
-    { name: "Izmir", icon: "✨" },
-    { name: "Isfahan", icon: "🏛️" },
-    { name: "Prestige", icon: "💎" },
-    { name: "Sultan", icon: "🕌" },
-  ];
+  const getCollectionIcon = (collectionName?: string) => {
+    if (!collectionName) return "";
+    const lower = collectionName.toLowerCase();
+    if (lower.includes("lara")) return "🌺";
+    if (lower.includes("emili") || lower.includes("emily")) return "🌸";
+    if (lower.includes("melord")) return "👑";
+    if (lower.includes("mashad")) return "🎨";
+    if (lower.includes("izmir")) return "✨";
+    if (lower.includes("isfahan")) return "🏛️";
+    if (lower.includes("prestige")) return "💎";
+    if (lower.includes("sultan")) return "🕌";
 
-  // Collections for Metrajlar category
-  const metrajCollections = [
-    { name: "Lara", icon: "🌺" },
-    { name: "Emili", icon: "🌸" },
-    { name: "Melord", icon: "👑" },
-    { name: "Mashad", icon: "🎨" },
-    { name: "Izmir", icon: "✨" },
-    { name: "Isfahan", icon: "🏛️" },
-    { name: "Prestige", icon: "💎" },
-    { name: "Sultan", icon: "🕌" },
-  ];
+    // Check if the collection name already has an emoji at the start
+    const emojiRegex = /^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/;
+    if (emojiRegex.test(collectionName)) return ""; // Already has one
+
+    return "🏷️"; // Default icon
+  };
 
   // Filter products by branch, category, and search
   const filteredProducts = products.filter((product) => {
@@ -74,10 +66,7 @@ export function SellProduct() {
     const matchesCategory = selectedCategory
       ? product.category === selectedCategory
       : true;
-    const matchesCollection =
-      (selectedCategory === "Gilamlar" || selectedCategory === "Metrajlar") && selectedCollection
-        ? product.collection === selectedCollection
-        : true;
+    const matchesCollection = true; // Always true as we don't filter by collection anymore
     const matchesSearch =
       product.name
         .toLowerCase()
@@ -126,29 +115,12 @@ export function SellProduct() {
     navigate(`/seller/sell/${productId}`);
   };
 
-  const handleBackToCategories = () => {
-    setSelectedCategory(null);
-    setSelectedCollection(null);
-    setSearchQuery("");
-  };
-
-  const handleBackToCollections = () => {
-    setSelectedCollection(null);
-    setSearchQuery("");
-  };
-
   const handleBackButton = () => {
     if (searchQuery) {
-      // If searching, clear search
       setSearchQuery("");
-    } else if (selectedCollection) {
-      // If collection is selected, go back to collections
-      handleBackToCollections();
     } else if (selectedCategory) {
-      // If category is selected, go back to categories
-      handleBackToCategories();
+      setSelectedCategory(null);
     } else {
-      // Otherwise, navigate back
       navigate(-1);
     }
   };
@@ -315,75 +287,10 @@ export function SellProduct() {
         </div>
       )}
 
-      {/* Collection Selection View - Only for Gilamlar */}
-      {selectedCategory === "Gilamlar" && !selectedCollection && !searchQuery && (
-        <div className="p-4">
-          <div className="grid grid-cols-2 gap-3">
-            {collections.map((collection) => {
-              const count = getCollectionCount(collection.name);
-              return (
-                <Card
-                  key={collection.name}
-                  className="cursor-pointer border border-border bg-card transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] dark:hover:shadow-xl dark:hover:shadow-blue-900/10"
-                  onClick={() => setSelectedCollection(collection.name)}
-                >
-                  <div className="p-6 text-center">
-                    <div className="text-5xl mb-3">
-                      {collection.icon}
-                    </div>
-                    <h3 className="text-lg mb-2 text-card-foreground">
-                      {collection.name}
-                    </h3>
-                    <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
-                      <Package className="h-4 w-4" />
-                      <span>{count} dona</span>
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Collection Selection View - Only for Metrajlar */}
-      {selectedCategory === "Metrajlar" && !selectedCollection && !searchQuery && (
-        <div className="p-4">
-          <div className="grid grid-cols-2 gap-3">
-            {metrajCollections.map((collection) => {
-              const count = getMetrajCollectionCount(collection.name);
-              return (
-                <Card
-                  key={collection.name}
-                  className="cursor-pointer border border-border bg-card transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] dark:hover:shadow-xl dark:hover:shadow-blue-900/10"
-                  onClick={() => setSelectedCollection(collection.name)}
-                >
-                  <div className="p-6 text-center">
-                    <div className="text-5xl mb-3">
-                      {collection.icon}
-                    </div>
-                    <h3 className="text-lg mb-2 text-card-foreground">
-                      {collection.name}
-                    </h3>
-                    <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
-                      <Package className="h-4 w-4" />
-                      <span>{count} dona</span>
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {/* Product List View - Show when: 
-          1. Non-Gilamlar/Metrajlar category selected OR
-          2. Collection selected OR 
-          3. Search query exists */}
-      {((selectedCategory && selectedCategory !== "Gilamlar" && selectedCategory !== "Metrajlar") || 
-        selectedCollection || 
-        searchQuery) && (
+          1. Category selected OR 
+          2. Search query exists */}
+      {(selectedCategory || searchQuery) && (
         <div className="p-4 space-y-3">
           {/* Collection Filters - Only for Gilamlar category */}
           {/* Removed - using collection cards instead */}
@@ -406,9 +313,17 @@ export function SellProduct() {
                       className="w-full aspect-[4/5] object-cover cursor-pointer"
                     />
                     <div className="p-3 space-y-2">
-                      <h3 className="text-sm text-card-foreground cursor-pointer line-clamp-2 mt-[0px] mr-[0px] mb-[16px] ml-[0px]">
-                        {product.name}
-                      </h3>
+                      <div className="space-y-1">
+                        <h3 className="text-sm font-medium text-card-foreground line-clamp-2">
+                          {product.name}
+                        </h3>
+                        {product.collection && (
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <span>{getCollectionIcon(product.collection)}</span>
+                            <span className="ml-1">{product.collection}</span>
+                          </div>
+                        )}
+                      </div>
                       <Button
                         onClick={(e) =>
                           handleOpenBasketModal(e, product)
@@ -469,16 +384,14 @@ export function SellProduct() {
               <button
                 onClick={handleTapToScan}
                 disabled={isAnalyzing}
-                className={`w-24 h-24 rounded-full border-4 border-white flex items-center justify-center transition-all ${
-                  isAnalyzing
+                className={`w-24 h-24 rounded-full border-4 border-white flex items-center justify-center transition-all ${isAnalyzing
                     ? "bg-gray-400"
                     : "bg-white/10 active:scale-95"
-                }`}
+                  }`}
               >
                 <div
-                  className={`w-20 h-20 rounded-full ${
-                    isAnalyzing ? "bg-gray-300" : "bg-white"
-                  }`}
+                  className={`w-20 h-20 rounded-full ${isAnalyzing ? "bg-gray-300" : "bg-white"
+                    }`}
                 />
               </button>
               <p className="text-white text-lg">
