@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { useApp } from "../../context/AppContext";
-import { authService } from "../../services/api";
+import { authService } from "../../../services/api";
 import { toast } from "sonner";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
