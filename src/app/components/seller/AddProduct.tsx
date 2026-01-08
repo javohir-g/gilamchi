@@ -44,8 +44,21 @@ export function AddProduct() {
   const [sellPricePerMeter, setSellPricePerMeter] =
     useState("");
   const [collection, setCollection] = useState("");
+  const [customCollection, setCustomCollection] = useState("");
+  const [isCustomCollection, setIsCustomCollection] = useState(false);
   const [availableSizes, setAvailableSizes] = useState<string[]>([]);
   const [sizeInput, setSizeInput] = useState("");
+
+  const predefinedCollections = [
+    "🌺 Lara",
+    "🌸 Emili",
+    "👑 Melord",
+    "🎨 Mashad",
+    "✨ Izmir",
+    "🏛️ Isfahan",
+    "💎 Prestige",
+    "🕌 Sultan"
+  ];
   const [branchId, setBranchId] = useState<string>(user?.branchId || (branches.length > 0 ? branches[0].id : ""));
 
   // Update branchId if user or branches load
@@ -266,13 +279,44 @@ export function AddProduct() {
           >
             Kolleksiya nomi
           </Label>
-          <Input
-            id="collection"
-            value={collection}
-            onChange={(e) => setCollection(e.target.value)}
-            placeholder="Kolleksiya..."
-            className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"
-          />
+          <div className="space-y-4">
+            <Select
+              value={isCustomCollection ? "custom" : collection}
+              onValueChange={(v) => {
+                if (v === "custom") {
+                  setIsCustomCollection(true);
+                  setCollection(customCollection);
+                } else {
+                  setIsCustomCollection(false);
+                  setCollection(v);
+                }
+              }}
+            >
+              <SelectTrigger className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                <SelectValue placeholder="Kolleksiyani tanlang" />
+              </SelectTrigger>
+              <SelectContent>
+                {predefinedCollections.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+                <SelectItem value="custom">Boshqa...</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {isCustomCollection && (
+              <Input
+                value={customCollection}
+                onChange={(e) => {
+                  setCustomCollection(e.target.value);
+                  setCollection(e.target.value);
+                }}
+                placeholder="Kolleksiya nomini kiriting..."
+                className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              />
+            )}
+          </div>
         </Card>
 
         {/* Available Sizes for Unit Products */}
