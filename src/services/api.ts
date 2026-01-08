@@ -14,6 +14,7 @@ if (envApiUrl && !envApiUrl.startsWith('http')) {
 // We need "https://gilamchi.onrender.com/api".
 
 const API_URL = envApiUrl ? `${envApiUrl}/api/` : 'http://localhost:8000/api/';
+console.log("Constructed API_URL:", API_URL);
 // Note: If envApiUrl already has /api (unlikely from Render 'host'), this might double it. 
 // But 'host' is just domain. So this is safe for Render.
 

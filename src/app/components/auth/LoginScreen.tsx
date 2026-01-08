@@ -44,7 +44,8 @@ export function LoginScreen() {
       }
     } catch (error) {
       console.error("Login failed", error);
-      toast.error("Kirishda xatolik! Login yoki parol noto'g'ri.");
+      const msg = (error as any).response?.data?.detail || "Login yoki parol noto'g'ri.";
+      toast.error(`Kirishda xatolik! ${msg}`);
     } finally {
       setLoading(false);
     }
