@@ -65,7 +65,8 @@ type ViewMode =
   | "heights"
   | "products";
 type CategoryType =
-  | "Gilamlar"
+  | "Paloslar"
+  | "Joynamozlar"
   | "Metrajlar"
   | "Ovalniy"
   | "Kovrik";
@@ -137,6 +138,18 @@ export function Inventory() {
       bgColor:
         "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800",
     },
+    Paloslar: {
+      icon: "🧹",
+      color: "text-amber-700 dark:text-amber-400",
+      bgColor:
+        "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800",
+    },
+    Joynamozlar: {
+      icon: "🛐",
+      color: "text-rose-700 dark:text-rose-400",
+      bgColor:
+        "bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800",
+    },
     Metrajlar: {
       icon: "📏",
       color: "text-green-700 dark:text-green-400",
@@ -174,20 +187,20 @@ export function Inventory() {
       // Category match logic
       let matchesCategory = false;
       if (selectedCategoryType === "Gilamlar") {
-        matchesCategory =
-          (p.category === "Gilamlar" ||
-            p.category === "Paloslar" ||
-            p.category === "Joynamozlar") &&
-          p.type === "unit";
+        matchesCategory = p.category === "Gilamlar" && p.type === "unit";
+      } else if (selectedCategoryType === "Paloslar") {
+        matchesCategory = p.category === "Paloslar" && p.type === "unit";
+      } else if (selectedCategoryType === "Joynamozlar") {
+        matchesCategory = p.category === "Joynamozlar" && p.type === "unit";
       } else if (selectedCategoryType === "Metrajlar") {
         matchesCategory =
           p.category === "Metrajlar" || p.type === "meter";
       } else if (selectedCategoryType === "Ovalniy") {
         matchesCategory =
           p.category === "Ovalniy" && p.type === "unit";
-      } else if (selectedCategoryType === "Kovriy") {
+      } else if (selectedCategoryType === "Kovrik") {
         matchesCategory =
-          p.category === "Kovriy" && p.type === "unit";
+          p.category === "Kovrik" && p.type === "unit";
       }
 
       return isCorrectBranch && matchesCategory;
@@ -224,20 +237,20 @@ export function Inventory() {
 
       let matchesCategory = false;
       if (categoryType === "Gilamlar") {
-        matchesCategory =
-          (p.category === "Gilamlar" ||
-            p.category === "Paloslar" ||
-            p.category === "Joynamozlar") &&
-          p.type === "unit";
+        matchesCategory = p.category === "Gilamlar" && p.type === "unit";
+      } else if (categoryType === "Paloslar") {
+        matchesCategory = p.category === "Paloslar" && p.type === "unit";
+      } else if (categoryType === "Joynamozlar") {
+        matchesCategory = p.category === "Joynamozlar" && p.type === "unit";
       } else if (categoryType === "Metrajlar") {
         matchesCategory =
           p.category === "Metrajlar" || p.type === "meter";
       } else if (categoryType === "Ovalniy") {
         matchesCategory =
           p.category === "Ovalniy" && p.type === "unit";
-      } else if (categoryType === "Kovriy") {
+      } else if (categoryType === "Kovrik") {
         matchesCategory =
-          p.category === "Kovriy" && p.type === "unit";
+          p.category === "Kovrik" && p.type === "unit";
       }
 
       return isCorrectBranch && matchesCategory;
@@ -820,17 +833,19 @@ export function Inventory() {
         {(
           [
             "Gilamlar",
+            "Paloslar",
+            "Joynamozlar",
             "Metrajlar",
             "Ovalniy",
-            "Kovriy",
+            "Kovrik",
           ] as CategoryType[]
         ).map((category) => {
           const count = getCategoryCount(category);
-          const config = categoryConfig[category];
+          const config = categoryConfig[category] || categoryConfig["Gilamlar"];
           return (
             <Card
               key={category}
-              className={`cursor-pointer border-2 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] ${config.bgColor}`}
+              className={`cursor-pointer border-2 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] ${config?.bgColor || "bg-gray-50 border-gray-200"}`}
               onClick={() => handleCategorySelect(category)}
             >
               <div className="p-6 text-center">
