@@ -17,6 +17,9 @@ import {
 export type UserRole = "admin" | "seller";
 export type ProductType = "unit" | "meter";
 export type PaymentType = "cash" | "card" | "transfer";
+export type Category =
+  | "Gilamlar"
+  | "Paloslar"
   | "Joynamozlar"
   | "Metrajlar"
   | "Ovalniy"
