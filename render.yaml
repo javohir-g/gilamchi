@@ -38,7 +38,7 @@ services:
     env: static
     rootDir: .
     buildCommand: npm install && npm run build
-    publishDir: dist
+    staticPublishPath: dist
     routes:
       - type: rewrite
         source: /*
