@@ -4,16 +4,23 @@ import axios, { AxiosError } from 'axios';
 let envApiUrl = import.meta.env.VITE_API_URL;
 
 if (envApiUrl && !envApiUrl.startsWith('http')) {
-  // If just a host (e.g. from Render), assume HTTPS and prepend
   envApiUrl = `https://${envApiUrl}`;
 }
 
-// Ensure /api suffix if not present (Render host implies root, but our prefix is /api)
-// But wait, if defaults to localhost:8000/api, we want consistency.
-// If envApiUrl is just the host, it's "https://gilamchi.onrender.com".
-// We need "https://gilamchi.onrender.com/api".
+// Construct API_URL carefully:
+// 1. If no env, use localhost
+// 2. If env exists, ensure it ends with /api/ (case insensitive and handle trailing slashes)
+let API_URL = 'http://localhost:8000/api/';
 
-const API_URL = envApiUrl ? `${envApiUrl}/api/` : 'http://localhost:8000/api/';
+if (envApiUrl) {
+  let base = envApiUrl.trim();
+  if (base.endsWith('/')) base = base.slice(0, -1);
+  if (!base.toLowerCase().endsWith('/api')) {
+    base = `${base}/api`;
+  }
+  API_URL = `${base}/`;
+}
+
 console.log("Constructed API_URL:", API_URL);
 // Note: If envApiUrl already has /api (unlikely from Render 'host'), this might double it. 
 // But 'host' is just domain. So this is safe for Render.
