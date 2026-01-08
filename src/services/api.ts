@@ -128,7 +128,8 @@ const fromSale = (data: any): any => ({
   paymentType: data.payment_type,
   branchId: data.branch_id,
   sellerId: data.seller_id,
-  date: data.created_at, // Use created_at as date
+  date: data.date, // Use the actual business date field
+  orderId: data.order_id,
   type: data.product?.type || "unit" // Nested info
 });
 
@@ -139,6 +140,7 @@ const toSale = (data: any): any => ({
   payment_type: data.paymentType,
   branch_id: data.branchId,
   seller_id: data.sellerId,
+  order_id: data.orderId,
   // Backend calculates profit, checks stock etc.
 });
 

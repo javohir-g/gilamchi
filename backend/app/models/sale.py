@@ -24,6 +24,7 @@ class Sale(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     profit: Mapped[float] = mapped_column(DECIMAL(15, 2), default=0) # Extra profit
     
     date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    order_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
 
     # Relationships
     product = relationship("Product") # back_populates="sales" if defined there

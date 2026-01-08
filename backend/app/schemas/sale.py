@@ -18,11 +18,13 @@ class SaleCreate(BaseModel):
     quantity: float
     payment_type: PaymentType
     amount: Optional[float] = None # Can be calculated, or provided
+    order_id: Optional[str] = None
 
 class SaleResponse(SaleBase):
     id: UUID4
     date: datetime
     created_at: datetime
+    order_id: Optional[str] = None
     product: Optional[ProductResponse] = None
     
     class Config:

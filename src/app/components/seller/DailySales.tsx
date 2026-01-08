@@ -51,7 +51,7 @@ export function DailySales() {
   const orders: Order[] = [];
   const orderMap = new Map<string, Sale[]>();
 
-  todaySales.forEach((sale) => {
+  todaySales.forEach((sale: Sale) => {
     const orderId = sale.orderId || sale.id; // Use sale.id for single-product sales
     if (!orderMap.has(orderId)) {
       orderMap.set(orderId, []);
@@ -61,7 +61,7 @@ export function DailySales() {
 
   orderMap.forEach((orderSales, orderId) => {
     const totalAmount = orderSales.reduce(
-      (sum, s) => sum + s.amount,
+      (sum: number, s: Sale) => sum + s.amount,
       0,
     );
     const paymentTypes = [

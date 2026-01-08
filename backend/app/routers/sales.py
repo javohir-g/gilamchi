@@ -42,6 +42,7 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
         quantity=sale.quantity,
         amount=sale.amount or (float(product.sell_price) * sale.quantity), # Fallback calculation
         payment_type=sale.payment_type,
+        order_id=sale.order_id,
         profit=0 # Logic to calculate extra profit can be complex if sale amount varies
     )
     
