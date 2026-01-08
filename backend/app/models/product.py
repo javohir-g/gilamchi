@@ -10,7 +10,7 @@ class ProductCategory(str, enum.Enum):
     JOYNAMOZLAR = "Joynamozlar"
     METRAJLAR = "Metrajlar"
     OVALNIY = "Ovalniy"
-    KOVRIY = "Kovriy"
+    KOVRIK = "Kovrik"
 
 class ProductType(str, enum.Enum):
     UNIT = "unit"

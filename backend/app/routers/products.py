@@ -21,7 +21,8 @@ def read_products(
     query = db.query(Product).filter(Product.deleted_at == None)
     
     if current_user.role == "seller" and not branch_id:
-        branch_id = str(current_user.branch_id)
+        if current_user.branch_id:
+            branch_id = str(current_user.branch_id)
     
     if branch_id and branch_id != "all":
         query = query.filter(Product.branch_id == branch_id)
