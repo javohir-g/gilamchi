@@ -1,6 +1,7 @@
 from sqlalchemy import String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base import UUIDMixin, TimestampMixin, SoftDeleteMixin, Base
+import uuid
 
 class Branch(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     __tablename__ = "branches"

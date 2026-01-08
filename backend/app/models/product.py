@@ -1,6 +1,7 @@
 from sqlalchemy import String, Integer, Float, Enum as SQLEnum, ForeignKey, Uuid, JSON, DECIMAL
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 import enum
+import uuid
 from .base import UUIDMixin, TimestampMixin, SoftDeleteMixin, Base
 
 class ProductCategory(str, enum.Enum):
