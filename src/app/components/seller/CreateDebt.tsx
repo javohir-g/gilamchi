@@ -1,0 +1,310 @@
+import { useState } from "react";
+import { ArrowLeft, Calendar, User, FileText, DollarSign, Save, Phone } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Button } from "../ui/button";
+import { Card } from "../ui/card";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { useApp, BasketItem, Debt } from "../../context/AppContext";
+import { toast } from "sonner";
+
+interface LocationState {
+  basketItems: BasketItem[];
+  totalAmount: number;
+  paidAmount: number;
+  remainingAmount: number;
+}
+
+export function CreateDebt() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { addDebt, user, clearBasket } = useApp();
+  
+  const state = location.state as LocationState | null;
+  
+  // If no state, redirect back
+  if (!state || !user) {
+    navigate("/seller/checkout");
+    return null;
+  }
+
+  const { basketItems, totalAmount, paidAmount, remainingAmount } = state;
+
+  const [debtorName, setDebtorName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [orderDetails, setOrderDetails] = useState(() => {
+    // Auto-generate order details from basket items
+    return basketItems
+      .map((item) => {
+        if (item.width && item.height && item.area) {
+          return `${item.productName} (${item.width}×${item.height})`;
+        }
+        return `${item.productName} (${item.quantity}x)`;
+      })
+      .join(", ");
+  });
+  const [customRemainingAmount, setCustomRemainingAmount] = useState(
+    remainingAmount.toString()
+  );
+  const [paymentDeadline, setPaymentDeadline] = useState(() => {
+    // Default to 7 days from now
+    const date = new Date();
+    date.setDate(date.getDate() + 7);
+    return date.toISOString().split("T")[0];
+  });
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("uz-UZ").format(amount) + " so'm";
+  };
+
+  const handleSaveDebt = () => {
+    if (!debtorName.trim()) {
+      toast.error("Qarzdor ismini kiriting!");
+      return;
+    }
+
+    if (!phoneNumber.trim()) {
+      toast.error("Telefon raqamini kiriting!");
+      return;
+    }
+
+    if (!orderDetails.trim()) {
+      toast.error("Buyurtma ma'lumotlarini kiriting!");
+      return;
+    }
+
+    const remaining = parseFloat(customRemainingAmount) || 0;
+    if (remaining <= 0) {
+      toast.error("To'lanmagan summa noto'g'ri!");
+      return;
+    }
+
+    if (!paymentDeadline) {
+      toast.error("To'lov muddatini tanlang!");
+      return;
+    }
+
+    // Create debt
+    const debt: Debt = {
+      id: `d${Date.now()}`,
+      debtorName: debtorName.trim(),
+      phoneNumber: phoneNumber.trim(),
+      orderDetails: orderDetails.trim(),
+      totalAmount: totalAmount,
+      paidAmount: paidAmount,
+      remainingAmount: remaining,
+      paymentDeadline: new Date(paymentDeadline).toISOString(),
+      branchId: user.branchId || "",
+      sellerId: user.id,
+      sellerName: user.name,
+      date: new Date().toISOString(),
+      status: "pending",
+      orderItems: basketItems,
+    };
+
+    addDebt(debt);
+    clearBasket();
+    toast.success("Qarz muvaffaqiyatli saqlandi!");
+    navigate("/seller/home");
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-32">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
+        <div className="flex items-center space-x-4 p-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/seller/checkout")}
+          >
+            <ArrowLeft className="h-6 w-6 dark:text-white" />
+          </Button>
+          <h1 className="text-2xl dark:text-white">Qarzga yozish</h1>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-6 space-y-6">
+        {/* Order Summary Card */}
+        <Card className="p-6 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950 dark:border-orange-800 border-2 border-orange-100">
+          <h3 className="font-semibold text-lg mb-4 dark:text-white">
+            Buyurtma xulosasi
+          </h3>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600 dark:text-gray-400">
+                Jami narx:
+              </span>
+              <span className="font-semibold dark:text-white">
+                {formatCurrency(totalAmount)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600 dark:text-gray-400">
+                To'langan:
+              </span>
+              <span className="font-semibold text-green-600 dark:text-green-400">
+                {formatCurrency(paidAmount)}
+              </span>
+            </div>
+            <div className="pt-3 border-t dark:border-orange-700">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-700 dark:text-gray-300 font-medium">
+                  Qarz:
+                </span>
+                <span className="text-xl font-bold text-red-600 dark:text-red-400">
+                  {formatCurrency(remainingAmount)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Debtor Information Form */}
+        <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
+          <div className="space-y-5">
+            {/* Debtor Name */}
+            <div>
+              <Label className="text-base font-semibold dark:text-white mb-3 flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Qarzdor ismi{" "}
+                <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                type="text"
+                value={debtorName}
+                onChange={(e) => setDebtorName(e.target.value)}
+                className="h-14 text-lg dark:bg-gray-700 dark:text-white border-2"
+                placeholder="Masalan: Ali Karimov"
+              />
+            </div>
+
+            {/* Phone Number */}
+            <div>
+              <Label className="text-base font-semibold dark:text-white mb-3 flex items-center gap-2">
+                <Phone className="h-5 w-5" />
+                Telefon raqami{" "}
+                <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="h-14 text-lg dark:bg-gray-700 dark:text-white border-2"
+                placeholder="Masalan: +998 90 123 45 67"
+              />
+            </div>
+
+            {/* Order Details */}
+            <div>
+              <Label className="text-base font-semibold dark:text-white mb-3 flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Buyurtma ma'lumotlari{" "}
+                <span className="text-red-500">*</span>
+              </Label>
+              <textarea
+                value={orderDetails}
+                onChange={(e) => setOrderDetails(e.target.value)}
+                className="w-full h-24 px-4 py-3 text-base rounded-lg border-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 resize-none"
+                placeholder="Masalan: Isfahan Carpet (3×4), Joynamoz (2x)"
+              />
+            </div>
+
+            {/* Remaining Amount */}
+            <div>
+              <Label className="text-base font-semibold dark:text-white mb-3 flex items-center gap-2">
+                <DollarSign className="h-5 w-5" />
+                To'lanmagan summa{" "}
+                <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                type="number"
+                value={customRemainingAmount}
+                onChange={(e) => setCustomRemainingAmount(e.target.value)}
+                className="h-14 text-lg font-semibold dark:bg-gray-700 dark:text-white border-2 border-orange-400 dark:border-orange-600"
+                placeholder="0"
+                min="0"
+              />
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                Avtomatik hisoblangan: {formatCurrency(remainingAmount)}
+              </p>
+            </div>
+
+            {/* Payment Deadline */}
+            <div>
+              <Label className="text-base font-semibold dark:text-white mb-3 flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                To'lov muddati{" "}
+                <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                type="date"
+                value={paymentDeadline}
+                onChange={(e) => setPaymentDeadline(e.target.value)}
+                className="h-14 text-lg dark:bg-gray-700 dark:text-white border-2"
+                min={new Date().toISOString().split("T")[0]}
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* Order Items Preview */}
+        <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
+          <h3 className="font-semibold text-lg mb-4 dark:text-white">
+            Sotilgan mahsulotlar
+          </h3>
+          <div className="space-y-3">
+            {basketItems.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+              >
+                <img
+                  src={item.photo}
+                  alt={item.productName}
+                  className="h-16 w-16 rounded-lg object-cover"
+                />
+                <div className="flex-1">
+                  <p className="font-medium dark:text-white">
+                    {item.productName}
+                  </p>
+                  {item.width && item.height && item.area && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {item.width}×{item.height} ({item.area.toFixed(2)} m²)
+                    </p>
+                  )}
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    {formatCurrency(item.total)}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+
+      {/* Fixed Bottom Buttons */}
+      <div className="fixed bottom-0 left-0 right-0 border-t dark:border-gray-700 p-6 bg-white dark:bg-gray-800">
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/seller/checkout")}
+            className="h-14 flex-1 text-base dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
+            size="lg"
+          >
+            Bekor qilish
+          </Button>
+          <Button
+            onClick={handleSaveDebt}
+            className="h-14 flex-[2] bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-base font-semibold"
+            size="lg"
+          >
+            <Save className="h-5 w-5 mr-2" />
+            Qarzni saqlash
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

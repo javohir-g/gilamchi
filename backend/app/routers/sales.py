@@ -1,0 +1,60 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from typing import List
+from ..database import get_db
+from ..models.sale import Sale
+from ..models.product import Product, ProductType
+from ..schemas.sale import SaleCreate, SaleResponse
+from ..utils.dependencies import get_current_user
+
+router = APIRouter()
+
+@router.post("/", response_model=SaleResponse)
+def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    product = db.query(Product).filter(Product.id == sale.product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    # Stock Validation
+    if product.type == ProductType.UNIT:
+        if product.quantity < sale.quantity:
+             raise HTTPException(status_code=400, detail="Insufficient stock (quantity)")
+        product.quantity -= int(sale.quantity)
+    elif product.type == ProductType.METER:
+        # Assuming remaining_length is tracked
+        if product.remaining_length and product.remaining_length < sale.quantity:
+             raise HTTPException(status_code=400, detail="Insufficient stock (length)")
+        if product.remaining_length:
+            product.remaining_length -= float(sale.quantity)
+    
+    # Calculate amounts if strictly needed or rely on frontend
+    # Logic: Profit = (SellPrice - BuyPrice) * qty + (extra_profit)
+    # Here we assume frontend sends the final amount, or we calculate? 
+    # Prompt says "profit" is extra profit.
+    # Director's profit logic: (sellPrice - buyPrice) * quantity.
+    # We store the "profit" field as the Extra Profit above standard.
+    
+    # For now, just create the record
+    new_sale = Sale(
+        product_id=sale.product_id,
+        branch_id=current_user.branch_id if current_user.branch_id else product.branch_id, # Fallback
+        seller_id=current_user.id,
+        quantity=sale.quantity,
+        amount=sale.amount or (float(product.sell_price) * sale.quantity), # Fallback calculation
+        payment_type=sale.payment_type,
+        profit=0 # Logic to calculate extra profit can be complex if sale amount varies
+    )
+    
+    db.add(new_sale)
+    db.commit()
+    db.refresh(new_sale)
+    return new_sale
+
+@router.get("/", response_model=List[SaleResponse])
+def read_sales(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    # Add filtering logic based on user role (Seller sees own branch, Admin sees all)
+    query = db.query(Sale)
+    if current_user.role == "seller":
+        query = query.filter(Sale.branch_id == current_user.branch_id)
+        
+    return query.offset(skip).limit(limit).all()

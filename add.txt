@@ -1,0 +1,1019 @@
+Project Description: Carpet Shop Management System
+Overview
+A mobile-first carpet shop management system built for Uzbek carpet retail businesses. The system supports multi-branch operations with two distinct user roles (Admin/Director and Seller), featuring comprehensive inventory management, sales tracking, profit analytics, and customer debt management.
+
+Current Stack
+Frontend: React + TypeScript + React Router + ShadCN UI + TailwindCSS
+State Management: React Context (local state, mock data)
+Target Backend: Python FastAPI + SQLite3
+Core Features
+1. Multi-Role Authentication
+Admin (Director): Full system access across all branches
+Seller: Branch-specific access with optional product management permissions
+Instagram-style account switching for admins
+2. Hierarchical Inventory System
+Flow: Categories → Collections → Widths → Heights → Products
+
+Categories (4 main types):
+
+Gilamlar (Carpets) - includes Paloslar, Joynamozlar
+Metrajlar (By Meter)
+Ovalniy (Oval)
+Kovriy (Rugs)
+Collections: Lara, Emili, Melord, Mashad, Izmir, Isfahan, Prestige, Sultan
+
+Product Types:
+
+Unit-based (dona): Sold by quantity
+Meter-based (metr): Sold by length
+3. Sales Management
+Multi-branch sales tracking
+Payment types: Naqd (Cash), Karta (Card), O'tkazma (Transfer)
+Extra profit tracking (selling above standard price)
+Date filtering: Today, Week, Month, Custom range
+4. Financial Analytics
+Director's Profit Formula: (sellPrice - buyPrice) × quantity
+Branch-wise profit breakdown
+Pie chart visualizations
+Expandable sales detail cards
+5. Debt Management
+Customer debt tracking with payment deadlines
+Partial payment support
+Overdue debt alerts
+Payment history logging
+Branch-specific debts (sellers) vs cross-branch view (admins)
+6. Branch Management
+Multi-branch inventory
+Inter-branch product transfers
+Branch-specific dashboards
+Branch sales analytics
+Structured Backend Development Prompt
+# FastAPI + SQLite3 Backend Development Plan
+## Carpet Shop Management System
+
+### PROJECT CONTEXT
+Build a RESTful API backend for a multi-branch carpet shop management system with 
+role-based access control, inventory management, sales tracking, and debt management.
+
+### TECHNICAL REQUIREMENTS
+- **Framework**: Python 3.10+ with FastAPI
+- **Database**: SQLite3 with SQLAlchemy ORM
+- **Authentication**: JWT-based with role-based access control
+- **API Design**: RESTful with proper HTTP status codes
+- **Data Validation**: Pydantic models
+- **File Uploads**: Product photos (Base64 or multipart)
+
+### USER ROLES & PERMISSIONS
+1. **Admin (Director)**
+   - Full CRUD on all resources across all branches
+   - View cross-branch analytics
+   - Manage users and branches
+   - Transfer products between branches
+
+2. **Seller**
+   - Read inventory (branch-specific)
+   - Create sales (branch-specific)
+   - Manage customer debts (branch-specific)
+   - Add/Edit products (if canAddProducts = true)
+
+### DATABASE SCHEMA REQUIREMENTS
+
+#### 1. Users Table
+- id (UUID, PK)
+- username (unique, indexed)
+- password_hash
+- role (enum: 'admin', 'seller')
+- branch_id (FK, nullable for admins)
+- can_add_products (boolean, default false)
+- created_at, updated_at
+
+#### 2. Branches Table
+- id (UUID, PK)
+- name (unique)
+- address (optional)
+- phone (optional)
+- created_at, updated_at
+
+#### 3. Products Table
+- id (UUID, PK)
+- name
+- category (enum: 'Gilamlar', 'Paloslar', 'Joynamozlar', 'Metrajlar', 'Ovalniy', 'Kovriy')
+- collection
+- type (enum: 'unit', 'meter')
+- buy_price (decimal)
+- sell_price (decimal)
+- sell_price_per_meter (decimal, nullable)
+- quantity (integer, for unit type)
+- remaining_length (decimal, for meter type)
+- total_length (decimal, for meter type)
+- max_quantity (integer, nullable)
+- available_sizes (JSON array, e.g., ["2×3", "3×4"])
+- photo (text, URL or Base64)
+- branch_id (FK)
+- created_at, updated_at
+
+#### 4. Sales Table
+- id (UUID, PK)
+- product_id (FK)
+- branch_id (FK)
+- seller_id (FK to users)
+- quantity (decimal)
+- amount (decimal, total sale amount)
+- payment_type (enum: 'cash', 'card', 'transfer')
+- profit (decimal, extra profit above standard)
+- date (datetime)
+- created_at
+
+#### 5. Debts Table
+- id (UUID, PK)
+- customer_name
+- customer_phone
+- branch_id (FK)
+- seller_id (FK to users)
+- total_amount (decimal)
+- remaining_amount (decimal)
+- payment_deadline (date)
+- status (enum: 'pending', 'paid', 'overdue')
+- created_at, updated_at
+
+#### 6. Payments Table (Debt Payment History)
+- id (UUID, PK)
+- debt_id (FK)
+- amount (decimal)
+- note (text, optional)
+- payment_date (datetime)
+- recorded_by (FK to users)
+- created_at
+
+#### 7. Collections Table (Master Data)
+- id (UUID, PK)
+- name (unique)
+- icon (emoji or text)
+- created_at
+
+#### 8. Sizes Table (Master Data)
+- id (UUID, PK)
+- size (e.g., "2×3")
+- collection_id (FK, nullable - null means available for all)
+- created_at
+
+### API ENDPOINT STRUCTURE
+
+#### Authentication
+- POST /api/auth/login
+- POST /api/auth/register (admin only)
+- POST /api/auth/refresh
+- GET /api/auth/me
+
+#### Branches
+- GET /api/branches (list all)
+- POST /api/branches (admin only)
+- GET /api/branches/{id}
+- PUT /api/branches/{id} (admin only)
+- DELETE /api/branches/{id} (admin only)
+
+#### Products
+- GET /api/products (with filters: branch, category, collection, size)
+- POST /api/products
+- GET /api/products/{id}
+- PUT /api/products/{id}
+- DELETE /api/products/{id} (admin only)
+- POST /api/products/{id}/transfer (admin only, move between branches)
+
+#### Sales
+- GET /api/sales (with filters: branch, date range, payment type)
+- POST /api/sales
+- GET /api/sales/{id}
+- GET /api/sales/analytics (dashboard metrics)
+- GET /api/sales/profit (director's profit calculation)
+
+#### Debts
+- GET /api/debts (with filters: branch, status, overdue)
+- POST /api/debts
+- GET /api/debts/{id}
+- PUT /api/debts/{id}
+- POST /api/debts/{id}/payments (record payment)
+- GET /api/debts/{id}/payments (payment history)
+
+#### Collections (Master Data)
+- GET /api/collections
+- POST /api/collections (admin only)
+- PUT /api/collections/{id} (admin only)
+- DELETE /api/collections/{id} (admin only)
+
+#### Sizes (Master Data)
+- GET /api/sizes (with filter: collection)
+- POST /api/sizes (admin only)
+- PUT /api/sizes/{id} (admin only)
+- DELETE /api/sizes/{id} (admin only)
+
+#### Users
+- GET /api/users (admin only)
+- POST /api/users (admin only)
+- GET /api/users/{id}
+- PUT /api/users/{id}
+- DELETE /api/users/{id} (admin only)
+
+### BUSINESS LOGIC REQUIREMENTS
+
+1. **Profit Calculation**:
+   - Director's profit = (sell_price - buy_price) × quantity
+   - Extra profit = amount charged above standard sell_price
+
+2. **Stock Management**:
+   - Auto-decrement stock on sale creation
+   - Prevent sales when stock insufficient
+   - Support both unit and meter-based calculations
+
+3. **Debt Status Auto-Update**:
+   - Set to 'overdue' when payment_deadline passed and status = 'pending'
+   - Set to 'paid' when remaining_amount = 0
+
+4. **Date Filtering**:
+   - Support: today, week, month, custom range
+   - All date ranges should be timezone-aware (Uzbekistan timezone)
+
+5. **Branch Isolation**:
+   - Sellers can only access data from their assigned branch
+   - Admins can access all branches or filter by branch
+
+### VALIDATION RULES
+- Product quantity/length must be >= 0
+- Sale amount must be > 0
+- Debt payment amount must be <= remaining_amount
+- Payment deadline must be future date
+- Available sizes must be valid format (e.g., "2×3")
+
+### RESPONSE FORMAT
+```json
+{
+  "success": true,
+  "data": {...},
+  "message": "Success message",
+  "timestamp": "2026-01-08T10:30:00Z"
+}
+Error format:
+
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Error description",
+    "details": {...}
+  },
+  "timestamp": "2026-01-08T10:30:00Z"
+}
+SECURITY REQUIREMENTS
+Password hashing with bcrypt
+JWT tokens with 24h expiration
+Refresh tokens with 7d expiration
+CORS configuration for frontend domain
+SQL injection prevention via SQLAlchemy ORM
+Input sanitization for all user inputs
+PERFORMANCE CONSIDERATIONS
+Database indexes on: user.username, product.branch_id, sales.branch_id, debts.branch_id
+Pagination for list endpoints (default 50, max 200)
+Lazy loading for relationships
+Query optimization for analytics endpoints
+SEED DATA REQUIREMENTS
+1 Admin user (username: admin, password: admin123)
+3 Branches: "Chilonzor filiali", "Sergeli filiali", "Yunusobod filiali"
+2 Sellers (one per first two branches)
+8 Collections: Lara, Emili, Melord, Mashad, Izmir, Isfahan, Prestige, Sultan
+10+ Sample sizes: "2×3", "3×4", "4×6", etc.
+20+ Sample products across different categories
+10+ Sample sales
+5+ Sample debts
+
+---
+
+# Implementation Plan
+
+## Phase 1: Project Setup (Day 1)
+```bash
+# Directory Structure
+carpet-shop-backend/
+├── app/
+│   ├── __init__.py
+│   ├── main.py                 # FastAPI app entry point
+│   ├── config.py               # Configuration settings
+│   ├── database.py             # Database connection
+│   ├── models/                 # SQLAlchemy models
+│   │   ├── __init__.py
+│   │   ├── user.py
+│   │   ├── branch.py
+│   │   ├── product.py
+│   │   ├── sale.py
+│   │   ├── debt.py
+│   │   ├── payment.py
+│   │   ├── collection.py
+│   │   └── size.py
+│   ├── schemas/                # Pydantic schemas
+│   │   ├── __init__.py
+│   │   ├── user.py
+│   │   ├── branch.py
+│   │   ├── product.py
+│   │   ├── sale.py
+│   │   ├── debt.py
+│   │   ├── payment.py
+│   │   ├── collection.py
+│   │   └── size.py
+│   ├── routers/                # API routes
+│   │   ├── __init__.py
+│   │   ├── auth.py
+│   │   ├── branches.py
+│   │   ├── products.py
+│   │   ├── sales.py
+│   │   ├── debts.py
+│   │   ├── collections.py
+│   │   ├── sizes.py
+│   │   └── users.py
+│   ├── services/               # Business logic
+│   │   ├── __init__.py
+│   │   ├── auth_service.py
+│   │   ├── product_service.py
+│   │   ├── sale_service.py
+│   │   └── debt_service.py
+│   ├── utils/                  # Utilities
+│   │   ├── __init__.py
+│   │   ├── security.py         # JWT, password hashing
+│   │   ├── dependencies.py     # Common dependencies
+│   │   └── helpers.py          # Helper functions
+│   └── seed.py                 # Database seeding
+├── tests/
+│   ├── __init__.py
+│   ├── test_auth.py
+│   ├── test_products.py
+│   └── test_sales.py
+├── alembic/                    # Database migrations
+├── requirements.txt
+├── .env.example
+└── README.md
+Phase 2: Database Models (Day 2)
+ Create SQLAlchemy Base
+ Define User model with role enum
+ Define Branch model
+ Define Product model with category/type enums
+ Define Sales model
+ Define Debts model with status enum
+ Define Payments model
+ Define Collections model
+ Define Sizes model
+ Set up relationships and foreign keys
+ Create database initialization script
+Phase 3: Authentication & Authorization (Day 3)
+ Implement JWT token generation/verification
+ Password hashing with bcrypt
+ Login endpoint
+ User registration (admin only)
+ Get current user endpoint
+ Token refresh endpoint
+ Role-based permission decorators
+ Branch-based permission decorators
+Phase 4: Core API Endpoints (Days 4-6)
+Day 4: Branches & Users
+ Branch CRUD endpoints
+ User CRUD endpoints
+ Role-based access control implementation
+Day 5: Products & Collections
+ Product CRUD with filters
+ Product transfer between branches
+ Collection CRUD
+ Size CRUD
+ Image upload handling
+Day 6: Sales & Analytics
+ Create sale endpoint (with stock validation)
+ Sales list with filters
+ Dashboard analytics endpoint
+ Profit calculation endpoint
+ Branch-wise analytics
+Phase 5: Debts Management (Day 7)
+ Debt CRUD endpoints
+ Payment recording
+ Payment history
+ Auto-update overdue status
+ Debt analytics (overdue count, total amount)
+Phase 6: Business Logic & Validation (Day 8)
+ Stock management (auto-decrement)
+ Profit calculation service
+ Debt status auto-update scheduler
+ Input validation with Pydantic
+ Business rule enforcement
+Phase 7: Testing & Optimization (Day 9)
+ Unit tests for services
+ Integration tests for endpoints
+ Database query optimization
+ Add database indexes
+ Pagination implementation
+ Error handling standardization
+Phase 8: Deployment Preparation (Day 10)
+ Environment configuration
+ Database migration scripts
+ Seed data script
+ API documentation (auto-generated Swagger)
+ CORS configuration
+ Docker containerization (optional)
+ Deployment guide
+Key Dependencies (requirements.txt)
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+sqlalchemy==2.0.25
+pydantic==2.5.3
+pydantic-settings==2.1.0
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+alembic==1.13.1
+python-dotenv==1.0.0
+pytz==2023.3
+Environment Variables (.env.example)
+# Application
+APP_NAME=Carpet Shop API
+APP_VERSION=1.0.0
+DEBUG=True
+
+# Database
+DATABASE_URL=sqlite:///./carpet_shop.db
+
+# Security
+SECRET_KEY=your-secret-key-here-change-in-production
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+REFRESH_TOKEN_EXPIRE_DAYS=7
+
+# CORS
+CORS_ORIGINS=http://localhost:3000,http://localhost:5173
+
+# Timezone
+TIMEZONE=Asia/Tashkent
+Database Relationships Diagram
+Users ──┬──< Sales (seller_id)
+        └──< Debts (seller_id)
+
+Branches ──┬──< Users (branch_id)
+           ├──< Products (branch_id)
+           ├──< Sales (branch_id)
+           └──< Debts (branch_id)
+
+Products ──< Sales (product_id)
+
+Collections ──< Sizes (collection_id)
+
+Debts ──< Payments (debt_id)
+
+Payments >── Users (recorded_by)
+API Testing Checklist
+Authentication
+ Login with valid credentials
+ Login with invalid credentials
+ Access protected route without token
+ Access protected route with expired token
+ Refresh token flow
+Authorization
+ Seller cannot access other branch data
+ Seller cannot create/edit users
+ Seller without canAddProducts cannot add products
+ Admin can access all branches
+Business Logic
+ Cannot sell more than available stock
+ Stock decrements correctly on sale
+ Profit calculates correctly
+ Debt payment cannot exceed remaining amount
+ Overdue debts marked automatically
+Data Integrity
+ Cannot delete branch with products
+ Cannot delete product with sales history
+ Unique constraints enforced (username, branch name)
+ Foreign key constraints enforced
+
+ADDITIONS TO THE PLAN
+1. Missing Critical Features
+A. Audit & Activity Logging
+#### Audit Logs Table
+- id (UUID, PK)
+- user_id (FK)
+- action (enum: 'CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT')
+- entity_type (e.g., 'product', 'sale', 'debt')
+- entity_id (UUID)
+- changes (JSON, old and new values)
+- ip_address
+- user_agent
+- timestamp
+
+# Track critical operations:
+- Product price changes
+- Stock adjustments
+- User permission changes
+- Product transfers between branches
+- Large transactions
+B. Soft Deletes (Important!)
+# Add to all major tables:
+- deleted_at (datetime, nullable)
+- deleted_by (FK to users, nullable)
+
+# Benefits:
+- Data recovery
+- Audit trail
+- Regulatory compliance
+- Prevents accidental data loss
+C. Notifications System
+#### Notifications Table
+- id (UUID, PK)
+- user_id (FK)
+- type (enum: 'LOW_STOCK', 'OVERDUE_DEBT', 'SALE_COMPLETED', 'PRODUCT_TRANSFERRED')
+- title
+- message
+- is_read (boolean, default false)
+- related_entity_type
+- related_entity_id
+- created_at
+
+# Endpoints:
+- GET /api/notifications (user's notifications)
+- PUT /api/notifications/{id}/read
+- PUT /api/notifications/read-all
+- DELETE /api/notifications/{id}
+D. Inventory Alerts
+#### Inventory Alerts Table
+- id (UUID, PK)
+- product_id (FK)
+- alert_type (enum: 'LOW_STOCK', 'OUT_OF_STOCK', 'EXPIRED')
+- threshold (integer, minimum stock level)
+- is_active (boolean)
+- last_triggered (datetime)
+- created_at
+
+# Business Logic:
+- Auto-create alerts when stock <= threshold
+- Send notifications to branch manager + admin
+- Mark product with visual indicator in frontend
+2. Enhanced API Endpoints
+A. Search & Autocomplete
+# Global search across products, customers, debts
+GET /api/search?q={query}&type={product|customer|debt}
+
+# Product autocomplete for quick sale
+GET /api/products/autocomplete?q={query}&branch_id={id}&limit=10
+B. Bulk Operations (Admin only)
+POST /api/products/bulk-import (CSV/Excel upload)
+PUT /api/products/bulk-price-update (mass price changes)
+DELETE /api/products/bulk-delete (multiple product deletion)
+POST /api/products/bulk-transfer (transfer multiple products)
+C. Reports & Export
+GET /api/reports/sales?format={json|csv|excel}&start_date=...&end_date=...
+GET /api/reports/inventory?format={json|csv|excel}&branch_id=...
+GET /api/reports/debts?format={json|csv|excel}&status=...
+GET /api/reports/profit?format={json|csv|excel}&group_by={day|week|month}
+D. Dashboard Widgets
+GET /api/dashboard/widgets
+Response:
+{
+  "total_sales_today": 5000000,
+  "low_stock_count": 12,
+  "overdue_debts_count": 5,
+  "pending_transfers": 3,
+  "top_selling_products": [...],
+  "recent_activities": [...]
+}
+3. Advanced Business Logic
+A. Product Returns/Exchanges
+#### Returns Table
+- id (UUID, PK)
+- sale_id (FK)
+- product_id (FK)
+- branch_id (FK)
+- quantity (decimal)
+- reason (enum: 'DEFECTIVE', 'WRONG_SIZE', 'CUSTOMER_CHANGE_MIND', 'OTHER')
+- reason_note (text)
+- refund_amount (decimal)
+- status (enum: 'PENDING', 'APPROVED', 'REJECTED')
+- created_by (FK to users)
+- approved_by (FK to users, nullable)
+- created_at, updated_at
+
+POST /api/returns (create return request)
+GET /api/returns (list returns)
+PUT /api/returns/{id}/approve (admin only)
+PUT /api/returns/{id}/reject (admin only)
+B. Discounts & Promotions
+#### Discounts Table
+- id (UUID, PK)
+- name
+- discount_type (enum: 'PERCENTAGE', 'FIXED_AMOUNT')
+- discount_value (decimal)
+- applicable_to (enum: 'ALL', 'CATEGORY', 'COLLECTION', 'PRODUCT')
+- target_id (UUID, nullable - specific product/collection)
+- start_date (datetime)
+- end_date (datetime)
+- is_active (boolean)
+- created_by (FK to users)
+- created_at
+
+# Apply discount at sale time
+# Track discount usage in sales table
+C. Commission Tracking
+#### Commissions Table
+- id (UUID, PK)
+- seller_id (FK to users)
+- sale_id (FK)
+- commission_rate (decimal, percentage)
+- commission_amount (decimal)
+- status (enum: 'PENDING', 'PAID')
+- paid_at (datetime, nullable)
+- created_at
+
+GET /api/commissions/my (seller's own commissions)
+GET /api/commissions?seller_id={id} (admin view)
+PUT /api/commissions/{id}/mark-paid (admin only)
+4. Photo/File Management Strategy
+Option A: Base64 (Simple, current approach)
+# Pros: Simple, no file server needed
+# Cons: Large database, slow queries
+# Recommendation: OK for MVP, not scalable
+Option B: Local File Storage (Recommended for SQLite)
+# Directory structure:
+uploads/
+├── products/
+│   ├── {product_id}_thumb.jpg
+│   └── {product_id}_full.jpg
+├── receipts/
+└── exports/
+
+# Store in DB: /uploads/products/{product_id}_full.jpg
+# Serve via FastAPI static files
+
+from fastapi.staticfiles import StaticFiles
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
+# Endpoint:
+POST /api/upload/product-photo (multipart/form-data)
+Response: { "url": "/uploads/products/{id}_full.jpg" }
+Option C: Cloud Storage (Production)
+# Use AWS S3, Cloudinary, or similar
+# Async upload with signed URLs
+# Better for scaling, CDN support
+5. Security Enhancements
+A. Rate Limiting
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
+
+@app.post("/api/auth/login")
+@limiter.limit("5/minute")  # 5 attempts per minute
+async def login(...):
+    ...
+
+# Add to requirements.txt:
+slowapi==0.1.9
+B. Account Security
+#### Login Attempts Table
+- id (UUID, PK)
+- username
+- ip_address
+- success (boolean)
+- timestamp
+
+# Lock account after 5 failed attempts in 15 minutes
+# Require password reset email to unlock
+# Admin can manually unlock
+C. Password Reset Flow
+#### Password Reset Tokens Table
+- id (UUID, PK)
+- user_id (FK)
+- token (unique, indexed)
+- expires_at (datetime)
+- used (boolean, default false)
+- created_at
+
+POST /api/auth/forgot-password (send reset email/SMS)
+POST /api/auth/reset-password (verify token & reset)
+6. Performance & Scalability
+A. Caching Layer (Optional but recommended)
+# Add Redis for:
+- Dashboard statistics (cache 5 minutes)
+- Product list by category (cache 10 minutes)
+- User session data
+- Rate limiting counters
+
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
+from redis import asyncio as aioredis
+
+@app.on_event("startup")
+async def startup():
+    redis = aioredis.from_url("redis://localhost")
+    FastAPICache.init(RedisBackend(redis), prefix="carpet-shop")
+
+# Add to requirements.txt:
+fastapi-cache2[redis]==0.2.1
+redis==5.0.1
+B. Background Tasks
+from fastapi import BackgroundTasks
+
+# Use cases:
+- Send email notifications (async)
+- Generate large reports
+- Update overdue debt statuses (scheduled job)
+- Calculate daily/weekly analytics
+
+# For scheduled jobs:
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
+scheduler = AsyncIOScheduler()
+
+@scheduler.scheduled_job('cron', hour=0, minute=0)
+async def update_overdue_debts():
+    # Update debt statuses daily at midnight
+    pass
+
+# Add to requirements.txt:
+apscheduler==3.10.4
+C. Database Connection Pooling
+# In database.py
+from sqlalchemy.pool import QueuePool
+
+engine = create_engine(
+    DATABASE_URL,
+    poolclass=QueuePool,
+    pool_size=5,
+    max_overflow=10,
+    pool_pre_ping=True,  # Verify connections before using
+    pool_recycle=3600,   # Recycle connections every hour
+)
+7. Additional Database Indexes
+# Critical indexes for performance:
+CREATE INDEX idx_products_branch_category ON products(branch_id, category);
+CREATE INDEX idx_products_collection ON products(collection);
+CREATE INDEX idx_sales_date ON sales(date);
+CREATE INDEX idx_sales_branch_date ON sales(branch_id, date);
+CREATE INDEX idx_debts_status ON debts(status);
+CREATE INDEX idx_debts_branch_status ON debts(branch_id, status);
+CREATE INDEX idx_debts_deadline ON debts(payment_deadline);
+CREATE INDEX idx_payments_debt ON payments(debt_id);
+CREATE INDEX idx_audit_logs_user_timestamp ON audit_logs(user_id, timestamp);
+8. Data Migration & Import Tools
+A. Frontend Data Migration Script
+# POST /api/migrate/frontend-data
+# Accepts JSON dump from React Context
+# Validates and imports:
+- Users
+- Branches
+- Products
+- Sales
+- Debts
+
+# Returns migration report:
+{
+  "users_imported": 5,
+  "products_imported": 124,
+  "sales_imported": 89,
+  "errors": [...]
+}
+B. CSV Import Template
+# Product import CSV format:
+name,category,collection,type,buy_price,sell_price,quantity,sizes,branch
+
+# Endpoint:
+POST /api/import/products (multipart file upload)
+# Validates CSV, shows preview before commit
+# Bulk insert with transaction rollback on error
+9. Monitoring & Health Checks
+A. Health Check Endpoints
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "database": await check_db_connection(),
+        "timestamp": datetime.utcnow()
+    }
+
+@app.get("/health/detailed")
+async def detailed_health():
+    return {
+        "status": "healthy",
+        "database": {...},
+        "disk_space": {...},
+        "memory_usage": {...},
+        "active_connections": {...}
+    }
+B. Application Logging
+import logging
+from logging.handlers import RotatingFileHandler
+
+# logs/app.log (rotates at 10MB, keeps 5 backups)
+handler = RotatingFileHandler(
+    'logs/app.log',
+    maxBytes=10_000_000,
+    backupCount=5
+)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[handler]
+)
+
+# Log all errors, critical operations
+logger = logging.getLogger(__name__)
+10. Testing Additions
+A. Test Data Factories
+# Use pytest-factories or factory_boy
+from factory import Factory, Faker
+
+class UserFactory(Factory):
+    class Meta:
+        model = User
+    
+    username = Faker('user_name')
+    email = Faker('email')
+    role = 'seller'
+
+class ProductFactory(Factory):
+    class Meta:
+        model = Product
+    
+    name = Faker('word')
+    category = 'Gilamlar'
+    buy_price = Faker('random_int', min=100000, max=500000)
+B. Load Testing
+# Use locust for load testing
+# tests/load_test.py
+
+from locust import HttpUser, task, between
+
+class CarpetShopUser(HttpUser):
+    wait_time = between(1, 3)
+    
+    @task
+    def view_products(self):
+        self.client.get("/api/products")
+    
+    @task
+    def dashboard(self):
+        self.client.get("/api/sales/analytics")
+
+# Run: locust -f tests/load_test.py
+# Add to requirements-dev.txt:
+locust==2.20.0
+11. Documentation Enhancements
+A. OpenAPI/Swagger Tags & Descriptions
+from fastapi import FastAPI
+
+app = FastAPI(
+    title="Carpet Shop Management API",
+    description="""
+    ## Overview
+    RESTful API for multi-branch carpet shop management.
+    
+    ## Authentication
+    Use JWT Bearer token in Authorization header.
+    
+    ## Rate Limits
+    - Login: 5 requests/minute
+    - General: 100 requests/minute
+    """,
+    version="1.0.0",
+    contact={
+        "name": "Support",
+        "email": "support@carpetshop.uz"
+    },
+    license_info={
+        "name": "MIT"
+    }
+)
+
+# Tag grouping
+tags_metadata = [
+    {"name": "auth", "description": "Authentication operations"},
+    {"name": "products", "description": "Product management"},
+    {"name": "sales", "description": "Sales operations"},
+    # ...
+]
+B. Response Examples
+from pydantic import Field
+
+class ProductResponse(BaseModel):
+    id: UUID
+    name: str = Field(..., example="Lara 2x3 Mahsulot")
+    category: CategoryEnum = Field(..., example="Gilamlar")
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "id": "123e4567-e89b-12d3-a456-426614174000",
+                "name": "Lara 2x3 Ko'k gilam",
+                "category": "Gilamlar",
+                "sell_price": 350000
+            }
+        }
+12. Deployment Checklist
+A. Docker Support
+# Dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# docker-compose.yml
+version: '3.8'
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./carpet_shop.db:/app/carpet_shop.db
+    environment:
+      - DATABASE_URL=sqlite:///./carpet_shop.db
+B. Environment-Specific Configs
+# config.py
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    environment: str = "development"
+    
+    # Development overrides
+    if environment == "development":
+        debug = True
+        log_level = "DEBUG"
+    
+    # Production settings
+    if environment == "production":
+        debug = False
+        log_level = "INFO"
+        require_https = True
+
+settings = Settings()
+Updated Requirements.txt
+# Core
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+sqlalchemy==2.0.25
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+# Auth & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+slowapi==0.1.9
+
+# Database
+alembic==1.13.1
+
+# Utilities
+python-dotenv==1.0.0
+pytz==2023.3
+
+# Caching (optional)
+fastapi-cache2[redis]==0.2.1
+redis==5.0.1
+
+# Background Tasks
+apscheduler==3.10.4
+
+# File handling
+python-magic==0.4.27
+Pillow==10.2.0
+
+# Exports
+openpyxl==3.1.2
+pandas==2.1.4
+
+# Monitoring
+prometheus-fastapi-instrumentator==6.1.0
+
+# Development
+pytest==7.4.3
+pytest-asyncio==0.21.1
+httpx==0.26.0
+faker==22.0.0
+locust==2.20.0
+Priority Implementation Order
+Must-Have (Phase 1 - MVP):
+✅ Core CRUD endpoints
+✅ Authentication & Authorization
+✅ Stock management
+✅ Basic analytics
+⭐ Audit logging
+⭐ Soft deletes
+Should-Have (Phase 2 - Enhancement):
+Notifications system
+Inventory alerts
+Search & autocomplete
+Photo upload (local storage)
+Basic reports/export
+Nice-to-Have (Phase 3 - Advanced):
+Returns/exchanges
+Discounts & promotions
+Commission tracking
+Rate limiting
+Caching layer
+Background tasks
