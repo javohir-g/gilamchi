@@ -65,6 +65,7 @@ type ViewMode =
   | "heights"
   | "products";
 type CategoryType =
+  | "Gilamlar"
   | "Paloslar"
   | "Joynamozlar"
   | "Metrajlar"
@@ -841,7 +842,7 @@ export function Inventory() {
           ] as CategoryType[]
         ).map((category) => {
           const count = getCategoryCount(category);
-          const config = categoryConfig[category] || categoryConfig["Gilamlar"];
+          const config = categoryConfig[category] || categoryConfig["Gilamlar"] || { icon: "📦", color: "", bgColor: "" };
           return (
             <Card
               key={category}
@@ -850,15 +851,15 @@ export function Inventory() {
             >
               <div className="p-6 text-center">
                 <div className="text-5xl mb-3">
-                  {config.icon}
+                  {config?.icon || "📦"}
                 </div>
                 <h3
-                  className={`text-lg mb-2 font-semibold ${config.color}`}
+                  className={`text-lg mb-2 font-semibold ${config?.color || "text-gray-700"}`}
                 >
                   {category}
                 </h3>
                 <div
-                  className={`flex items-center justify-center space-x-2 text-sm ${config.color}`}
+                  className={`flex items-center justify-center space-x-2 text-sm ${config?.color || "text-gray-500"}`}
                 >
                   <Package className="h-4 w-4" />
                   <span>{count} dona</span>
