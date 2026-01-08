@@ -2,6 +2,7 @@ from pydantic import BaseModel, UUID4
 from typing import Optional
 from datetime import datetime
 from ..models.sale import PaymentType
+from .product import ProductResponse
 
 class SaleBase(BaseModel):
     product_id: UUID4
@@ -22,6 +23,7 @@ class SaleResponse(SaleBase):
     id: UUID4
     date: datetime
     created_at: datetime
+    product: Optional[ProductResponse] = None
     
     class Config:
         from_attributes = True

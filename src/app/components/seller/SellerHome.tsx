@@ -32,12 +32,14 @@ export function SellerHome() {
     (b) => b.id === user?.branchId,
   );
 
-  // Calculate today's sales for this seller
+  // Filter today's sales for this branch
   const todaySales = sales.filter((sale) => {
     const saleDate = new Date(sale.date);
     const today = new Date();
+    // Use local date strings for robust "today" comparison across timezones if needed,
+    // but toDateString() is generally okay for same-day local checks.
     return (
-      sale.sellerId === user?.id &&
+      sale.branchId === user?.branchId &&
       saleDate.toDateString() === today.toDateString()
     );
   });
@@ -89,7 +91,7 @@ export function SellerHome() {
       new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
 
-  // Group by payment type
+  // Group by payment type for breakdown
   const cashTotal = todaySales
     .filter((s) => s.paymentType === "cash")
     .reduce((sum, s) => sum + s.amount, 0);
@@ -122,10 +124,17 @@ export function SellerHome() {
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <div className="bg-gradient-to-b from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-950 px-4 pb-8 pt-6 text-white shadow-lg">
-        <div className="mb-1 text-sm opacity-90">
-          Xush kelibsiz!
+        <div className="flex justify-between items-start">
+          <div>
+            <div className="mb-1 text-sm opacity-90 uppercase tracking-wider font-medium">
+              {userBranch?.name || "Filial nomi"}
+            </div>
+            <h1 className="text-2xl font-bold">{user?.name}</h1>
+          </div>
+          <Badge className="bg-white/20 hover:bg-white/30 text-white border-0">
+            Sotuvchi
+          </Badge>
         </div>
-        <h1 className="mb-1 text-2xl">{user?.name}</h1>
       </div>
 
       {/* Today's Sales Summary */}
@@ -134,18 +143,40 @@ export function SellerHome() {
           <div className="flex items-center justify-between">
             <div>
               <div className="mb-1 text-sm text-muted-foreground">
-                Bugungi savdo
+                Bugungi jami savdo
               </div>
-              <div className="text-3xl text-card-foreground">
+              <div className="text-3xl font-bold text-card-foreground">
                 {formatCurrency(totalSalesToday)}
               </div>
               <div className="mt-1 text-sm text-muted-foreground">
-                {todaySales.length} ta mahsulot sotildi
+                {todaySales.length} ta mahsulot
               </div>
             </div>
             <div className="rounded-2xl bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 p-4">
               <DollarSign className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Payment Types Breakdown */}
+      <div className="mt-4 px-4 grid grid-cols-3 gap-2">
+        <Card className="p-3 bg-white dark:bg-gray-800 border-0 shadow-sm flex flex-col items-center text-center">
+          <div className="text-[10px] text-muted-foreground uppercase mb-1">Naqd</div>
+          <div className="text-sm font-semibold text-green-600 dark:text-green-400">
+            {new Intl.NumberFormat("uz-UZ").format(cashTotal)}
+          </div>
+        </Card>
+        <Card className="p-3 bg-white dark:bg-gray-800 border-0 shadow-sm flex flex-col items-center text-center">
+          <div className="text-[10px] text-muted-foreground uppercase mb-1">Karta</div>
+          <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+            {new Intl.NumberFormat("uz-UZ").format(cardTotal)}
+          </div>
+        </Card>
+        <Card className="p-3 bg-white dark:bg-gray-800 border-0 shadow-sm flex flex-col items-center text-center">
+          <div className="text-[10px] text-muted-foreground uppercase mb-1">O'tkazma</div>
+          <div className="text-sm font-semibold text-purple-600 dark:text-purple-400">
+            {new Intl.NumberFormat("uz-UZ").format(transferTotal)}
           </div>
         </Card>
       </div>
@@ -243,11 +274,10 @@ export function SellerHome() {
                             if (totalProfit !== 0) {
                               return (
                                 <div
-                                  className={`text-xs font-medium ${
-                                    totalProfit > 0
+                                  className={`text-xs font-medium ${totalProfit > 0
                                       ? "text-green-600 dark:text-green-400"
                                       : "text-red-600 dark:text-red-400"
-                                  }`}
+                                    }`}
                                 >
                                   {totalProfit > 0 ? "+" : ""}
                                   {formatCurrency(totalProfit)}

@@ -50,10 +50,12 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
     db.refresh(new_sale)
     return new_sale
 
+from sqlalchemy.orm import joinedload
+
 @router.get("/", response_model=List[SaleResponse])
 def read_sales(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     # Add filtering logic based on user role (Seller sees own branch, Admin sees all)
-    query = db.query(Sale)
+    query = db.query(Sale).options(joinedload(Sale.product))
     if current_user.role == "seller":
         query = query.filter(Sale.branch_id == current_user.branch_id)
         

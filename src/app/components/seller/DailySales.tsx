@@ -28,12 +28,12 @@ export function DailySales() {
     Set<string>
   >(new Set());
 
-  // Filter today's sales for this seller
+  // Filter today's sales for this branch
   const todaySales = sales.filter((sale) => {
     const saleDate = new Date(sale.date);
     const today = new Date();
     return (
-      sale.sellerId === user?.id &&
+      sale.branchId === user?.branchId &&
       saleDate.toDateString() === today.toDateString()
     );
   });
