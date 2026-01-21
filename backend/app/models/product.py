@@ -1,4 +1,4 @@
-from sqlalchemy import String, Integer, BigInteger, Float, Enum as SQLEnum, ForeignKey, Uuid, JSON, DECIMAL
+from sqlalchemy import String, Integer, BigInteger, Float, Enum as SQLEnum, ForeignKey, Uuid, JSON, DECIMAL, LargeBinary
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 import enum
 import uuid
@@ -35,10 +35,17 @@ class Product(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     
     available_sizes: Mapped[list[str] | None] = mapped_column(JSON, nullable=True) # e.g. ["2x3", "3x4"]
     photo: Mapped[str | None] = mapped_column(String, nullable=True)
+    
+    # Legacy perceptual hash (dHash) - will be deprecated
     image_hash: Mapped[str | None] = mapped_column(String, nullable=True)
+    
+    # New CLIP embedding for professional image search
+    # Stores 512-dimensional float32 vector as binary data (~2KB per product)
+    image_embedding: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
     
     branch_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("branches.id"))
 
     # Relationships
     branch = relationship("Branch", back_populates="products")
     # sales = relationship("Sale", back_populates="product")
+

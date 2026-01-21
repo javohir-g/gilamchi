@@ -1,4 +1,22 @@
 services:
+  # PostgreSQL Database (Persistent Storage)
+  - type: pserv
+    name: gilamchi-db
+    region: oregon
+    plan: free
+    env: docker
+    disk:
+      name: gilamchi-db-data
+      mountPath: /var/lib/postgresql/data
+      sizeGB: 1
+    envVars:
+      - key: POSTGRES_USER
+        value: gilamchi_user
+      - key: POSTGRES_PASSWORD
+        generateValue: true
+      - key: POSTGRES_DB
+        value: gilamchi_db
+
   # Backend Service
   - type: web
     name: gilamchi-api
@@ -20,7 +38,9 @@ services:
       - key: DEBUG
         value: "false"
       - key: DATABASE_URL
-        value: "sqlite:///./carpet_shop.db"
+        fromDatabase:
+          name: gilamchi-db
+          property: connectionString
       - key: ALGORITHM
         value: "HS256"
       - key: ACCESS_TOKEN_EXPIRE_MINUTES

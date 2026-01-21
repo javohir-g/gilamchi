@@ -198,7 +198,7 @@ export function SellProduct() {
 
   const analyzeImage = async (imageData: string) => {
     setIsAnalyzing(true);
-    setCameraSearchOpen(false); // Close the selection modal if it was open
+    setCameraSearchOpen(false);
 
     try {
       // Convert base64 to blob
@@ -208,11 +208,7 @@ export function SellProduct() {
 
       const formData = new FormData();
       formData.append("file", file);
-      // Optional: filter by branch if needed, but pure image search is often better global or filtered later.
-      // If we want to filter by current branch:
-      if (user?.branchId) {
-        formData.append("branch_id", user.branchId);
-      }
+      // Backend автоматически фильтрует по филиалу для продавцов
 
       // Fallback to localhost if env not set (dev mode safety)
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -220,17 +216,20 @@ export function SellProduct() {
       const response = await axios.post(`${apiUrl}/api/products/search-image`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          // Authorization headers logic might be needed if axios interceptor isn't setup globally.
-          // Assuming global interceptor or simple Auth header if token exists in localStorage
           "Authorization": `Bearer ${localStorage.getItem("token")}`
         },
       });
 
       setSimilarProducts(response.data);
-      // toast.success(`Topildi: ${response.data.length} ta mahsulot`);
+
+      if (response.data.length === 0) {
+        toast.info("O'xshash mahsulotlar topilmadi. Boshqa rasm bilan urinib ko'ring.");
+      } else {
+        toast.success(`${response.data.length} ta o'xshash mahsulot topildi!`);
+      }
     } catch (error) {
       console.error("Search error:", error);
-      toast.error("Rasm orqali qidirishda xatolik bo'ldi");
+      toast.error("Rasm orqali qidirishda xatolik bo'ldi. Qaytadan urinib ko'ring.");
     } finally {
       setIsAnalyzing(false);
       setCameraSearchOpen(false);
@@ -469,7 +468,7 @@ export function SellProduct() {
       {similarProducts.length > 0 && (
         <div className="fixed inset-0 z-50 bg-background">
           <div className="bg-background w-full h-full overflow-y-auto pb-6">
-            <div className="sticky top-0 bg-card border-b border-border p-4 flex items-center justify-between">
+            <div className="sticky top-0 bg-card border-b border-border p-4 flex items-center justify-between z-10">
               <h2 className="text-xl text-card-foreground">
                 O'xshash mahsulotlar
               </h2>
@@ -482,20 +481,28 @@ export function SellProduct() {
               </Button>
             </div>
             <div className="p-4 space-y-3">
-              {similarProducts.map((product) => (
+              {similarProducts.map((product: any) => (
                 <Card
                   key={product.id}
                   className="overflow-hidden border border-border bg-card transition-all hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-blue-900/10"
                 >
                   <div className="flex space-x-4 p-4">
-                    <img
-                      src={product.photo}
-                      alt={product.name}
-                      className="h-24 w-24 rounded-xl object-cover ring-1 ring-border cursor-pointer"
-                      onClick={() =>
-                        handleSelectProduct(product.id)
-                      }
-                    />
+                    <div className="relative">
+                      <img
+                        src={product.photo}
+                        alt={product.name}
+                        className="h-24 w-24 rounded-xl object-cover ring-1 ring-border cursor-pointer"
+                        onClick={() =>
+                          handleSelectProduct(product.id)
+                        }
+                      />
+                      {/* Similarity Badge */}
+                      {product.similarity_percentage !== undefined && (
+                        <div className="absolute -top-2 -right-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                          {Math.round(product.similarity_percentage)}%
+                        </div>
+                      )}
+                    </div>
                     <div className="flex-1">
                       <h3
                         className="mb-1 text-lg text-card-foreground cursor-pointer"
@@ -506,6 +513,14 @@ export function SellProduct() {
                         {product.name}
                       </h3>
                       <div className="space-y-1 text-sm">
+                        {/* Similarity Info */}
+                        {product.similarity_percentage !== undefined && (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <span className="text-green-600 dark:text-green-400 font-medium">
+                              ✓ {Math.round(product.similarity_percentage)}% o'xshashlik
+                            </span>
+                          </div>
+                        )}
                         {product.type === "unit" ? (
                           <div className="text-muted-foreground">
                             Qoldiq:{" "}

@@ -52,3 +52,17 @@ class ProductResponse(ProductBase):
     
     class Config:
         from_attributes = True
+
+class ProductSearchResult(ProductResponse):
+    """
+    Расширенная схема для результатов поиска по изображению.
+    Включает процент похожести.
+    """
+    similarity_percentage: float = Field(
+        ..., 
+        description="Процент похожести (0-100%), где 100% - идентичное изображение"
+    )
+    hamming_distance: int = Field(
+        ...,
+        description="Hamming distance между хешами (чем меньше, тем лучше)"
+    )
