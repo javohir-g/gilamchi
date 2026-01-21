@@ -14,12 +14,13 @@ def seed():
         return
 
     # Create Branches
-    branches = [
-        Branch(name="Chilonzor filiali"),
-        Branch(name="Sergeli filiali"),
-        Branch(name="Yunusobod filiali")
-    ]
-    db.add_all(branches)
+    branch_names = ["Filial 1", "Filial 2", "Filial 3"]
+    branches = []
+    for name in branch_names:
+        branch = Branch(name=name)
+        db.add(branch)
+        branches.append(branch)
+    
     db.commit()
     for b in branches: 
         db.refresh(b)
@@ -27,27 +28,29 @@ def seed():
     # Create Admin
     admin = User(
         username="admin",
-        password_hash=get_password_hash("admin123"),
+        password_hash=get_password_hash("admin"),
         role=UserRole.ADMIN,
         can_add_products=True
     )
     db.add(admin)
     
     # Create Sellers
-    print(f"Creating seller for branch: {branches[0].name}")
-    seller1 = User(
-        username="seller1",
-        password_hash=get_password_hash("seller123"),
-        role=UserRole.SELLER,
-        branch_id=branches[0].id,
-        can_add_products=False
-    )
-    db.add(seller1)
+    for i, branch in enumerate(branches):
+        username = f"filial{i+1}"
+        print(f"Creating seller: {username}")
+        seller = User(
+            username=username,
+            password_hash=get_password_hash(username),
+            role=UserRole.SELLER,
+            branch_id=branch.id,
+            can_add_products=False
+        )
+        db.add(seller)
     
     db.commit()
     print("Seeding complete.")
-    print("Admin: admin / admin123")
-    print("Seller: seller1 / seller123")
+    print("Admin: admin / admin")
+    print("Sellers: filial1/filial1, filial2/filial2, filial3/filial3")
     db.close()
 
 if __name__ == "__main__":
