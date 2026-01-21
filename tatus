@@ -1,0 +1,20 @@
+[33ma5090f7[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Critical fix: resolves CORS mismatch and ProductCategory Enum 500 error
+[33maae9837[m Fix seller dashboard: add order_id, fix date mapping, and role-based product filtering
+[33m552428e[m Fix seller sales display: add backend sorting and robust frontend filtering
+[33m9cd4d0a[m Enhance seller dashboard with branch info, payment breakdown, and nested product data
+[33m1f6a374[m Apply bulletproof safeguards to category display in Inventory.tsx
+[33mee11fc9[m Complete fix for bgColor error and consolidate category synchronization in Inventory.tsx
+[33me79397c[m Fix syntax error in Category type definition
+[33m9c186aa[m Synchronize product categories across AppContext, AddProduct, and Inventory
+[33m8d72522[m Refactor sales UI and implement image handling in product creation
+[33m67cd39c[m Add predefined collections selection to AddProduct form
+[33mb2d137c[m Fix warehouse display: update AddProduct UI and Inventory filtering logic
+[33m23cd5cf[m fix(product): ensure valid branch_id and add debug logging
+[33m99c0759[m fix(deploy): use host property and handle internal name in frontend
+[33m1eca60d[m fix(deploy): use public url for api and robust url building
+[33m2cfba2d[m debug(login): add detailed error logging
+[33mf362b3f[m fix(deploy): fix axios baseURL issue and move seeding to runtime
+[33m2d03a4e[m fix(backend): pin bcrypt to 4.0.1 for passlib compatibility
+[33m498ffa6[m chore(deploy): run seed script during build and finalize deployment config
+[33mc89a6a7[m fix(frontend): add axios and move react/react-dom to dependencies
+[33m22553e1[m fix(backend): correct get_password_hash import in users router

@@ -1,8 +1,0 @@
-@import './tailwind.css';
-@import './theme.css';
-@import './fonts.css';
-
-/* Mobile-first utility classes */
-.active\\:scale-98:active {
-  transform: scale(0.98);
-}

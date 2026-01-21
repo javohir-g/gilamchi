@@ -20,12 +20,24 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
         if product.quantity < sale.quantity:
              raise HTTPException(status_code=400, detail="Insufficient stock (quantity)")
         product.quantity -= int(sale.quantity)
+        
+        # Auto-delete product if quantity reaches 0
+        if product.quantity == 0:
+            from datetime import datetime, timezone
+            product.deleted_at = datetime.now(timezone.utc)
+            product.deleted_by = current_user.id
     elif product.type == ProductType.METER:
         # Assuming remaining_length is tracked
         if product.remaining_length and product.remaining_length < sale.quantity:
              raise HTTPException(status_code=400, detail="Insufficient stock (length)")
         if product.remaining_length:
             product.remaining_length -= float(sale.quantity)
+            
+            # Auto-delete product if remaining length reaches 0
+            if product.remaining_length <= 0:
+                from datetime import datetime, timezone
+                product.deleted_at = datetime.now(timezone.utc)
+                product.deleted_by = current_user.id
     
     # Calculate amounts if strictly needed or rely on frontend
     # Logic: Profit = (SellPrice - BuyPrice) * qty + (extra_profit)
@@ -43,7 +55,10 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
         amount=sale.amount or (float(product.sell_price) * sale.quantity), # Fallback calculation
         payment_type=sale.payment_type,
         order_id=sale.order_id,
-        profit=0 # Logic to calculate extra profit can be complex if sale amount varies
+        profit=0, # Logic to calculate extra profit can be complex if sale amount varies
+        width=sale.width,
+        length=sale.length,
+        area=sale.area
     )
     
     db.add(new_sale)

@@ -31,10 +31,19 @@ class ProductCreate(ProductBase):
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
     category: Optional[ProductCategory] = None
+    collection: Optional[str] = None
+    type: Optional[ProductType] = None
     buy_price: Optional[float] = None
     sell_price: Optional[float] = None
+    sell_price_per_meter: Optional[float] = None
     quantity: Optional[int] = None
-    # ... allow updating other fields
+    remaining_length: Optional[float] = None
+    total_length: Optional[float] = None
+    max_quantity: Optional[int] = None
+    width: Optional[float] = None
+    available_sizes: Optional[List[str]] = None
+    photo: Optional[str] = None
+    branch_id: Optional[UUID4] = None
 
 class ProductResponse(ProductBase):
     id: UUID4

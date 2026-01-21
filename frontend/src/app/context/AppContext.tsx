@@ -1,0 +1,704 @@
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useCallback,
+} from "react";
+import {
+  authService,
+  productService,
+  branchService,
+  salesService,
+  debtService,
+  expenseService
+} from "../../services/api";
+
+export type UserRole = "admin" | "seller";
+export type ProductType = "unit" | "meter";
+export type PaymentType = "cash" | "card" | "transfer";
+export type Category =
+  | "Gilamlar"
+  | "Metrajlar"
+  | "Ovalniy"
+  | "Kovrik";
+export type Theme = "light" | "dark";
+
+export interface User {
+  id: string;
+  name: string;
+  role: UserRole;
+  branchId?: string;
+  canAddProducts?: boolean;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  category: Category;
+  type: ProductType;
+  branchId: string;
+  photo: string;
+  collection?: string; // For carpets (Gilamlar) - e.g., 'Lara', 'Emili', 'Isfahan'
+  // Unit fields
+  quantity?: number;
+  maxQuantity?: number; // Maximum/initial quantity for stock tracking
+  buyPrice: number;
+  sellPrice: number;
+  // Meter fields
+  totalLength?: number;
+  remainingLength?: number;
+  width?: number;
+  sellPricePerMeter?: number;
+  // Carpet-specific fields (for Gilamlar category)
+  pricePerSquareMeter?: number; // Price per m² in USD or local currency
+  availableSizes?: string[]; // e.g., ["1×2", "2×3", "3×4", "3×5"]
+}
+
+export interface Sale {
+  id: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  amount: number;
+  paymentType: PaymentType;
+  branchId: string;
+  sellerId: string;
+  date: string;
+  profit?: number; // Extra profit when sold above standard price
+  orderId?: string; // Link to order if part of multi-product order
+  type: ProductType; // unit or meter
+  width?: number;
+  length?: number;
+  area?: number;
+}
+
+export interface BasketItem {
+  id: string; // Unique ID for this basket item
+  productId: string;
+  productName: string;
+  category: Category;
+  type: ProductType;
+  quantity: number;
+  pricePerUnit: number;
+  total: number;
+  photo: string;
+  // Carpet-specific fields (for Gilamlar category)
+  width?: string; // e.g., "3"
+  height?: string; // e.g., "4"
+  area?: number; // Calculated area in m² (width × height)
+}
+
+export interface Payment {
+  type: PaymentType;
+  amount: number;
+}
+
+export interface Order {
+  id: string;
+  items: BasketItem[];
+  payments: Payment[];
+  totalAmount: number;
+  sellerEnteredTotal: number; // What the seller actually sold for
+  calculatedTotal: number; // Database calculated price
+  branchId: string;
+  sellerId: string;
+  date: string;
+}
+
+export interface Expense {
+  id: string;
+  description: string;
+  amount: number;
+  branchId: string;
+  sellerId: string;
+  date: string;
+}
+
+export interface DebtPayment {
+  id: string;
+  amount: number;
+  date: string;
+  sellerId: string;
+  sellerName: string;
+  note?: string; // Optional payment note
+}
+
+export interface Debt {
+  id: string;
+  debtorName: string; // Who owes the money
+  phoneNumber?: string; // Debtor's phone number
+  orderDetails: string; // What they're buying
+  totalAmount: number; // Total order amount
+  paidAmount: number; // Amount already paid
+  remainingAmount: number; // Amount left to pay
+  paymentDeadline: string; // When they said they'll pay
+  branchId: string;
+  sellerId: string;
+  sellerName: string;
+  date: string; // When debt was created
+  status: "pending" | "paid" | "overdue"; // Payment status
+  orderItems?: BasketItem[]; // Optional: store the actual items they bought
+  paymentHistory: DebtPayment[]; // History of all payments made
+}
+
+export interface Branch {
+  id: string;
+  name: string;
+  status: "open" | "closed";
+}
+
+interface AppContextType {
+  user: User | null;
+  setUser: (user: User | null) => void;
+  products: Product[];
+  sales: Sale[];
+  expenses: Expense[];
+  debts: Debt[];
+  branches: Branch[];
+  basket: BasketItem[];
+  addToBasket: (item: BasketItem) => void;
+  removeFromBasket: (id: string) => void;
+  updateBasketItem: (
+    id: string,
+    quantity: number,
+    pricePerUnit: number,
+  ) => void;
+  updateBasketItemFull: (updatedItem: BasketItem) => void;
+  clearBasket: () => void;
+  completeOrder: (
+    payments: Payment[],
+    sellerEnteredTotal: number,
+  ) => void;
+  addSale: (sale: Sale) => void;
+  addProduct: (product: Product) => void;
+  updateProduct: (productId: string, updates: Partial<Product>) => void;
+  deleteProduct: (productId: string) => void;
+  renameCollection: (oldName: string, newName: string) => void;
+  deleteCollection: (collectionName: string) => void;
+  renameSize: (oldSize: string, newSize: string, collectionName?: string) => void;
+  deleteSize: (size: string, collectionName?: string) => void;
+  addExpense: (expense: Expense) => void;
+  updateExpense: (expenseId: string, expense: Expense) => void;
+  deleteExpense: (expenseId: string) => void;
+  addDebt: (debt: Debt) => void;
+  updateDebt: (debtId: string, debt: Debt) => void;
+  deleteDebt: (debtId: string) => void;
+  makeDebtPayment: (debtId: string, payment: DebtPayment) => void;
+  theme: Theme;
+  toggleTheme: () => void;
+  staff: User[];
+  updateStaffPermission: (
+    userId: string,
+    canAddProducts: boolean,
+  ) => void;
+  switchToBranchAccount: (branchId: string) => void;
+  switchBackToAdmin: () => void;
+  isAdminViewingAsSeller: boolean;
+  originalAdminUser: User | null;
+  fetchData: () => Promise<void>;
+  isLoading: boolean;
+  addBranch: (name: string) => Promise<void>;
+  deleteBranch: (id: string) => Promise<void>;
+}
+
+const AppContext = createContext<AppContextType | undefined>(
+  undefined,
+);
+
+// Mock data removed. Using API.
+
+export function AppProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const [user, setUser] = useState<User | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [sales, setSales] = useState<Sale[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [debts, setDebts] = useState<Debt[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [staff, setStaff] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [theme, setTheme] = useState<Theme>(() => {
+    const saved = localStorage.getItem("theme");
+    return (saved as Theme) || "light";
+  });
+
+  // Account switching state
+  const [originalAdminUser, setOriginalAdminUser] = useState<User | null>(null);
+  const [isAdminViewingAsSeller, setIsAdminViewingAsSeller] = useState(false);
+
+  // Apply theme to document
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const fetchData = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const fetchSafe = async (fn: () => Promise<any>, setter: (val: any) => void) => {
+        try {
+          const data = await fn();
+          setter(data);
+        } catch (e) {
+          console.error(`Fetch failed:`, e);
+        }
+      };
+
+      await Promise.all([
+        fetchSafe(() => productService.getAll(), setProducts),
+        fetchSafe(() => branchService.getAll(), setBranches),
+        fetchSafe(() => salesService.getAll(), setSales),
+        fetchSafe(() => debtService.getAll(), setDebts),
+        fetchSafe(() => expenseService.getAll(), setExpenses)
+      ]);
+    } catch (error) {
+      console.error("Failed to fetch data", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const userData = await authService.getMe();
+          setUser(userData);
+          fetchData();
+        }
+      } catch (error) {
+        console.error("Auth check failed", error);
+        localStorage.removeItem('token');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    initAuth();
+  }, [fetchData]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  };
+
+  const addSale = async (sale: Sale) => {
+    try {
+      await salesService.create(sale);
+      await fetchData();
+    } catch (error) {
+      console.error("Failed to add sale", error);
+    }
+  };
+
+  const addProduct = async (product: Product) => {
+    try {
+      await productService.create(product);
+      await fetchData();
+    } catch (error) {
+      console.error("Failed to add product", error);
+      throw error;
+    }
+  };
+
+  const updateProduct = async (
+    productId: string,
+    updates: Partial<Product>,
+  ) => {
+    try {
+      const updatedProduct = await productService.update(
+        productId,
+        updates,
+      );
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === productId ? updatedProduct : p,
+        ),
+      );
+      return updatedProduct;
+    } catch (error: any) {
+      console.error("Failed to update product:", error);
+      throw error;
+    }
+  };
+
+  const deleteProduct = async (productId: string) => {
+    try {
+      await productService.delete(productId);
+      setProducts((prev) => prev.filter((p) => p.id !== productId));
+    } catch (error: any) {
+      console.error("Failed to delete product:", error);
+      throw error;
+    }
+  };
+
+  const renameCollection = (oldName: string, newName: string) => {
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.collection === oldName ? { ...p, collection: newName } : p,
+      ),
+    );
+  };
+
+  const deleteCollection = (collectionName: string) => {
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.collection === collectionName ? { ...p, collection: undefined } : p,
+      ),
+    );
+  };
+
+  const renameSize = (oldSize: string, newSize: string, collectionName?: string) => {
+    setProducts((prev) =>
+      prev.map((p) => {
+        if (collectionName && p.collection !== collectionName) {
+          return p;
+        }
+        return {
+          ...p,
+          availableSizes: p.availableSizes?.map((size) =>
+            size === oldSize ? newSize : size,
+          ),
+        };
+      }),
+    );
+  };
+
+  const deleteSize = (size: string, collectionName?: string) => {
+    setProducts((prev) =>
+      prev.map((p) => {
+        if (collectionName && p.collection !== collectionName) {
+          return p;
+        }
+        return {
+          ...p,
+          availableSizes: p.availableSizes?.filter((s) => s !== size),
+        };
+      }),
+    );
+  };
+
+  const addExpense = async (expense: Expense) => {
+    try {
+      await expenseService.create(expense);
+      await fetchData();
+    } catch (error) {
+      console.error("Failed to add expense", error);
+      throw error;
+    }
+  };
+
+  const updateExpense = async (
+    expenseId: string,
+    expense: Expense,
+  ) => {
+    // Currently no update endpoint, just local state
+    setExpenses((prev) =>
+      prev.map((e) => (e.id === expenseId ? expense : e)),
+    );
+  };
+
+  const deleteExpense = async (expenseId: string) => {
+    try {
+      await expenseService.delete(expenseId);
+      setExpenses((prev) =>
+        prev.filter((e) => e.id !== expenseId),
+      );
+    } catch (error) {
+      console.error("Failed to delete expense", error);
+      throw error;
+    }
+  };
+
+  const addDebt = async (debt: Debt) => {
+    try {
+      await debtService.create(debt);
+      await fetchData();
+    } catch (error) {
+      console.error("Failed to add debt", error);
+    }
+  };
+
+  const updateDebt = (debtId: string, debt: Debt) => {
+    setDebts((prev) =>
+      prev.map((d) => (d.id === debtId ? debt : d)),
+    );
+  };
+
+  const deleteDebt = (debtId: string) => {
+    setDebts((prev) => prev.filter((d) => d.id !== debtId));
+  };
+
+  const makeDebtPayment = async (
+    debtId: string,
+    payment: DebtPayment,
+  ) => {
+    try {
+      await debtService.addPayment(debtId, payment);
+      await fetchData();
+    } catch (error) {
+      console.error("Failed to make debt payment", error);
+    }
+  };
+
+  const addBranch = async (name: string) => {
+    try {
+      await branchService.create({ name });
+      await fetchData();
+    } catch (error) {
+      console.error("Failed to add branch", error);
+      throw error;
+    }
+  };
+
+  const deleteBranch = async (id: string) => {
+    try {
+      await branchService.delete(id);
+      await fetchData();
+    } catch (error) {
+      console.error("Failed to delete branch", error);
+      throw error;
+    }
+  };
+
+  const updateStaffPermission = (
+    userId: string,
+    canAddProducts: boolean,
+  ) => {
+    setStaff((prev) =>
+      prev.map((u) => {
+        if (u.id === userId) {
+          return { ...u, canAddProducts };
+        }
+        return u;
+      }),
+    );
+  };
+
+  const [basket, setBasket] = useState<BasketItem[]>([]);
+
+  const addToBasket = (item: BasketItem) => {
+    setBasket((prev) => [...prev, item]);
+  };
+
+  const removeFromBasket = (id: string) => {
+    setBasket((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const updateBasketItem = (
+    id: string,
+    quantity: number,
+    pricePerUnit: number,
+  ) => {
+    setBasket((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? {
+            ...item,
+            quantity,
+            pricePerUnit,
+            total: quantity * pricePerUnit,
+          }
+          : item,
+      ),
+    );
+  };
+
+  const updateBasketItemFull = (updatedItem: BasketItem) => {
+    setBasket((prev) =>
+      prev.map((item) =>
+        item.id === updatedItem.id ? updatedItem : item,
+      ),
+    );
+  };
+
+  const clearBasket = () => {
+    setBasket([]);
+  };
+
+  const completeOrder = async (
+    payments: Payment[],
+    sellerEnteredTotal: number,
+  ) => {
+    if (!user) return;
+
+    const orderId = `o${Date.now()}`;
+    const calculatedTotal = basket.reduce(
+      (sum, item) => sum + item.total,
+      0,
+    );
+
+    // Calculate total profit: seller entered total - database calculated total
+    const totalProfit = sellerEnteredTotal - calculatedTotal;
+
+    // Determine payment distribution
+    let remainingCash = payments.find(p => p.type === "cash")?.amount || 0;
+    let remainingCard = payments.find(p => p.type === "card")?.amount || 0;
+    let remainingTransfer = payments.find(p => p.type === "transfer")?.amount || 0;
+
+    const salesPromises = basket.map((item, index) => {
+      const product = products.find(
+        (p) => p.id === item.productId,
+      );
+      if (!product) return Promise.resolve();
+
+      // Calculate this item's proportion of total calculated price
+      const itemProportion = item.total / calculatedTotal;
+
+      // Distribute profit proportionally
+      const itemProfit = totalProfit * itemProportion;
+
+      // Calculate this item's total with profit
+      const itemTotalWithProfit = item.total + itemProfit;
+
+      // Determine payment type for this sale based on remaining amounts
+      let paymentType: "cash" | "card" | "transfer" = "cash";
+
+      if (remainingCash >= itemTotalWithProfit) {
+        paymentType = "cash";
+        remainingCash -= itemTotalWithProfit;
+      } else if (remainingCash > 0) {
+        // Use remaining cash first, then card
+        paymentType = "cash";
+        remainingCash = 0;
+      } else if (remainingCard >= itemTotalWithProfit) {
+        paymentType = "card";
+        remainingCard -= itemTotalWithProfit;
+      } else if (remainingCard > 0) {
+        paymentType = "card";
+        remainingCard = 0;
+      } else {
+        paymentType = "transfer";
+        remainingTransfer -= itemTotalWithProfit;
+      }
+
+      // Map dimensions and area
+      let width = item.width ? parseFloat(item.width) : undefined;
+      let length = item.height ? parseFloat(item.height) : (item.type === 'meter' ? item.quantity : undefined);
+      let area = item.area;
+
+      // For meter products, if width is not in item but in product, use it
+      if (item.type === 'meter' && !width && product.width) {
+        width = product.width;
+      }
+
+      // If area is missing but we have width and length, calculate it
+      if (!area && width && length) {
+        area = width * length;
+      }
+
+      const sale: Sale = {
+        id: `s${Date.now()}-${index}`, // ID might be ignored by backend or useful for consistent ID before DB
+        productId: item.productId,
+        productName: item.productName,
+        quantity: item.quantity,
+        amount: item.total + itemProfit, // Item's share of seller entered total
+        paymentType: paymentType,
+        branchId: user.branchId || "",
+        sellerId: user.id,
+        date: new Date().toISOString(),
+        orderId: orderId,
+        profit: itemProfit,
+        type: item.type,
+        width,
+        length,
+        area,
+      };
+
+      return addSale(sale);
+    });
+
+    await Promise.all(salesPromises);
+    clearBasket();
+  };
+
+  const switchToBranchAccount = (branchId: string) => {
+    if (!user || user.role !== "admin") return;
+
+    setOriginalAdminUser(user);
+    setIsAdminViewingAsSeller(true);
+    setUser({
+      id: user.id,
+      name: user.name,
+      role: "seller",
+      branchId: branchId,
+      canAddProducts: true,
+    });
+  };
+
+  const switchBackToAdmin = () => {
+    if (!originalAdminUser) return;
+
+    setIsAdminViewingAsSeller(false);
+    setUser(originalAdminUser);
+    setOriginalAdminUser(null);
+  };
+
+  return (
+    <AppContext.Provider
+      value={{
+        user,
+        setUser,
+        products,
+        sales,
+        expenses,
+        debts,
+        branches,
+        basket,
+        addToBasket,
+        removeFromBasket,
+        updateBasketItem,
+        updateBasketItemFull,
+        clearBasket,
+        completeOrder,
+        addSale,
+        addProduct,
+        updateProduct,
+        deleteProduct,
+        renameCollection,
+        deleteCollection,
+        renameSize,
+        deleteSize,
+        addExpense,
+        updateExpense,
+        deleteExpense,
+        addDebt,
+        updateDebt,
+        deleteDebt,
+        makeDebtPayment,
+        theme,
+        toggleTheme,
+        staff,
+        updateStaffPermission,
+        switchToBranchAccount,
+        switchBackToAdmin,
+        isAdminViewingAsSeller,
+        originalAdminUser,
+        fetchData,
+        isLoading,
+        addBranch,
+        deleteBranch,
+      }}
+    >
+      {children}
+    </AppContext.Provider>
+  );
+}
+
+export function useApp() {
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error("useApp must be used within AppProvider");
+  }
+  return context;
+}

@@ -1,4 +1,4 @@
-from sqlalchemy import String, Integer, Float, Enum as SQLEnum, ForeignKey, Uuid, JSON, DECIMAL
+from sqlalchemy import String, Integer, BigInteger, Float, Enum as SQLEnum, ForeignKey, Uuid, JSON, DECIMAL
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 import enum
 import uuid
@@ -6,8 +6,6 @@ from .base import UUIDMixin, TimestampMixin, SoftDeleteMixin, Base
 
 class ProductCategory(str, enum.Enum):
     GILAMLAR = "Gilamlar"
-    PALOSLAR = "Paloslar"
-    JOYNAMOZLAR = "Joynamozlar"
     METRAJLAR = "Metrajlar"
     OVALNIY = "Ovalniy"
     KOVRIK = "Kovrik"
@@ -28,15 +26,16 @@ class Product(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     sell_price: Mapped[float] = mapped_column(DECIMAL(15, 2))
     sell_price_per_meter: Mapped[float | None] = mapped_column(DECIMAL(15, 2), nullable=True)
     
-    quantity: Mapped[int] = mapped_column(Integer, default=0)
+    quantity: Mapped[int] = mapped_column(BigInteger, default=0)
     remaining_length: Mapped[float | None] = mapped_column(DECIMAL(10, 2), nullable=True)
     total_length: Mapped[float | None] = mapped_column(DECIMAL(10, 2), nullable=True) # Initial total length
     
-    max_quantity: Mapped[int | None] = mapped_column(Integer, nullable=True) # For stock tracking visualization (progres bar)
+    max_quantity: Mapped[int | None] = mapped_column(BigInteger, nullable=True) # For stock tracking visualization (progres bar)
     width: Mapped[float | None] = mapped_column(Float, nullable=True)
     
     available_sizes: Mapped[list[str] | None] = mapped_column(JSON, nullable=True) # e.g. ["2x3", "3x4"]
     photo: Mapped[str | None] = mapped_column(String, nullable=True)
+    image_hash: Mapped[str | None] = mapped_column(String, nullable=True)
     
     branch_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("branches.id"))
 

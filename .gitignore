@@ -8,13 +8,26 @@ backend/__pycache__/
 env/
 venv/
 .env
+*.log
+*.txt
+*.json
+!backend/requirements.txt
+!frontend/package.json
+!frontend/package-lock.json
+!backend/app/**/*.json
 
 # Database
 *.db
 *.sqlite3
+*.db-journal
 
 # Node
 node_modules/
 dist/
 build/
 .DS_Store
+*.local
+
+# IDEs
+.vscode/
+.idea/
