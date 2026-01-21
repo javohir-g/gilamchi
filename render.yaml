@@ -33,12 +33,11 @@ services:
         value: "*"
 
   # Frontend Service (Static Site)
-  - type: web
+  - type: static
     name: gilamchi-web
-    env: static
     rootDir: frontend
     buildCommand: npm install && npm run build
-    staticPublishPath: dist
+    publishPath: dist
     routes:
       - type: rewrite
         source: /*
