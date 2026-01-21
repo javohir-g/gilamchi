@@ -73,15 +73,27 @@ def create_product(product: ProductCreate, db: Session = Depends(get_db), curren
 
     product_data = product.dict()
     
-    # Compute Hash if photo is provided and is base64
+    # Compute Hash and Embedding if photo is provided and is base64
     if product.photo and product.photo.startswith("data:image"):
         try:
              # Extract base64 headers if present
              header, encoded = product.photo.split(",", 1)
              image_data = base64.b64decode(encoded)
+             
+             # Legacy dHash
              product_data["image_hash"] = compute_image_hash(image_data)
+             
+             # New CLIP Embedding
+             from ..utils.image_embedding import extract_image_embedding
+             import numpy as np
+             
+             embedding = extract_image_embedding(image_data)
+             if embedding is not None:
+                 product_data["image_embedding"] = embedding.astype(np.float32).tobytes()
+                 print("DEBUG: CLIP embedding computed for new product")
+                 
         except Exception as e:
-             print(f"Failed to compute hash: {e}")
+             print(f"Failed to compute image data: {e}")
 
     new_product = Product(**product_data)
     db.add(new_product)
@@ -238,14 +250,26 @@ def update_product(
 
     update_data = product_update.dict(exclude_unset=True)
     
-    # Handle image hash if photo is updated
+    # Handle image hash and embedding if photo is updated
     if "photo" in update_data and update_data["photo"] and update_data["photo"].startswith("data:image"):
         try:
              header, encoded = update_data["photo"].split(",", 1)
              image_data = base64.b64decode(encoded)
+             
+             # Legacy dHash
              update_data["image_hash"] = compute_image_hash(image_data)
+             
+             # New CLIP Embedding
+             from ..utils.image_embedding import extract_image_embedding
+             import numpy as np
+             
+             embedding = extract_image_embedding(image_data)
+             if embedding is not None:
+                 db_product.image_embedding = embedding.astype(np.float32).tobytes()
+                 print("DEBUG: CLIP embedding updated for product")
+                 
         except Exception as e:
-             print(f"Failed to compute hash: {e}")
+             print(f"Failed to compute image data on update: {e}")
 
     for key, value in update_data.items():
         setattr(db_product, key, value)
