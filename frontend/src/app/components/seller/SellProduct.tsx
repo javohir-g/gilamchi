@@ -211,7 +211,7 @@ export function SellProduct() {
       // Backend автоматически фильтрует по филиалу для продавцов
 
       // Fallback to localhost if env not set (dev mode safety)
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "" : "http://localhost:8000");
 
       const response = await axios.post(`${apiUrl}/api/products/search-image`, formData, {
         headers: {

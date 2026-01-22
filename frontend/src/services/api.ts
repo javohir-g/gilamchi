@@ -12,10 +12,9 @@ if (envApiUrl && !envApiUrl.startsWith('http')) {
   envApiUrl = `https://${envApiUrl}`;
 }
 
-// Construct API_URL carefully:
-// 1. If no env, use localhost
+// 1. If no env, use localhost (dev) or relative path (prod)
 // 2. If env exists, ensure it ends with /api/ (case insensitive and handle trailing slashes)
-let API_URL = 'http://localhost:8000/api/';
+let API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api/' : 'http://localhost:8000/api/');
 
 if (envApiUrl) {
   let base = envApiUrl.trim();
