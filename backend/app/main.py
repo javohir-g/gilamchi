@@ -16,6 +16,23 @@ app = FastAPI(
     debug=settings.DEBUG
 )
 
+@app.on_event("startup")
+async def startup_event():
+    """
+    Действия при запуске приложения:
+    1. Загрузка CLIP модели в память (чтобы первый поиск был быстрым)
+    """
+    print("Startup: Preloading CLIP model...")
+    try:
+        from .utils.image_embedding import get_model
+        # Запускаем в отдельном потоке, чтобы не блокировать startup (хотя для in-memory модели это быстро после скачивания)
+        import asyncio
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, get_model)
+        print("Startup: CLIP model preloaded successfully!")
+    except Exception as e:
+        print(f"Startup warning: Failed to preload CLIP model: {e}")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], # Simplified to literal wildcard for robust handling

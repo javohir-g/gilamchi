@@ -201,10 +201,46 @@ export function SellProduct() {
     setCameraSearchOpen(false);
 
     try {
-      // Convert base64 to blob
-      const res = await fetch(imageData);
-      const blob = await res.blob();
-      const file = new File([blob], "search.jpg", { type: "image/jpeg" });
+      // Сжимаем изображение перед поиском (клиентская оптимизация)
+      // Для поиска достаточно 512x512px, качество 80%
+      const compressForSearch = (base64Str: string): Promise<Blob> => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_SIZE = 512; // Меньше размер = быстрее поиск (CLIP работает с 224x224)
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > MAX_SIZE) {
+                height *= MAX_SIZE / width;
+                width = MAX_SIZE;
+              }
+            } else {
+              if (height > MAX_SIZE) {
+                width *= MAX_SIZE / height;
+                height = MAX_SIZE;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob((blob) => {
+              if (blob) resolve(blob);
+            }, 'image/jpeg', 0.8); // 80% качество
+          };
+          img.src = base64Str;
+        });
+      };
+
+      const compressedBlob = await compressForSearch(imageData);
+      const file = new File([compressedBlob], "search_optimized.jpg", { type: "image/jpeg" });
+
+      console.log(`Search image optimized: ${(file.size / 1024).toFixed(1)}KB`);
 
       const formData = new FormData();
       formData.append("file", file);
