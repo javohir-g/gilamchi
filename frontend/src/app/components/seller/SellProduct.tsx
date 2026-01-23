@@ -466,68 +466,8 @@ export function SellProduct() {
 
       {/* Full-Screen Loading Modal for Image Analysis */}
       {isAnalyzing && (
-        <div className="fixed inset-0 z-[60] bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 flex flex-col items-center justify-center p-6">
-          {/* Animated Background Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]"></div>
-          </div>
-
-          <div className="relative z-10 flex flex-col items-center space-y-8 max-w-md w-full">
-            {/* Main Spinner */}
-            <div className="relative">
-              {/* Outer ring */}
-              <div className="w-32 h-32 border-8 border-blue-300/30 rounded-full"></div>
-              {/* Spinning ring */}
-              <div className="absolute inset-0 w-32 h-32 border-8 border-transparent border-t-white border-r-white rounded-full animate-spin"></div>
-              {/* Inner pulsing circle */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-16 h-16 bg-white/20 rounded-full animate-pulse"></div>
-              </div>
-              {/* Camera icon in center */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Camera className="w-10 h-10 text-white" />
-              </div>
-            </div>
-
-            {/* Loading Text */}
-            <div className="text-center space-y-3">
-              <h3 className="text-2xl font-bold text-white">
-                Tahlil qilinmoqda...
-              </h3>
-              <p className="text-blue-200 text-lg">
-                AI mahsulotlarni qidiryapti
-              </p>
-            </div>
-
-            {/* Progress Steps */}
-            <div className="w-full space-y-3 bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-              <div className="flex items-center space-x-3 text-white">
-                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <span className="text-sm">Rasm yuklandi</span>
-              </div>
-
-              <div className="flex items-center space-x-3 text-white">
-                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 animate-pulse">
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                </div>
-                <span className="text-sm">AI tahlil qilyapti...</span>
-              </div>
-
-              <div className="flex items-center space-x-3 text-white/50">
-                <div className="w-6 h-6 rounded-full bg-white/20 flex-shrink-0"></div>
-                <span className="text-sm">Natijalar tayyor</span>
-              </div>
-            </div>
-
-            {/* Tip */}
-            <div className="text-center text-blue-200 text-sm px-4">
-              💡 Yaxshi natija uchun yorug' joyda va aniq rasm oling
-            </div>
-          </div>
+        <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center">
+          <div className="w-20 h-20 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
         </div>
       )}
 
