@@ -302,10 +302,28 @@ export function AppProvider({
   };
 
   const addProduct = async (product: Product) => {
+    // Оптимистичное обновление UI - добавляем товар мгновенно
+    const optimisticProduct = {
+      ...product,
+      id: product.id || `temp-${Date.now()}`, // Временный ID если не указан
+    };
+
+    // Мгновенно добавляем в локальное состояние
+    setProducts((prev) => [...prev, optimisticProduct]);
+
     try {
-      await productService.create(product);
-      await fetchData();
+      // Отправляем на сервер в фоне
+      const savedProduct = await productService.create(product);
+
+      // Обновляем с реальными данными от сервера
+      setProducts((prev) =>
+        prev.map((p) => (p.id === optimisticProduct.id ? savedProduct : p))
+      );
     } catch (error) {
+      // Если ошибка - удаляем оптимистичный товар
+      setProducts((prev) =>
+        prev.filter((p) => p.id !== optimisticProduct.id)
+      );
       console.error("Failed to add product", error);
       throw error;
     }

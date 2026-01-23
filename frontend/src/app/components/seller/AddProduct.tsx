@@ -216,63 +216,20 @@ export function AddProduct() {
       ? { quantity: parseInt(quantity) }
       : {
         totalLength: parseFloat(totalLength),
-        remainingLength: parseFloat(totalLength), // Reset remaining length on edit? Or keep? 
-        // If editing, we probably shouldn't reset remainingLength unless user explicitly changes totalLength?
-        // For simplicity in this "Add/Edit" unified form, if user changes totalLength, we might need logic.
-        // But here we are just constructing the object.
-        // IMPORTANT: If editing, we should preserve remainingLength if not changed, or adjust it?
-        // Let's assume for now we overwrite it with totalLength if it's a new product.
-        // If it's an update, we should be careful.
+        remainingLength: parseFloat(totalLength),
         width: width ? parseFloat(width) : undefined,
         sellPricePerMeter: parseFloat(sellPricePerMeter),
       };
 
     if (isEditMode && id) {
-      // logic for update
-      // For meter products, if we update, we usually don't reset remainingLength to totalLength automatically unless intended.
-      // But the user input is "totalLength".
-      // Let's check if we should update remainingLength.
-      // If I change total length from 100 to 120, remaining length should probably increase by 20?
-      // Or is this form "Restock"?
-      // This form is "Edit Product Details".
-      // If I edit the product, I might be correcting a mistake.
-
-      // For now, I'll spread typeSpecificData. 
-      // Note: If type is 'meter', `remainingLength` is in `typeSpecificData` as `parseFloat(totalLength)`.
-      // This effectively resets remainingLength to totalLength. 
-      // This might be what is expected if I'm "fixing" the product definition.
-      // But if I sold some, and I edit the name, I don't want to reset remainingLength.
-
       const productToEdit = products.find((p) => p.id === id);
       let finalTypeData = { ...typeSpecificData };
 
       if (productToEdit && productToEdit.type === 'meter' && type === 'meter') {
-        // If we are just updating name/price, we shouldn't reset remainingLength to totalLength
-        // But if we changed totalLength, maybe we should?
         if (productToEdit.totalLength === parseFloat(totalLength)) {
-          // Total length didn't change, preserve remainingLength
           finalTypeData.remainingLength = productToEdit.remainingLength || parseFloat(totalLength);
         } else {
-          // Total length changed. 
-          // Option 1: Reset remaining to new total (assuming it's a correction)
-          // Option 2: Adjust remaining by the difference?
-          // Let's go with Option 1: Reset. The user sees "Umumiy uzunlik" and sets it.
-          // Actually, if I just correct a typo in name, I don't want to reset stock.
-          finalTypeData.remainingLength = productToEdit.remainingLength;
-          // If I change totalLength, `typeSpecificData` has `remainingLength: totalLength`.
-          // I need to decide.
-          // Let's use `remainingLength: parseFloat(totalLength)` ONLY if creating.
-          // If updating, exclude `remainingLength` unless we want to force it.
-
-          // Let's simplify: If editing, DO NOT update remainingLength here unless we want to support restocking here.
-          // But the form has "Total Length".
-          // If I change total length, I expect the stock to reflect that.
-          // If I just change name, I don't touch total length field.
-
-          // Better approach:
           if (productToEdit.totalLength !== parseFloat(totalLength)) {
-            // If total length changed, reset remaining length to match new total?
-            // Or maybe the user implies "I have this much now"?
             finalTypeData.remainingLength = parseFloat(totalLength);
           } else {
             finalTypeData.remainingLength = productToEdit.remainingLength;
@@ -281,32 +238,37 @@ export function AddProduct() {
       }
 
       try {
-        // If updateProduct becomes async later, this helps. 
-        // Currently it seems synchronous in AppContext, but SHOULD be async to backend.
-        // Assuming for now it might be updated to call API.
         await updateProduct(id, {
           ...commonData,
           ...finalTypeData
         });
         toast.success("Mahsulot yangilandi!");
-        navigate(-1); // Go back
+        navigate(-1);
       } catch (error: any) {
         toast.error("Xatolik: " + error.message);
       }
     } else {
-      // Create
+      // Create - с оптимистичным обновлением
       const newProduct = {
         id: `p${Date.now()}`,
         branchId: branchId,
         ...commonData,
         ...typeSpecificData
       };
+
       try {
-        await addProduct(newProduct);
+        // Показываем мгновенный успех
         toast.success("Mahsulot qo'shildi!");
+
+        // Мгновенно переходим назад (оптимистичное обновление в AppContext)
         navigate("/seller/home");
+
+        // API вызов происходит в фоне через AppContext
+        await addProduct(newProduct);
+
       } catch (error: any) {
         console.error("Error adding product:", error);
+        // Если ошибка - показываем уведомление (пользователь уже на другой странице)
         toast.error("Mahsulot qo'shishda xatolik bo'ldi: " + (error.response?.data?.detail || error.message));
       }
     }
