@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Query, File, UploadFile, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import base64
@@ -10,6 +10,47 @@ from ..utils.dependencies import get_current_user, get_admin_user
 from ..utils.image import compute_image_hash
 
 router = APIRouter()
+
+def compute_clip_embedding_background(product_id: str, image_data: bytes):
+    """
+    Фоновая задача для вычисления CLIP embedding.
+    Выполняется асинхронно после создания товара.
+    
+    Args:
+        product_id: ID товара для обновления
+        image_data: Байты изображения
+    """
+    import sys
+    from ..utils.image_embedding import extract_image_embedding
+    import numpy as np
+    
+    try:
+        print(f"Background: Computing CLIP embedding for product {product_id}", file=sys.stderr)
+        
+        # Вычисление embedding (оптимизация изображения происходит внутри)
+        embedding = extract_image_embedding(image_data)
+        
+        if embedding is not None:
+            # Получаем новую сессию БД для фоновой задачи
+            from ..database import SessionLocal
+            db = SessionLocal()
+            try:
+                product = db.query(Product).filter(Product.id == product_id).first()
+                if product:
+                    product.image_embedding = embedding.astype(np.float32).tobytes()
+                    db.commit()
+                    print(f"Background: CLIP embedding saved for product {product_id}", file=sys.stderr)
+                else:
+                    print(f"Background: Product {product_id} not found", file=sys.stderr)
+            finally:
+                db.close()
+        else:
+            print(f"Background: Failed to compute embedding for product {product_id}", file=sys.stderr)
+            
+    except Exception as e:
+        print(f"Background: Error computing embedding for product {product_id}: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc(file=sys.stderr)
 
 @router.get("/", response_model=List[ProductResponse])
 def read_products(
@@ -63,7 +104,12 @@ def read_products(
         raise e
 
 @router.post("/", response_model=ProductResponse)
-def create_product(product: ProductCreate, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+def create_product(
+    product: ProductCreate, 
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db), 
+    current_user = Depends(get_current_user)
+):
     # Check permissions (if seller has can_add_products)
     if current_user.role != "admin" and not current_user.can_add_products:
          raise HTTPException(status_code=403, detail="Not authorized to add products")
@@ -72,33 +118,41 @@ def create_product(product: ProductCreate, db: Session = Depends(get_db), curren
          raise HTTPException(status_code=403, detail="Cannot add product to another branch")
 
     product_data = product.dict()
+    image_data_for_background = None
     
-    # Compute Hash and Embedding if photo is provided and is base64
+    # Compute Hash and schedule CLIP Embedding if photo is provided and is base64
     if product.photo and product.photo.startswith("data:image"):
         try:
              # Extract base64 headers if present
              header, encoded = product.photo.split(",", 1)
              image_data = base64.b64decode(encoded)
              
-             # Legacy dHash
+             # Legacy dHash (быстрая операция, выполняем синхронно)
              product_data["image_hash"] = compute_image_hash(image_data)
              
-             # New CLIP Embedding
-             from ..utils.image_embedding import extract_image_embedding
-             import numpy as np
+             # Сохраняем image_data для фоновой задачи
+             image_data_for_background = image_data
              
-             embedding = extract_image_embedding(image_data)
-             if embedding is not None:
-                 product_data["image_embedding"] = embedding.astype(np.float32).tobytes()
-                 print("DEBUG: CLIP embedding computed for new product")
+             print("DEBUG: Image hash computed, CLIP embedding will be computed in background")
                  
         except Exception as e:
-             print(f"Failed to compute image data: {e}")
+             print(f"Failed to compute image hash: {e}")
 
+    # Создаем товар БЕЗ CLIP embedding (мгновенно!)
     new_product = Product(**product_data)
     db.add(new_product)
     db.commit()
     db.refresh(new_product)
+    
+    # Запускаем фоновую задачу для CLIP embedding
+    if image_data_for_background is not None:
+        background_tasks.add_task(
+            compute_clip_embedding_background,
+            str(new_product.id),
+            image_data_for_background
+        )
+        print(f"DEBUG: Background task scheduled for product {new_product.id}")
+    
     return new_product
 
 @router.get("/{product_id}", response_model=ProductResponse)
@@ -235,7 +289,8 @@ async def search_products_by_image(
 @router.patch("/{product_id}", response_model=ProductResponse)
 def update_product(
     product_id: str, 
-    product_update: ProductUpdate, 
+    product_update: ProductUpdate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db), 
     current_user = Depends(get_current_user)
 ):
@@ -249,6 +304,7 @@ def update_product(
              raise HTTPException(status_code=403, detail="Not authorized to update products in other branches")
 
     update_data = product_update.dict(exclude_unset=True)
+    image_data_for_background = None
     
     # Handle image hash and embedding if photo is updated
     if "photo" in update_data and update_data["photo"] and update_data["photo"].startswith("data:image"):
@@ -256,26 +312,32 @@ def update_product(
              header, encoded = update_data["photo"].split(",", 1)
              image_data = base64.b64decode(encoded)
              
-             # Legacy dHash
+             # Legacy dHash (быстрая операция)
              update_data["image_hash"] = compute_image_hash(image_data)
              
-             # New CLIP Embedding
-             from ..utils.image_embedding import extract_image_embedding
-             import numpy as np
+             # Сохраняем для фоновой задачи
+             image_data_for_background = image_data
              
-             embedding = extract_image_embedding(image_data)
-             if embedding is not None:
-                 db_product.image_embedding = embedding.astype(np.float32).tobytes()
-                 print("DEBUG: CLIP embedding updated for product")
+             print("DEBUG: Image hash updated, CLIP embedding will be computed in background")
                  
         except Exception as e:
-             print(f"Failed to compute image data on update: {e}")
+             print(f"Failed to compute image hash on update: {e}")
 
     for key, value in update_data.items():
         setattr(db_product, key, value)
 
     db.commit()
     db.refresh(db_product)
+    
+    # Запускаем фоновую задачу для CLIP embedding если фото обновлено
+    if image_data_for_background is not None:
+        background_tasks.add_task(
+            compute_clip_embedding_background,
+            str(db_product.id),
+            image_data_for_background
+        )
+        print(f"DEBUG: Background task scheduled for updated product {db_product.id}")
+    
     return db_product
 
 @router.delete("/{product_id}")

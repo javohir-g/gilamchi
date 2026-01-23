@@ -75,14 +75,71 @@ export function AddProduct() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+  // Функция для сжатия изображения на клиенте
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new window.Image();
+        img.onload = () => {
+          // Создаем canvas для изменения размера
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+
+          if (!ctx) {
+            reject(new Error('Failed to get canvas context'));
+            return;
+          }
+
+          // Максимальный размер 1024x1024
+          const MAX_SIZE = 1024;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height = (height * MAX_SIZE) / width;
+              width = MAX_SIZE;
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width = (width * MAX_SIZE) / height;
+              height = MAX_SIZE;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          // Рисуем изображение с новым размером
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Конвертируем в JPEG с качеством 85%
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+          console.log(`Image compressed: ${(file.size / 1024).toFixed(1)}KB -> ${(compressedDataUrl.length / 1024).toFixed(1)}KB`);
+
+          resolve(compressedDataUrl);
+        };
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhoto(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        // Сжимаем изображение перед установкой
+        const compressedImage = await compressImage(file);
+        setPhoto(compressedImage);
+      } catch (error) {
+        console.error('Error compressing image:', error);
+        toast.error('Ошибка при обработке изображения');
+      }
     }
   };
 
