@@ -1,11 +1,13 @@
-from sentence_transformers import SentenceTransformer
+from typing import Optional, List, TYPE_CHECKING
 from PIL import Image
 import io
 import numpy as np
-from typing import Optional
+
+if TYPE_CHECKING:
+    from sentence_transformers import SentenceTransformer
 
 # Глобальная переменная для кэширования модели
-_model: Optional[SentenceTransformer] = None
+_model: Optional["SentenceTransformer"] = None
 
 def optimize_image(image_bytes: bytes, max_size: int = 800, quality: int = 85) -> bytes:
     """
@@ -56,7 +58,7 @@ def optimize_image(image_bytes: bytes, max_size: int = 800, quality: int = 85) -
         # Возвращаем оригинал при ошибке
         return image_bytes
 
-def get_model() -> SentenceTransformer:
+def get_model() -> "SentenceTransformer":
     """
     Получает или загружает CLIP модель.
     Модель кэшируется для повторного использования.
@@ -64,6 +66,9 @@ def get_model() -> SentenceTransformer:
     global _model
     if _model is None:
         print("Loading CLIP model (clip-ViT-B-32)...")
+        # Импортируем здесь, чтобы не замедлять старт приложения
+        from sentence_transformers import SentenceTransformer
+        
         # CLIP-based модель, оптимизированная для изображений
         # Размер: ~400MB, Embedding dimension: 512
         _model = SentenceTransformer('clip-ViT-B-32')

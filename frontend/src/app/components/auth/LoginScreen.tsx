@@ -33,7 +33,8 @@ export function LoginScreen() {
       // Get user details
       const user = await authService.getMe();
       setUser(user);
-      await fetchData();
+      setUser(user);
+      fetchData(); // Don't await - load data in background
 
 
       toast.success(`Xush kelibsiz, ${user.name}!`);

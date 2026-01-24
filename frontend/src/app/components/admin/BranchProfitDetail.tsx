@@ -1,4 +1,4 @@
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams, Link } from "react-router-dom";
 import { useApp } from "../../context/AppContext";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
@@ -243,9 +243,12 @@ export function BranchProfitDetail() {
                       {/* Product Name & Total */}
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <div className="font-medium text-card-foreground mb-1">
+                          <Link
+                            to={`/seller/edit-product/${pp.product.id}`}
+                            className="font-medium text-card-foreground mb-1 hover:underline hover:text-blue-600 block w-fit"
+                          >
                             {pp.product.name}
-                          </div>
+                          </Link>
                           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                             <Package className="h-3.5 w-3.5" />
                             <span>
@@ -275,6 +278,17 @@ export function BranchProfitDetail() {
                       <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border/50">
                         <div className="space-y-1">
                           <div className="text-xs text-muted-foreground">
+                            Jami sotildi
+                          </div>
+                          <div className="text-sm font-medium text-card-foreground">
+                            {pp.product.type === "unit"
+                              ? `${pp.totalQuantity} dona`
+                              : `${(pp.totalArea || pp.totalQuantity).toFixed(1)} m²`
+                            }
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="text-xs text-muted-foreground">
                             Xarid narxi (donasiga)
                           </div>
                           <div className="text-sm font-medium text-card-foreground">
@@ -295,17 +309,6 @@ export function BranchProfitDetail() {
                           </div>
                           <div className="text-sm font-medium text-green-600 dark:text-green-400">
                             {formatCurrency(averageProfitPerUnit)}
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="text-xs text-muted-foreground">
-                            {pp.product.type === "unit" ? "O'rtacha dona" : "O'rtacha m²"}
-                          </div>
-                          <div className="text-sm font-medium text-card-foreground">
-                            {pp.product.type === "unit"
-                              ? `${(pp.totalQuantity / pp.salesCount).toFixed(1)} dona`
-                              : `${((pp.totalArea || pp.totalQuantity) / pp.salesCount).toFixed(1)} m²`
-                            }
                           </div>
                         </div>
                       </div>

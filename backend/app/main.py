@@ -27,9 +27,22 @@ async def startup_event():
         from .utils.image_embedding import get_model
         # Запускаем в отдельном потоке, чтобы не блокировать startup (хотя для in-memory модели это быстро после скачивания)
         import asyncio
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, get_model)
-        print("Startup: CLIP model preloaded successfully!")
+        # Запускаем в фоне, чтобы не блокировать основной поток startup
+        # Создаем обертку для запуска синхронной функции в executor
+        loop = asyncio.get_running_loop()
+        
+        async def preload_in_background():
+            try:
+                # Run CPU-bound op in executor
+                await loop.run_in_executor(None, get_model)
+                print("Background: CLIP model preloaded successfully!")
+            except Exception as e:
+                print(f"Background warning: Failed to preload CLIP model: {e}")
+
+        # Fire and forget background task
+        asyncio.create_task(preload_in_background())
+        
+        print("Startup: CLIP model preload scheduled in background")
     except Exception as e:
         print(f"Startup warning: Failed to preload CLIP model: {e}")
 
