@@ -244,12 +244,14 @@ export function SellProduct() {
 
       const formData = new FormData();
       formData.append("file", file);
-      // Backend автоматически фильтрует по филиалу для продавцов
 
-      // Fallback to localhost if env not set (dev mode safety)
-      const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "" : "http://localhost:8000");
+      // Pass category filter if selected
+      let searchUrl = `${apiUrl}/api/products/search-image`;
+      if (selectedCategory) {
+        searchUrl += `?category=${encodeURIComponent(selectedCategory)}`;
+      }
 
-      const response = await axios.post(`${apiUrl}/api/products/search-image`, formData, {
+      const response = await axios.post(searchUrl, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           "Authorization": `Bearer ${localStorage.getItem("token")}`
@@ -511,17 +513,49 @@ export function SellProduct() {
       {similarProducts.length > 0 && (
         <div className="fixed inset-0 z-50 bg-background">
           <div className="bg-background w-full h-full overflow-y-auto pb-6">
-            <div className="sticky top-0 bg-card border-b border-border p-4 flex items-center justify-between z-10">
-              <h2 className="text-xl text-card-foreground">
-                O'xshash mahsulotlar
-              </h2>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSimilarProducts([])}
-              >
-                <X className="h-6 w-6" />
-              </Button>
+            <div className="sticky top-0 bg-card border-b border-border z-10 shadow-sm">
+              <div className="p-4 flex items-center justify-between">
+                <h2 className="text-xl text-card-foreground">
+                  O'xshash mahsulotlar
+                </h2>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSimilarProducts([])}
+                >
+                  <X className="h-6 w-6" />
+                </Button>
+              </div>
+
+              {/* Category Filter in results */}
+              <div className="px-4 pb-3 whitespace-nowrap overflow-x-auto scrollbar-hide">
+                <div className="flex space-x-2">
+                  <Button
+                    variant={selectedCategory === null ? "default" : "outline"}
+                    className={`rounded-full h-8 px-3 text-xs ${selectedCategory === null ? "bg-blue-600 text-white" : ""}`}
+                    onClick={() => {
+                      setSelectedCategory(null);
+                      if (capturedImage) analyzeImage(capturedImage);
+                    }}
+                  >
+                    Barchasi
+                  </Button>
+                  {categories.map((cat) => (
+                    <Button
+                      key={cat.name}
+                      variant={selectedCategory === cat.name ? "default" : "outline"}
+                      className={`rounded-full h-8 px-3 text-xs flex items-center gap-1 ${selectedCategory === cat.name ? "bg-blue-600 text-white" : ""}`}
+                      onClick={() => {
+                        setSelectedCategory(cat.name);
+                        if (capturedImage) analyzeImage(capturedImage);
+                      }}
+                    >
+                      <span>{cat.icon}</span>
+                      <span>{cat.label}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
             </div>
             <div className="p-4 space-y-3">
               {similarProducts.map((product: any) => (

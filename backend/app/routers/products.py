@@ -167,6 +167,8 @@ async def search_products_by_image(
     file: UploadFile = File(...),
     limit: int = 10,
     threshold: float = 0.70,  # Cosine similarity threshold (0.70 = 70% похожести)
+    category: Optional[str] = Query(None),
+    collection: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
@@ -207,6 +209,11 @@ async def search_products_by_image(
             Product.image_embedding != None,
             Product.deleted_at == None
         )
+
+        if category:
+            query = query.filter(Product.category == category)
+        if collection:
+            query = query.filter(Product.collection == collection)
         
         # Автоматическая фильтрация по филиалу для продавцов
         if current_user.role == "seller":
