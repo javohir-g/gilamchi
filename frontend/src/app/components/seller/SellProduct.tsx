@@ -245,6 +245,9 @@ export function SellProduct() {
       const formData = new FormData();
       formData.append("file", file);
 
+      // Fallback to localhost if env not set (dev mode safety)
+      const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "" : "http://localhost:8000");
+
       // Pass category filter if selected
       let searchUrl = `${apiUrl}/api/products/search-image`;
       if (selectedCategory) {
