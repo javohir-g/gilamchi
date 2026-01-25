@@ -4,7 +4,9 @@ const ASSETS_TO_CACHE = [
     '/index.html',
     '/manifest.json',
     '/icons/icon-192.png',
-    '/icons/icon-512.png'
+    '/icons/icon-512.png',
+    '/icons/maskable-icon.png',
+    '/favicon.png'
 ];
 
 self.addEventListener('install', (event) => {
