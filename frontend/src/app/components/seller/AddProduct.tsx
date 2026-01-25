@@ -287,7 +287,7 @@ export function AddProduct() {
   }, [buyPrice, availableSizes, type]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-40">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-24">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
         <div className="flex items-center space-x-4 p-4">
@@ -455,7 +455,7 @@ export function AddProduct() {
                       setCollection(e.target.value);
                     }}
                     placeholder="Kolleksiya nomini kiriting..."
-                    className="h-12 rounded-xl animate-in slide-in-from-top-1"
+                    className="h-12 rounded-xl"
                   />
                 )}
               </div>
@@ -499,7 +499,7 @@ export function AddProduct() {
 
             {/* Type Specific Fields */}
             {type === "unit" ? (
-              <div className="space-y-5 animate-in fade-in zoom-in-95 duration-200">
+              <div className="space-y-5">
                 <div>
                   <Label className="mb-2 block text-sm font-medium">
                     Mavjud o'lchamlar (masalan: 2x3)
@@ -568,7 +568,7 @@ export function AddProduct() {
                 </div>
               </div>
             ) : (
-              <div className="space-y-5 animate-in fade-in zoom-in-95 duration-200">
+              <div className="space-y-5">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="mb-2 block text-sm font-medium">Rulon uzunligi (m)</Label>
@@ -671,11 +671,11 @@ export function AddProduct() {
         </section>
       </div>
 
-      {/* Fixed Bottom Button */}
-      <div className="fixed bottom-16 left-0 right-0 border-t dark:border-gray-700 bg-white/80 backdrop-blur-md dark:bg-gray-800/80 p-4 z-10 shadow-2xl">
+      {/* Fixed Bottom Button - Adjusted for stability */}
+      <div className="fixed bottom-0 left-0 right-0 border-t dark:border-gray-700 bg-white/95 backdrop-blur-md dark:bg-gray-800/95 p-4 z-20 shadow-2xl safe-area-bottom">
         <Button
           onClick={handleSave}
-          className="h-14 w-full bg-blue-600 hover:bg-blue-700 text-lg font-bold rounded-2xl shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+          className="h-14 w-full bg-blue-600 hover:bg-blue-700 text-lg font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
           size="lg"
         >
           {isEditMode ? "Tahrirlashni saqlash" : "Mahsulotni yaratish"}
