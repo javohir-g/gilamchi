@@ -243,6 +243,21 @@ export const productService = {
   },
   delete: async (id: string) => {
     await api.delete(`products/${id}`);
+  },
+  searchImage: async (file: File, category?: string) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    let url = 'products/search-image';
+    if (category) {
+      url += `?category=${encodeURIComponent(category)}`;
+    }
+
+    const response = await api.post(url, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+
+    return response.data.map(fromProduct);
   }
 };
 

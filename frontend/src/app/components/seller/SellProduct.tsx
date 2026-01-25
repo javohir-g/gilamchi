@@ -242,38 +242,19 @@ export function SellProduct() {
 
       console.log(`Search image optimized: ${(file.size / 1024).toFixed(1)}KB`);
 
-      const formData = new FormData();
-      formData.append("file", file);
+      const response = await productService.searchImage(file, selectedCategory || undefined);
+      setSimilarProducts(response);
 
-      // Fallback to localhost if env not set (dev mode safety)
-      const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "" : "http://localhost:8000");
-
-      // Pass category filter if selected
-      let searchUrl = `${apiUrl}/api/products/search-image`;
-      if (selectedCategory) {
-        searchUrl += `?category=${encodeURIComponent(selectedCategory)}`;
-      }
-
-      const response = await axios.post(searchUrl, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        },
-      });
-
-      setSimilarProducts(response.data);
-
-      if (response.data.length === 0) {
+      if (response.length === 0) {
         toast.info("O'xshash mahsulotlar topilmadi. Boshqa rasm bilan urinib ko'ring.");
       } else {
-        toast.success(`${response.data.length} ta o'xshash mahsulot topildi!`);
+        toast.success(`${response.length} ta o'xshash mahsulot topildi!`);
       }
     } catch (error) {
       console.error("Search error:", error);
       toast.error("Rasm orqali qidirishda xatolik bo'ldi. Qaytadan urinib ko'ring.");
     } finally {
       setIsAnalyzing(false);
-      setCameraSearchOpen(false);
     }
   };
 
@@ -589,9 +570,9 @@ export function SellProduct() {
                       </h3>
                       <div className="space-y-1 text-sm">
                         {/* Sizes Info */}
-                        {product.available_sizes && product.available_sizes.length > 0 && (
+                        {product.availableSizes && product.availableSizes.length > 0 && (
                           <div className="flex flex-wrap gap-1 mb-2">
-                            {product.available_sizes.map((size: string) => (
+                            {product.availableSizes.map((size: string) => (
                               <Badge key={size} variant="secondary" className="px-2 py-0 h-5 text-[10px]">
                                 {size}
                               </Badge>
