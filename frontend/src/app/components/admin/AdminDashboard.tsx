@@ -29,22 +29,57 @@ export function AdminDashboard() {
   const navigate = useNavigate();
   const { sales, branches, debts } = useApp();
 
-  // Calculate KPIs
-  const totalSales = sales.reduce(
+  // Helper to filter sales by period
+  const getFilteredSales = () => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    switch (period) {
+      case "today":
+        return sales.filter((sale) => {
+          const saleDate = new Date(sale.date);
+          return saleDate >= today;
+        });
+      case "week":
+        // Start from Monday
+        const weekStart = new Date(today);
+        const day = today.getDay(); // 0 (Sun) to 6 (Sat)
+        const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+        weekStart.setDate(diff);
+        weekStart.setHours(0, 0, 0, 0);
+        return sales.filter((sale) => {
+          const saleDate = new Date(sale.date);
+          return saleDate >= weekStart;
+        });
+      case "month":
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        return sales.filter((sale) => {
+          const saleDate = new Date(sale.date);
+          return saleDate >= monthStart;
+        });
+      default:
+        return sales;
+    }
+  };
+
+  const filteredSales = getFilteredSales();
+
+  // Calculate KPIs using filtered sales
+  const totalSales = filteredSales.reduce(
     (sum, sale) => sum + sale.amount,
     0,
   );
-  const totalProfit = sales.reduce(
+  const totalProfit = filteredSales.reduce(
     (sum, sale) => sum + (sale.profit || 0),
     0,
   );
-  const cashSales = sales
+  const cashSales = filteredSales
     .filter((s) => s.paymentType === "cash")
     .reduce((sum, sale) => sum + sale.amount, 0);
-  const cardSales = sales
+  const cardSales = filteredSales
     .filter((s) => s.paymentType === "card")
     .reduce((sum, sale) => sum + sale.amount, 0);
-  const transferSales = sales
+  const transferSales = filteredSales
     .filter((s) => s.paymentType === "transfer")
     .reduce((sum, sale) => sum + sale.amount, 0);
 
@@ -52,12 +87,12 @@ export function AdminDashboard() {
   const receivedCash = cashSales * 0.95; // Mock: 95% received
   const difference = receivedCash - expectedCash;
 
-  // Branch data
+  // Branch data based on filtered sales
   const branchData = branches.map((branch) => {
-    const branchSales = sales.filter(
+    const branchSales = filteredSales.filter(
       (s) => s.branchId === branch.id,
     );
-    const todayTotal = branchSales.reduce(
+    const periodTotal = branchSales.reduce(
       (sum, sale) => sum + sale.amount,
       0,
     );
@@ -71,7 +106,7 @@ export function AdminDashboard() {
 
     return {
       ...branch,
-      todaySales: todayTotal,
+      todaySales: periodTotal, // Re-using property name but it's period-based now
       cashAmount: cashTotal,
       profit: branchProfit,
     };

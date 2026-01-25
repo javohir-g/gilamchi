@@ -234,6 +234,11 @@ export function SellerHome() {
 
                       <div className="flex items-center justify-between border-t border-border/50 pt-3 mt-2">
                         <div className="text-xs font-bold text-muted-foreground bg-secondary/50 px-2 py-1 rounded-lg">
+                          {new Date(order.date).toLocaleDateString("uz-UZ", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          })}{" "}
                           {new Date(order.date).toLocaleTimeString("uz-UZ", {
                             hour: "2-digit",
                             minute: "2-digit",

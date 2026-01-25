@@ -245,9 +245,12 @@ export function DailySales() {
 
                       <div className="flex items-center justify-between border-t dark:border-gray-700 pt-2">
                         <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {new Date(
-                            order.date,
-                          ).toLocaleTimeString("uz-UZ", {
+                          {new Date(order.date).toLocaleDateString("uz-UZ", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          })}{" "}
+                          {new Date(order.date).toLocaleTimeString("uz-UZ", {
                             hour: "2-digit",
                             minute: "2-digit",
                           })}

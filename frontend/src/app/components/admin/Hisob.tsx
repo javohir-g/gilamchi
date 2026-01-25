@@ -52,7 +52,10 @@ export function Hisob() {
 
       case "week":
         const weekStart = new Date(today);
-        weekStart.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
+        const day = today.getDay(); // 0 (Sun) to 6 (Sat)
+        const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+        weekStart.setDate(diff);
+        weekStart.setHours(0, 0, 0, 0);
         return sales.filter((sale) => {
           const saleDate = new Date(sale.date);
           return saleDate >= weekStart;
