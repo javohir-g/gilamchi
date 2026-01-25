@@ -74,26 +74,29 @@ export function BottomNav({ onCheckoutClick }: BottomNavProps) {
     location.pathname.startsWith(path);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 shadow-lg z-50">
+    <nav className="fixed bottom-0 left-0 right-0 z-50">
       {/* SVG curve background for seller nav with 5 items */}
       {!isAdmin && (
-        <svg
-          className="absolute top-0 left-0 w-full h-full pointer-events-none"
-          viewBox="0 0 375 65"
-          preserveAspectRatio="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M 0,10 L 0,65 L 375,65 L 375,10 L 265,10 Q 250,10 240,15 Q 230,20 225,30 Q 220,40 210,45 Q 200,50 187.5,50 Q 175,50 165,45 Q 155,40 150,30 Q 145,20 135,15 Q 125,10 110,10 Z"
-            className="fill-card stroke-border"
-            strokeWidth="1"
-          />
-        </svg>
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <svg
+            className="w-full h-full"
+            viewBox="0 0 375 65"
+            preserveAspectRatio="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M 0,10 L 0,65 L 375,65 L 375,10 L 265,10 Q 250,10 240,15 Q 230,20 225,30 Q 220,40 210,45 Q 200,50 187.5,50 Q 175,50 165,45 Q 155,40 150,30 Q 145,20 135,15 Q 125,10 110,10 Z"
+              className="fill-card/80 dark:fill-card/90 stroke-border/50"
+              strokeWidth="1"
+            />
+          </svg>
+          <div className="absolute inset-0 glass opacity-50 dark:opacity-20" style={{ clipPath: "path('M 0,10 L 0,65 L 375,65 L 375,10 L 265,10 Q 250,10 240,15 Q 230,20 225,30 Q 220,40 210,45 Q 200,50 187.5,50 Q 175,50 165,45 Q 155,40 150,30 Q 145,20 135,15 Q 125,10 110,10 Z')" }} />
+        </div>
       )}
 
       {/* Simple background for admin nav */}
       {isAdmin && (
-        <div className="absolute top-0 left-0 w-full h-full bg-card border-t border-border" />
+        <div className="absolute top-0 left-0 w-full h-full glass rounded-t-3xl shadow-lg border-t border-border/50" />
       )}
 
       <div className="flex justify-around items-center relative pt-2">
