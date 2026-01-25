@@ -240,6 +240,13 @@ async def search_products_by_image(
                 np.frombuffer(p.image_embedding, dtype=np.float32) for p in products
             ])
             
+            # На случай если в БД есть старые (ненормированные) векторы, 
+            # нормализуем их для корректного косинусного сходства через Dot Product
+            norms = np.linalg.norm(product_embeddings, axis=1, keepdims=True)
+            # Избегаем деления на ноль
+            norms[norms == 0] = 1.0
+            product_embeddings = product_embeddings / norms
+            
             # Матричное умножение (N x 512) @ (512,) = (N,)
             # Результат - массив значений похожести для всех товаров
             similarities = product_embeddings @ query_embedding

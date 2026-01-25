@@ -576,12 +576,7 @@ export function SellProduct() {
                           handleSelectProduct(product.id)
                         }
                       />
-                      {/* Similarity Badge */}
-                      {product.similarity_percentage !== undefined && (
-                        <div className="absolute -top-2 -right-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-                          {Math.round(product.similarity_percentage)}%
-                        </div>
-                      )}
+                      {/* Similarity Badge removed as requested (duplicated) */}
                     </div>
                     <div className="flex-1">
                       <h3
@@ -593,6 +588,17 @@ export function SellProduct() {
                         {product.name}
                       </h3>
                       <div className="space-y-1 text-sm">
+                        {/* Sizes Info */}
+                        {product.available_sizes && product.available_sizes.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-2">
+                            {product.available_sizes.map((size: string) => (
+                              <Badge key={size} variant="secondary" className="px-2 py-0 h-5 text-[10px]">
+                                {size}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+
                         {/* Similarity Info */}
                         {product.similarity_percentage !== undefined && (
                           <div className="flex items-center gap-2 text-muted-foreground">
