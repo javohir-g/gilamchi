@@ -17,6 +17,7 @@ import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { useApp, Product } from "../../context/AppContext";
+import { productService } from "../../services/api";
 import { BottomNav } from "../shared/BottomNav";
 import { AddToBasketModal } from "./AddToBasketModal";
 import { LiveCamera } from "../shared/LiveCamera";
