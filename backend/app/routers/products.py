@@ -228,32 +228,45 @@ async def search_products_by_image(
         
         if len(products) == 0:
             print("WARNING: No products with CLIP embeddings found!", file=sys.stderr)
-            print("Run: python migrate_to_clip_embeddings.py", file=sys.stderr)
             return []
         
-        # Вычисление similarity для каждого товара
-        matches = []
-        for product in products:
-            try:
-                # Десериализация embedding из базы данных
-                product_embedding = np.frombuffer(product.image_embedding, dtype=np.float32)
-                
-                # Вычисление cosine similarity
-                similarity = compute_similarity(query_embedding, product_embedding)
-                
+        # 1. Извлекаем все эмбеддинги в одну матрицу (N x 512)
+        # 2. Вычисляем похожесть всех товаров сразу через матричное умножение (Dot Product)
+        # Это в десятки раз быстрее, чем цикл в Python
+        
+        try:
+            # Превращаем список байтов из БД в одну большую матрицу NumPy
+            product_embeddings = np.array([
+                np.frombuffer(p.image_embedding, dtype=np.float32) for p in products
+            ])
+            
+            # Матричное умножение (N x 512) @ (512,) = (N,)
+            # Результат - массив значений похожести для всех товаров
+            similarities = product_embeddings @ query_embedding
+            
+            # Собираем подходящие результаты
+            matches = []
+            for i, similarity in enumerate(similarities):
                 if similarity >= threshold:
                     matches.append({
-                        "product": product,
-                        "similarity": similarity
+                        "product": products[i],
+                        "similarity": float(similarity)
                     })
-                    print(f"Match: {product.name} (similarity: {similarity:.3f})", file=sys.stderr)
-            except Exception as e:
-                print(f"Error processing product {product.id}: {e}", file=sys.stderr)
-                continue
+            
+            print(f"Vectorized search finished. Matches: {len(matches)}", file=sys.stderr)
+            
+        except Exception as e:
+            print(f"Error in vectorized search: {e}", file=sys.stderr)
+            # Fallback к обычному циклу если что-то пошло не так
+            matches = []
+            for product in products:
+                product_emb = np.frombuffer(product.image_embedding, dtype=np.float32)
+                sim = compute_similarity(query_embedding, product_emb)
+                if sim >= threshold:
+                    matches.append({"product": product, "similarity": sim})
         
         # Сортировка по similarity (лучшие совпадения первыми)
         matches.sort(key=lambda x: x["similarity"], reverse=True)
-        print(f"Total matches found: {len(matches)}", file=sys.stderr)
         
         # Формирование ответа с процентом похожести
         results = []

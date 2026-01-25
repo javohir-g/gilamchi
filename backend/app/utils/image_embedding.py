@@ -105,12 +105,10 @@ def extract_image_embedding(image_bytes: bytes, optimize: bool = True) -> Option
         if img.mode != 'RGB':
             img = img.convert('RGB')
         
-        # Получение модели
-        model = get_model()
-        
         # Извлечение embedding
-        # Возвращает numpy array размерности (512,)
-        embedding = model.encode(img, convert_to_numpy=True)
+        # normalize_embeddings=True делает вектор единичной длины, 
+        # что позволяет вычислять косинусное сходство через скалярное произведение (dot product)
+        embedding = model.encode(img, convert_to_numpy=True, normalize_embeddings=True)
         
         return embedding
         
