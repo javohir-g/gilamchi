@@ -287,7 +287,7 @@ export function AddProduct() {
   }, [buyPrice, availableSizes, type]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-24">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-48">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
         <div className="flex items-center space-x-4 p-4">
@@ -672,7 +672,7 @@ export function AddProduct() {
       </div>
 
       {/* Fixed Bottom Button - Adjusted for stability */}
-      <div className="fixed bottom-0 left-0 right-0 border-t dark:border-gray-700 bg-white/95 backdrop-blur-md dark:bg-gray-800/95 p-4 z-20 shadow-2xl safe-area-bottom">
+      <div className="fixed bottom-16 left-0 right-0 border-t dark:border-gray-700 bg-white/95 backdrop-blur-md dark:bg-gray-800/95 p-4 z-20 shadow-2xl">
         <Button
           onClick={handleSave}
           className="h-14 w-full bg-blue-600 hover:bg-blue-700 text-lg font-bold rounded-2xl shadow-lg active:scale-95 transition-all"

@@ -293,7 +293,7 @@ function AppRoutes() {
 
 function AppContent() {
   return (
-    <div className="h-screen w-full overflow-auto bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen w-full bg-gray-50 dark:bg-gray-900">
       <AppRoutes />
       <Toaster position="top-center" />
     </div>
