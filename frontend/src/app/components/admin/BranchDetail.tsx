@@ -1,5 +1,5 @@
-import { ArrowLeft, DollarSign } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, DollarSign, Package } from "lucide-react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
@@ -14,20 +14,49 @@ import {
 
 export function BranchDetail() {
   const { branchId } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { branches, sales, products, expenses, debts } = useApp();
 
   const branch = branches.find((b) => b.id === branchId);
-  const branchSales = sales.filter(
-    (s) => s.branchId === branchId,
-  );
-  const branchExpenses = expenses.filter(
-    (e) => e.branchId === branchId,
-  );
 
   if (!branch) {
     return <div>Filial topilmadi</div>;
   }
+
+  // Get date filter from URL params
+  const dateFilter = (searchParams.get("filter") || "today") as "today" | "week" | "month";
+
+  // Filter sales, expenses, and debts by period and branch
+  const getFilteredData = () => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    let startDate = today;
+    if (dateFilter === "week") {
+      const day = today.getDay(); // 0 (Sun) to 6 (Sat)
+      const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+      startDate = new Date(today);
+      startDate.setDate(diff);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (dateFilter === "month") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+
+    const branchSales = sales.filter(
+      (s) => s.branchId === branchId && new Date(s.date) >= startDate
+    );
+    const branchExpenses = expenses.filter(
+      (e) => e.branchId === branchId && new Date(e.date) >= startDate
+    );
+    const branchDebts = debts.filter(
+      (d) => d.branchId === branchId
+    );
+
+    return { branchSales, branchExpenses, branchDebts, startDate };
+  };
+
+  const { branchSales, branchExpenses, branchDebts, startDate } = getFilteredData();
 
   // Sales breakdown by payment type
   const cashSales = branchSales
@@ -39,27 +68,8 @@ export function BranchDetail() {
 
   const paymentData = [
     { name: "Naqd", value: cashSales, color: "#22c55e" },
-    { name: "Karta//O'tkazma", value: cardTransferSales, color: "#3b82f6" },
+    { name: "Karta/O'tkazma", value: cardTransferSales, color: "#3b82f6" },
   ];
-
-  // Category performance
-  const categoryData: { [key: string]: number } = {};
-  branchSales.forEach((sale) => {
-    const product = products.find(
-      (p) => p.id === sale.productId,
-    );
-    if (product) {
-      categoryData[product.category] =
-        (categoryData[product.category] || 0) + sale.amount;
-    }
-  });
-
-  const categoryChartData = Object.entries(categoryData).map(
-    ([name, value]) => ({
-      name,
-      value,
-    }),
-  );
 
   const formatCurrency = (amount: number) => {
     return (
@@ -82,36 +92,29 @@ export function BranchDetail() {
     0,
   );
 
-  // Debt calculations - today's data only
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // New debts created in the period
+  const totalNewDebt = branchDebts
+    .filter((debt) => new Date(debt.date) >= startDate)
+    .reduce((sum, debt) => sum + debt.totalAmount, 0);
 
-  const branchDebts = debts.filter((d) => d.branchId === branchId);
-
-  // New debts created today
-  const todayNewDebts = branchDebts.filter((debt) => {
-    const debtDate = new Date(debt.date);
-    debtDate.setHours(0, 0, 0, 0);
-    return debtDate.getTime() === today.getTime();
-  });
-
-  const totalNewDebt = todayNewDebts.reduce(
-    (sum, debt) => sum + debt.totalAmount,
-    0,
-  );
-
-  // Debt payments received today
-  const totalDebtPaymentsToday = branchDebts.reduce((sum, debt) => {
-    const todayPayments = debt.paymentHistory.filter((payment) => {
-      const paymentDate = new Date(payment.date);
-      paymentDate.setHours(0, 0, 0, 0);
-      return paymentDate.getTime() === today.getTime();
+  // Debt payments received in the period
+  const totalDebtPaymentsInPeriod = branchDebts.reduce((sum, debt) => {
+    const periodPayments = debt.paymentHistory.filter((payment) => {
+      return new Date(payment.date) >= startDate;
     });
     return (
       sum +
-      todayPayments.reduce((pSum, p) => pSum + p.amount, 0)
+      periodPayments.reduce((pSum, p) => pSum + p.amount, 0)
     );
   }, 0);
+
+  const getLabel = (base: string) => {
+    switch (dateFilter) {
+      case "week": return "Haftalik " + base.toLowerCase();
+      case "month": return "Oylik " + base.toLowerCase();
+      default: return "Bugungi " + base.toLowerCase();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-6">
@@ -137,7 +140,7 @@ export function BranchDetail() {
         {/* Total Sales */}
         <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
           <div className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-            Bugungi jami savdo
+            {getLabel("Jami savdo")}
           </div>
           <div className="text-3xl text-blue-600 dark:text-blue-400">
             {formatCurrency(totalSales)}
@@ -151,7 +154,7 @@ export function BranchDetail() {
         {totalExtraProfit > 0 && (
           <Card className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-green-200 dark:border-green-800">
             <div className="mb-2 text-sm text-green-700 dark:text-green-300">
-              Qo'shimcha foyda
+              {getLabel("Qo'shimcha foyda")}
             </div>
             <div className="text-3xl text-green-600 dark:text-green-400">
               {formatCurrency(totalExtraProfit)}
@@ -166,7 +169,7 @@ export function BranchDetail() {
         <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg dark:text-white">
-              Bugungi xarajatlar
+              {getLabel("Xarajatlar")}
             </h3>
             <div className="text-lg text-orange-600 dark:text-orange-400">
               {formatCurrency(totalExpenses)}
@@ -187,18 +190,17 @@ export function BranchDetail() {
                     <div className="dark:text-white">
                       {expense.description}
                     </div>
-                    {/* <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {expense.sellerName}
-                    </div> */}
                   </div>
                   <div className="text-right">
                     <div className="text-lg text-orange-600 dark:text-orange-400">
                       {formatCurrency(expense.amount)}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">
-                      {new Date(
-                        expense.date,
-                      ).toLocaleTimeString("uz-UZ", {
+                      {new Date(expense.date).toLocaleDateString("uz-UZ", {
+                        day: "2-digit",
+                        month: "2-digit",
+                      })}{" "}
+                      {new Date(expense.date).toLocaleTimeString("uz-UZ", {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
@@ -211,13 +213,12 @@ export function BranchDetail() {
         </Card>
 
         {/* Debts Section */}
-        {(totalNewDebt > 0 || totalDebtPaymentsToday > 0) && (
+        {(totalNewDebt > 0 || totalDebtPaymentsInPeriod > 0) && (
           <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
             <h3 className="mb-4 text-lg dark:text-white">
               Qarzlar
             </h3>
             <div className="space-y-3">
-              {/* New debts given today */}
               {totalNewDebt > 0 && (
                 <div className="rounded-lg bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-950 dark:to-rose-950 border-red-200 dark:border-red-800 p-6">
                   <div className="mb-2 text-sm text-red-700 dark:text-red-300">
@@ -226,23 +227,16 @@ export function BranchDetail() {
                   <div className="text-3xl text-red-600 dark:text-red-400">
                     {formatCurrency(totalNewDebt)}
                   </div>
-                  <div className="mt-1 text-sm text-red-700 dark:text-red-300">
-                    {todayNewDebts.length} ta mijozga berildi
-                  </div>
                 </div>
               )}
 
-              {/* Debt payments received today */}
-              {totalDebtPaymentsToday > 0 && (
+              {totalDebtPaymentsInPeriod > 0 && (
                 <div className="rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-green-200 dark:border-green-800 p-6">
                   <div className="mb-2 text-sm text-green-700 dark:text-green-300">
                     To'langan qarzlar
                   </div>
                   <div className="text-3xl text-green-600 dark:text-green-400">
-                    {formatCurrency(totalDebtPaymentsToday)}
-                  </div>
-                  <div className="mt-1 text-sm text-green-700 dark:text-green-300">
-                    Mijozlardan qabul qilindi
+                    {formatCurrency(totalDebtPaymentsInPeriod)}
                   </div>
                 </div>
               )}
@@ -250,10 +244,10 @@ export function BranchDetail() {
           </Card>
         )}
 
-        {/* Today's Sales List */}
+        {/* Period Sales List */}
         <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
           <h3 className="mb-4 text-lg dark:text-white">
-            Bugungi savdolar
+            {getLabel("Savdolar")}
           </h3>
           {branchSales.length === 0 ? (
             <p className="text-center text-gray-500 dark:text-gray-400">

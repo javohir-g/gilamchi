@@ -227,7 +227,7 @@ export function AdminDashboard() {
             {branchData.map((branch, index) => (
               <Card
                 key={branch.id}
-                onClick={() => navigate(`/admin/branch/${branch.id}`)}
+                onClick={() => navigate(`/admin/branch/${branch.id}?filter=${period}`)}
                 className="p-4 border border-border bg-card cursor-pointer hover:shadow-md transition-shadow active:scale-[0.98]"
               >
                 <div className="flex items-center justify-between">
