@@ -274,474 +274,411 @@ export function AddProduct() {
     }
   };
 
+  // Calculate area and price per m2 for UI preview (if applicable)
+  const pricePerM2 = useMemo(() => {
+    if (buyPrice && type === "unit" && availableSizes.length > 0) {
+      // Just a helper for the first size to give an idea
+      const [w, h] = availableSizes[0].split(/x|×/).map(v => parseFloat(v));
+      if (w && h) {
+        return (parseFloat(buyPrice) / (w * h)).toFixed(2);
+      }
+    }
+    return null;
+  }, [buyPrice, availableSizes, type]);
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-32">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-40">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
         <div className="flex items-center space-x-4 p-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)} // Changed to -1 to support back navigation
-          >
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-6 w-6 dark:text-white" />
           </Button>
-          <h1 className="text-xl dark:text-white">
+          <h1 className="text-xl font-bold dark:text-white">
             {isEditMode ? "Mahsulotni tahrirlash" : "Mahsulot qo'shish"}
           </h1>
         </div>
       </div>
 
-      <div className="p-4 pb-12 space-y-6">
-        {/* Photo */}
-        <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
-          <Label className="mb-4 block dark:text-white">
-            Mahsulot rasmi
-          </Label>
-          <div className="space-y-4">
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept="image/*"
-              className="hidden"
-            />
-            {photo ? (
-              <div className="relative">
-                <img
-                  src={photo}
-                  alt="Product"
-                  className="h-48 w-full rounded-lg object-cover"
-                />
+      <div className="p-4 max-w-2xl mx-auto space-y-6">
+        {/* 1. Rasmi */}
+        <section className="space-y-3">
+          <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider ml-1">
+            Media
+          </h2>
+          <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
+            <div className="space-y-4">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden"
+              />
+              {photo ? (
+                <div className="relative">
+                  <img
+                    src={photo}
+                    alt="Product"
+                    className="h-64 w-full rounded-2xl object-cover ring-1 ring-border shadow-inner"
+                  />
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-3 right-3 rounded-full shadow-lg"
+                    onClick={() =>
+                      setPhoto(
+                        "https://via.placeholder.com/400x500?text=Kafit+Rasm",
+                      )
+                    }
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="h-48 w-full rounded-2xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600">
+                  <ImageIcon className="h-12 w-12 text-gray-400" />
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
                 <Button
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-2 right-2 rounded-full"
-                  onClick={() => setPhoto("https://via.placeholder.com/400x500?text=Kafit+Rasm")}
+                  type="button"
+                  variant="outline"
+                  className="h-12 rounded-xl dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
+                  onClick={() => triggerFileInput(true)}
                 >
-                  <X className="h-4 w-4" />
+                  <Camera className="mr-2 h-5 w-5" />
+                  Rasmga olish
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-12 rounded-xl dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
+                  onClick={() => triggerFileInput(false)}
+                >
+                  <ImageIcon className="mr-2 h-5 w-5" />
+                  Galereya
                 </Button>
               </div>
-            ) : (
-              <div className="h-48 w-full rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600">
-                <ImageIcon className="h-12 w-12 text-gray-400" />
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                className="h-12 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
-                onClick={() => triggerFileInput(true)}
-              >
-                <Camera className="mr-2 h-5 w-5" />
-                Rasmga olish
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="h-12 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
-                onClick={() => triggerFileInput(false)}
-              >
-                <ImageIcon className="mr-2 h-5 w-5" />
-                Galereyadan
-              </Button>
             </div>
-          </div>
-        </Card>
-
-        {/* Name */}
-        <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
-          <Label
-            htmlFor="name"
-            className="mb-4 block dark:text-white"
-          >
-            Mahsulot nomi
-          </Label>
-          <Input
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Nomi..."
-            className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"
-          />
-        </Card>
-
-        {/* Collection */}
-        <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
-          <Label
-            htmlFor="collection"
-            className="mb-4 block dark:text-white"
-          >
-            Kolleksiya nomi
-          </Label>
-          <div className="space-y-4">
-            <Select
-              value={isCustomCollection ? "custom" : collection}
-              onValueChange={(v) => {
-                if (v === "custom") {
-                  setIsCustomCollection(true);
-                  setCollection(customCollection);
-                } else {
-                  setIsCustomCollection(false);
-                  setCollection(v);
-                }
-              }}
-            >
-              <SelectTrigger className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                <SelectValue placeholder="Kolleksiyani tanlang" />
-              </SelectTrigger>
-              <SelectContent>
-                {predefinedCollections.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
-                  </SelectItem>
-                ))}
-                <SelectItem value="custom">Boshqa...</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {isCustomCollection && (
-              <Input
-                value={customCollection}
-                onChange={(e) => {
-                  setCustomCollection(e.target.value);
-                  setCollection(e.target.value);
-                }}
-                placeholder="Kolleksiya nomini kiriting..."
-                className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              />
-            )}
-          </div>
-        </Card>
-
-        {/* Available Sizes for Unit Products */}
-        {type === "unit" && (
-          <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
-            <Label className="mb-4 block dark:text-white">
-              O'lchamlar (masalan: 2x3, 3x4)
-            </Label>
-            <div className="flex space-x-2">
-              <Input
-                value={sizeInput}
-                onChange={(e) => setSizeInput(e.target.value)}
-                placeholder="O'lcham (masalan: 2x3)"
-                className="h-12 flex-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (sizeInput && !availableSizes.includes(sizeInput)) {
-                      setAvailableSizes([...availableSizes, sizeInput]);
-                      setSizeInput("");
-                    }
-                  }
-                }}
-              />
-              <Button
-                type="button"
-                className="h-12 px-4 bg-blue-600 hover:bg-blue-700 text-white"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (sizeInput && !availableSizes.includes(sizeInput)) {
-                    setAvailableSizes([...availableSizes, sizeInput]);
-                    setSizeInput("");
-                  }
-                }}
-              >
-                <Plus className="h-5 w-5" />
-              </Button>
-            </div>
-            {availableSizes.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-4">
-                {availableSizes.map((size) => (
-                  <Badge
-                    key={size}
-                    variant="secondary"
-                    className="flex items-center py-1 px-3 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 hover:bg-blue-200"
-                  >
-                    {size}
-                    <X
-                      className="ml-2 h-3 w-3 cursor-pointer"
-                      onClick={() =>
-                        setAvailableSizes(
-                          availableSizes.filter((s) => s !== size),
-                        )
-                      }
-                    />
-                  </Badge>
-                ))}
-              </div>
-            )}
           </Card>
-        )}
+        </section>
 
+        {/* 2. Asosiy ma'lumotlar */}
+        <section className="space-y-3">
+          <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider ml-1">
+            Asosiy ma'lumotlar
+          </h2>
+          <Card className="p-6 dark:bg-gray-800 dark:border-gray-700 space-y-5">
+            <div>
+              <Label className="mb-2 block text-sm font-medium">Mahsulot nomi</Label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Masalan: Lara Gilami"
+                className="h-12 rounded-xl"
+              />
+            </div>
 
-        {/* Branch Selection or Display */}
-        <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
-          <Label className="mb-4 block dark:text-white">
-            Filial
-          </Label>
-          {user?.role === "admin" ? (
-            <Select
-              value={branchId}
-              onValueChange={setBranchId}
-            >
-              <SelectTrigger className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                <SelectValue placeholder="Filialni tanlang" />
-              </SelectTrigger>
-              <SelectContent>
-                {branches.length === 0 ? (
-                  <div className="p-2 text-sm text-muted-foreground">Filiallar yuklanmoqda...</div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="mb-2 block text-sm font-medium">Kategoriya</Label>
+                <Select value={category} onValueChange={(v) => setCategory(v as Category)}>
+                  <SelectTrigger className="h-12 rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Gilamlar">Gilamlar</SelectItem>
+                    <SelectItem value="Metrajlar">Metrajlar</SelectItem>
+                    <SelectItem value="Ovalniy">Ovalniy</SelectItem>
+                    <SelectItem value="Kovrik">Kovrik</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="mb-2 block text-sm font-medium">Filial</Label>
+                {user?.role === "admin" ? (
+                  <Select value={branchId} onValueChange={setBranchId}>
+                    <SelectTrigger className="h-12 rounded-xl">
+                      <SelectValue placeholder="Tanlang" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {branches.map((b) => (
+                        <SelectItem key={b.id} value={b.id}>
+                          {b.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 ) : (
-                  branches.map(branch => (
-                    <SelectItem key={branch.id} value={branch.id}>
-                      {branch.name}
-                    </SelectItem>
-                  ))
+                  <div className="h-12 flex items-center px-3 bg-secondary/30 rounded-xl border border-border text-sm">
+                    {branches.find((b) => b.id === branchId)?.name || "Filial nomi"}
+                  </div>
                 )}
-              </SelectContent>
-            </Select>
-          ) : (
-            <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg dark:text-white">
-              {branches.find(b => b.id === branchId)?.name || "Filial tanlanmagan"}
-            </div>
-          )}
-
-          {/* Diagnostic info for user to report back if issue persists */}
-          {import.meta.env.DEV && (
-            <div className="mt-2 text-[10px] text-gray-400">
-              Debug: Role={user?.role}, Branches={branches.length}, Selected={branchId || 'none'}
-            </div>
-          )}
-        </Card>
-
-        {/* Category */}
-        <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
-          <Label className="mb-4 block dark:text-white">
-            Kategoriya
-          </Label>
-          <Select
-            value={category}
-            onValueChange={(v) => setCategory(v as Category)}
-          >
-            <SelectTrigger className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Gilamlar">Gilamlar</SelectItem>
-              <SelectItem value="Metrajlar">
-                Metrajlar
-              </SelectItem>
-              <SelectItem value="Ovalniy">
-                Ovalniy
-              </SelectItem>
-              <SelectItem value="Kovrik">
-                Kovrik
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </Card>
-
-        {/* Type */}
-        <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
-          <Label className="mb-4 block dark:text-white">
-            Mahsulot turi
-          </Label>
-          <RadioGroup
-            value={type}
-            onValueChange={(v) => setType(v as ProductType)}
-          >
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3 rounded-lg border-2 border-gray-200 dark:border-gray-600 p-4">
-                <RadioGroupItem value="unit" id="unit" />
-                <Label
-                  htmlFor="unit"
-                  className="flex-1 cursor-pointer dark:text-white"
-                >
-                  Dona
-                </Label>
-              </div>
-              <div className="flex items-center space-x-3 rounded-lg border-2 border-gray-200 dark:border-gray-600 p-4">
-                <RadioGroupItem value="meter" id="meter" />
-                <Label
-                  htmlFor="meter"
-                  className="flex-1 cursor-pointer dark:text-white"
-                >
-                  Metr
-                </Label>
               </div>
             </div>
-          </RadioGroup>
-        </Card>
 
-        {/* Dynamic Fields */}
-        {type === "unit" ? (
-          <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
-            <Label
-              htmlFor="quantity"
-              className="mb-4 block dark:text-white"
-            >
-              Miqdor (dona)
-            </Label>
-            <Input
-              id="quantity"
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              placeholder="0"
-              className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"
-            />
+            <div>
+              <Label className="mb-2 block text-sm font-medium">Kolleksiya</Label>
+              <div className="space-y-3">
+                <Select
+                  value={isCustomCollection ? "custom" : collection}
+                  onValueChange={(v) => {
+                    if (v === "custom") {
+                      setIsCustomCollection(true);
+                    } else {
+                      setIsCustomCollection(false);
+                      setCollection(v);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-12 rounded-xl">
+                    <SelectValue placeholder="Kolleksiyani tanlang" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {predefinedCollections.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="custom">Boshqa... (Qo'lda kiritish)</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {isCustomCollection && (
+                  <Input
+                    value={customCollection}
+                    onChange={(e) => {
+                      setCustomCollection(e.target.value);
+                      setCollection(e.target.value);
+                    }}
+                    placeholder="Kolleksiya nomini kiriting..."
+                    className="h-12 rounded-xl animate-in slide-in-from-top-1"
+                  />
+                )}
+              </div>
+            </div>
           </Card>
-        ) : (
-          <>
-            <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
-              <Label
-                htmlFor="totalLength"
-                className="mb-4 block dark:text-white"
-              >
-                Umumiy uzunlik (metr)
+        </section>
+
+        {/* 3. Tavsifi (Dona vs Metr) */}
+        <section className="space-y-3">
+          <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider ml-1">
+            Xarakteristikalar
+          </h2>
+          <Card className="p-6 dark:bg-gray-800 dark:border-gray-700 space-y-5">
+            <div>
+              <Label className="mb-3 block text-sm font-medium text-muted-foreground italic">
+                Sotish usuli
               </Label>
-              <Input
-                id="totalLength"
-                type="number"
-                value={totalLength}
-                onChange={(e) => setTotalLength(e.target.value)}
-                placeholder="0"
-                className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"
-                step="0.1"
-              />
-            </Card>
-            <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
-              <Label
-                htmlFor="width"
-                className="mb-4 block dark:text-white"
-              >
-                Eni (metr) - ixtiyoriy
-              </Label>
-              <Input
-                id="width"
-                type="number"
-                value={width}
-                onChange={(e) => setWidth(e.target.value)}
-                placeholder="0"
-                className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"
-                step="0.1"
-              />
-            </Card>
-          </>
-        )}
+              <RadioGroup value={type} onValueChange={(v) => setType(v as ProductType)} className="flex gap-4">
+                <div className="flex-1">
+                  <RadioGroupItem value="unit" id="type-unit" className="peer sr-only" />
+                  <Label
+                    htmlFor="type-unit"
+                    className="flex flex-col items-center justify-center rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-blue-600 [&:has([data-state=checked])]:border-blue-600 transition-all cursor-pointer"
+                  >
+                    <span className="font-bold">Dona</span>
+                    <span className="text-[10px] text-muted-foreground">Tayyor o'lchamlar</span>
+                  </Label>
+                </div>
+                <div className="flex-1">
+                  <RadioGroupItem value="meter" id="type-meter" className="peer sr-only" />
+                  <Label
+                    htmlFor="type-meter"
+                    className="flex flex-col items-center justify-center rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-blue-600 [&:has([data-state=checked])]:border-blue-600 transition-all cursor-pointer"
+                  >
+                    <span className="font-bold">Metr</span>
+                    <span className="text-[10px] text-muted-foreground">Rulonli (kesib beriladi)</span>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
 
-        {/* Prices */}
-
-        <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
-          <Label
-            htmlFor="buyPrice"
-            className="mb-4 block dark:text-white"
-          >
-            Sotib olish narxi
-          </Label>
-          <Input
-            id="buyPrice"
-            type="number"
-            value={buyPrice}
-            onChange={(e) => setBuyPrice(e.target.value)}
-            placeholder="0"
-            className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"
-          />
-        </Card>
-
-        <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
-          <Label
-            htmlFor="sellPrice"
-            className="mb-4 block dark:text-white"
-          >
-            Sotish narxi {type === "meter" && "(umumiy)"}
-          </Label>
-          <Input
-            id="sellPrice"
-            type="number"
-            value={sellPrice}
-            onChange={(e) => setSellPrice(e.target.value)}
-            placeholder="0"
-            className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"
-          />
-        </Card>
-
-        {/* Buy Price - Added this as it was in previous code but missing in UI blocks logic above? No it was missing in previous code snippet read? 
-           Wait, previous read of AddProduct.tsx had state `buyPrice` but I don't see the Input for it in the read output?
-           Ah, I might have missed it or it was not rendered?
-           Let's check read output again.
-           
-           Lines 38: const [buyPrice, setBuyPrice] = useState("");
-           Lines 44: if (!name || !buyPrice || !sellPrice) {
-           
-           But in JSX...
-           It skips buyPrice card?
-           
-           I see "Name", "Category", "Type", "Dynamic Fields", "Prices".
-           In "Prices" section (Line 259), it only has "sellPrice".
-           
-           Wait, line 259:
-           <Card ...>
-             <Label htmlFor="sellPrice" ...>
-             <Input id="sellPrice" ...>
-           </Card>
-           
-           Where is buyPrice input?
-           It seems the original file logic requires `buyPrice` but doesn't have an input for it!
-           That would be a bug in the original file too.
-           Or maybe I missed scrolling?
-           
-           I'll add Buy Price input to be safe, as it's required in `handleSave`.
-        */}
-        <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
-          <Label
-            htmlFor="buyPrice"
-            className="mb-4 block dark:text-white"
-          >
-            Sotib olish narxi
-          </Label>
-          <Input
-            id="buyPrice"
-            type="number"
-            value={buyPrice}
-            onChange={(e) => setBuyPrice(e.target.value)}
-            placeholder="0"
-            className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"
-          />
-        </Card>
-
-        {type === "meter" && (
-          <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
-            <Label
-              htmlFor="sellPricePerMeter"
-              className="mb-4 block dark:text-white"
-            >
-              Sotish narxi (metr uchun)
-            </Label>
-            <Input
-              id="sellPricePerMeter"
-              type="number"
-              value={sellPricePerMeter}
-              onChange={(e) =>
-                setSellPricePerMeter(e.target.value)
-              }
-              placeholder="0"
-              className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"
-            />
+            {/* Type Specific Fields */}
+            {type === "unit" ? (
+              <div className="space-y-5 animate-in fade-in zoom-in-95 duration-200">
+                <div>
+                  <Label className="mb-2 block text-sm font-medium">
+                    Mavjud o'lchamlar (masalan: 2x3)
+                  </Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      value={sizeInput}
+                      onChange={(e) => setSizeInput(e.target.value)}
+                      placeholder="2x3"
+                      className="h-12 flex-1 rounded-xl"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          if (sizeInput && !availableSizes.includes(sizeInput)) {
+                            setAvailableSizes([...availableSizes, sizeInput]);
+                            setSizeInput("");
+                          }
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      className="h-12 w-12 rounded-xl bg-blue-600"
+                      onClick={() => {
+                        if (sizeInput && !availableSizes.includes(sizeInput)) {
+                          setAvailableSizes([...availableSizes, sizeInput]);
+                          setSizeInput("");
+                        }
+                      }}
+                    >
+                      <Plus className="h-5 w-5" />
+                    </Button>
+                  </div>
+                  {availableSizes.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      {availableSizes.map((size) => (
+                        <Badge
+                          key={size}
+                          variant="secondary"
+                          className="flex items-center py-1.5 px-3 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-100 rounded-lg group"
+                        >
+                          {size}
+                          <X
+                            className="ml-2 h-3.5 w-3.5 cursor-pointer opacity-50 group-hover:opacity-100"
+                            onClick={() => setAvailableSizes(availableSizes.filter((s) => s !== size))}
+                          />
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <Label className="mb-2 block text-sm font-medium">Ombordagi mavjud soni</Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      value={quantity}
+                      onChange={(e) => setQuantity(e.target.value)}
+                      placeholder="0"
+                      className="h-12 rounded-xl pl-10"
+                    />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      📦
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-5 animate-in fade-in zoom-in-95 duration-200">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="mb-2 block text-sm font-medium">Rulon uzunligi (m)</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={totalLength}
+                      onChange={(e) => setTotalLength(e.target.value)}
+                      placeholder="Masalan: 25"
+                      className="h-12 rounded-xl"
+                    />
+                  </div>
+                  <div>
+                    <Label className="mb-2 block text-sm font-medium">Rulon eni (m)</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={width}
+                      onChange={(e) => setWidth(e.target.value)}
+                      placeholder="Masalan: 3"
+                      className="h-12 rounded-xl"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </Card>
-        )}
+        </section>
+
+        {/* 4. Narxlar */}
+        <section className="space-y-3">
+          <div className="flex justify-between items-end">
+            <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider ml-1">
+              Narxlar
+            </h2>
+            {pricePerM2 && (
+              <span className="text-[10px] text-blue-600 font-bold bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded">
+                ~ {pricePerM2} so'm / m²
+              </span>
+            )}
+          </div>
+          <Card className="p-6 dark:bg-gray-800 dark:border-gray-700 space-y-5">
+            <div>
+              <Label className="mb-2 block text-sm font-medium">Sotib olish narxi (Tan narx)</Label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  value={buyPrice}
+                  onChange={(e) => setBuyPrice(e.target.value)}
+                  placeholder="0"
+                  className="h-12 rounded-xl pl-12 text-lg font-semibold"
+                />
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">
+                  UZS
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1 ml-1 italic">
+                * Bitta dona yoki butun rulon uchun
+              </p>
+            </div>
+
+            <div className={`grid ${type === "meter" ? "grid-cols-2" : "grid-cols-1"} gap-4`}>
+              <div>
+                <Label className="mb-2 block text-sm font-medium">
+                  {type === "meter" ? "Sotish (butun rulon)" : "Sotish narxi"}
+                </Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    value={sellPrice}
+                    onChange={(e) => setSellPrice(e.target.value)}
+                    placeholder="0"
+                    className="h-12 rounded-xl pl-12 text-lg font-semibold text-green-600"
+                  />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-green-600 font-bold">
+                    UZS
+                  </div>
+                </div>
+              </div>
+
+              {type === "meter" && (
+                <div>
+                  <Label className="mb-2 block text-sm font-medium text-blue-600">Metr uchun narx</Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      value={sellPricePerMeter}
+                      onChange={(e) => setSellPricePerMeter(e.target.value)}
+                      placeholder="0"
+                      className="h-12 rounded-xl pl-12 text-lg font-semibold border-blue-200 bg-blue-50/10"
+                    />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-400 font-bold">
+                      m
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+        </section>
       </div>
 
       {/* Fixed Bottom Button */}
-      <div className="fixed bottom-16 left-0 right-0 border-t dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+      <div className="fixed bottom-16 left-0 right-0 border-t dark:border-gray-700 bg-white/80 backdrop-blur-md dark:bg-gray-800/80 p-4 z-10 shadow-2xl">
         <Button
           onClick={handleSave}
-          className="h-14 w-full bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700"
+          className="h-14 w-full bg-blue-600 hover:bg-blue-700 text-lg font-bold rounded-2xl shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
           size="lg"
         >
-          {isEditMode ? "Mahsulotni yangilash" : "Mahsulotni saqlash"}
+          {isEditMode ? "Tahrirlashni saqlash" : "Mahsulotni yaratish"}
         </Button>
       </div>
 
@@ -750,7 +687,10 @@ export function AddProduct() {
       <AnimatePresence>
         {isCameraOpen && (
           <LiveCamera
-            onCapture={(img) => setPhoto(img)}
+            onCapture={(img) => {
+              setPhoto(img);
+              setIsCameraOpen(false);
+            }}
             onClose={() => setIsCameraOpen(false)}
           />
         )}

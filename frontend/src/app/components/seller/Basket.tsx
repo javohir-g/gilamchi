@@ -3,6 +3,7 @@ import {
   Trash2,
   ShoppingCart,
   Plus,
+  Pencil,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -82,17 +83,17 @@ export function Basket() {
             <div className="mb-6 rounded-full bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 p-8">
               <ShoppingCart className="h-20 w-20 text-blue-500 dark:text-blue-400" strokeWidth={1.5} />
             </div>
-            
+
             {/* Heading */}
             <h3 className="mb-2 text-xl text-gray-900 dark:text-white">
               Savat bo'sh
             </h3>
-            
+
             {/* Description */}
             <p className="text-center text-gray-500 dark:text-gray-400 mb-8 max-w-sm">
               Mahsulot sotish uchun savatga qo'shing
             </p>
-            
+
             {/* Action Buttons */}
             <div className="flex flex-col gap-3 w-full max-w-xs">
               <Button
@@ -141,32 +142,43 @@ export function Basket() {
                         )}
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                           {item.width && item.height
-                            ? `Soni: ${item.quantity}` 
+                            ? `Soni: ${item.quantity}`
                             : (item.type === "unit"
                               ? `Miqdor: ${item.quantity}`
                               : `Metr: ${item.quantity}`)}
                         </p>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() =>
-                          removeFromBasket(item.id)
-                        }
-                        className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setEditingItem(item)}
+                          className="text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900"
+                        >
+                          <Pencil className="h-5 w-5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() =>
+                            removeFromBasket(item.id)
+                          }
+                          className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </Button>
+                      </div>
                     </div>
 
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditingItem(item)}
-                      className="w-full dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600"
-                    >
-                      O'zgartirish
-                    </Button>
+                    <div className="flex justify-between items-end pt-2 border-t dark:border-gray-700">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {formatCurrency(item.pricePerUnit)}
+                        {item.type === "meter" ? " / m²" : " / dona"}
+                      </div>
+                      <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                        {formatCurrency(item.total)}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </Card>
@@ -179,7 +191,7 @@ export function Basket() {
       {/* Removed - using BottomNav checkout button instead */}
 
       <BottomNav onCheckoutClick={() => navigate("/seller/checkout")} />
-      
+
       {editingItem && (
         <EditBasketItemModal
           item={editingItem}
