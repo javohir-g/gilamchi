@@ -58,7 +58,7 @@ export function LoginScreen() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-white to-gray-100 p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <div className="mx-auto mb-6 flex h-28 w-28 items-center justify-center rounded-3xl bg-white shadow-xl border border-gray-100 p-4">
+          <div className="mx-auto mb-6 flex h-28 w-28 items-center justify-center rounded-3xl bg-black shadow-xl border border-gray-800 p-2">
             <img
               src="/icons/login-logo.png"
               alt="Gilamchi Logo"
