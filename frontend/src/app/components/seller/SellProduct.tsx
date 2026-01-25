@@ -268,7 +268,6 @@ export function SellProduct() {
   };
 
   const handleSelectFromCameraSearch = (product: Product) => {
-    setSimilarProducts([]);
     setSelectedProduct(product);
   };
 
@@ -513,16 +512,13 @@ export function SellProduct() {
                 </Button>
               </div>
 
-              {/* Category Filter in results */}
+              {/* Category Filter in results - Local filtering logic */}
               <div className="px-4 pb-3 whitespace-nowrap overflow-x-auto scrollbar-hide">
                 <div className="flex space-x-2">
                   <Button
                     variant={selectedCategory === null ? "default" : "outline"}
                     className={`rounded-full h-8 px-3 text-xs ${selectedCategory === null ? "bg-blue-600 text-white" : ""}`}
-                    onClick={() => {
-                      setSelectedCategory(null);
-                      if (capturedImage) analyzeImage(capturedImage);
-                    }}
+                    onClick={() => setSelectedCategory(null)}
                   >
                     Barchasi
                   </Button>
@@ -531,10 +527,7 @@ export function SellProduct() {
                       key={cat.name}
                       variant={selectedCategory === cat.name ? "default" : "outline"}
                       className={`rounded-full h-8 px-3 text-xs flex items-center gap-1 ${selectedCategory === cat.name ? "bg-blue-600 text-white" : ""}`}
-                      onClick={() => {
-                        setSelectedCategory(cat.name);
-                        if (capturedImage) analyzeImage(capturedImage);
-                      }}
+                      onClick={() => setSelectedCategory(cat.name)}
                     >
                       <span>{cat.icon}</span>
                       <span>{cat.label}</span>
@@ -544,83 +537,90 @@ export function SellProduct() {
               </div>
             </div>
             <div className="p-4 space-y-3">
-              {similarProducts.map((product: any) => (
-                <Card
-                  key={product.id}
-                  className="overflow-hidden border border-border bg-card transition-all hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-blue-900/10"
-                >
-                  <div className="flex space-x-4 p-4">
-                    <div className="relative">
-                      <img
-                        src={product.photo}
-                        alt={product.name}
-                        className="h-24 w-24 rounded-xl object-cover ring-1 ring-border cursor-pointer"
-                        onClick={() =>
-                          handleSelectProduct(product.id)
-                        }
-                      />
-                      {/* Similarity Badge removed as requested (duplicated) */}
-                    </div>
-                    <div className="flex-1">
-                      <h3
-                        className="mb-1 text-lg text-card-foreground cursor-pointer"
-                        onClick={() =>
-                          handleSelectProduct(product.id)
-                        }
-                      >
-                        {product.name}
-                      </h3>
-                      <div className="space-y-1 text-sm">
-                        {/* Sizes Info */}
-                        {product.availableSizes && product.availableSizes.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mb-2">
-                            {product.availableSizes.map((size: string) => (
-                              <Badge key={size} variant="secondary" className="px-2 py-0 h-5 text-[10px]">
-                                {size}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Similarity Info */}
+              {similarProducts
+                .filter(p => !selectedCategory || p.category === selectedCategory)
+                .map((product: any) => (
+                  <Card
+                    key={product.id}
+                    className="overflow-hidden border border-border bg-card transition-all hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-blue-900/10"
+                  >
+                    <div className="flex space-x-4 p-4">
+                      <div className="relative">
+                        <img
+                          src={product.photo}
+                          alt={product.name}
+                          className="h-24 w-24 rounded-xl object-cover ring-1 ring-border cursor-pointer"
+                          onClick={() =>
+                            handleSelectProduct(product.id)
+                          }
+                        />
+                        {/* Similarity Badge - Restored */}
                         {product.similarity_percentage !== undefined && (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <span className="text-green-600 dark:text-green-400 font-medium">
-                              ✓ {Math.round(product.similarity_percentage)}% o'xshashlik
-                            </span>
-                          </div>
-                        )}
-                        {product.type === "unit" ? (
-                          <div className="text-muted-foreground">
-                            Qoldiq:{" "}
-                            <span className="font-medium text-card-foreground">
-                              {product.quantity} dona
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="text-muted-foreground">
-                            Qoldiq:{" "}
-                            <span className="font-medium text-card-foreground">
-                              {product.remainingLength} m
-                            </span>
+                          <div className="absolute -top-2 -right-2 bg-gradient-to-r from-green-50 to-emerald-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                            {Math.round(product.similarity_percentage)}%
                           </div>
                         )}
                       </div>
-                      <Button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSelectFromCameraSearch(product);
-                        }}
-                        className="mt-3 w-full bg-green-600 hover:bg-green-700 h-10"
-                        size="sm"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Savatchaga qo'shish
-                      </Button>
+                      <div className="flex-1">
+                        <h3
+                          className="mb-1 text-lg text-card-foreground cursor-pointer"
+                          onClick={() =>
+                            handleSelectProduct(product.id)
+                          }
+                        >
+                          {product.name}
+                        </h3>
+                        <div className="space-y-1 text-sm">
+                          {/* Sizes Info */}
+                          {product.availableSizes && product.availableSizes.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mb-2">
+                              {product.availableSizes.map((size: string) => (
+                                <Badge key={size} variant="secondary" className="px-2 py-0 h-5 text-[10px]">
+                                  {size}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Similarity Info */}
+                          {product.similarity_percentage !== undefined && (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <span className="text-green-600 dark:text-green-400 font-medium">
+                                ✓ {Math.round(product.similarity_percentage)}% o'xshashlik
+                              </span>
+                            </div>
+                          )}
+                          {product.type === "unit" ? (
+                            <div className="text-muted-foreground">
+                              Qoldiq:{" "}
+                              <span className="font-medium text-card-foreground">
+                                {product.quantity} dona
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="text-muted-foreground">
+                              Qoldiq:{" "}
+                              <span className="font-medium text-card-foreground">
+                                {product.remainingLength} m
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelectFromCameraSearch(product);
+                          }}
+                          className="mt-3 w-full bg-green-600 hover:bg-green-700 h-10"
+                          size="sm"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Savatchaga qo'shish
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                ))}
             </div>
           </div>
         </div>
