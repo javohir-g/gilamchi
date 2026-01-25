@@ -186,7 +186,7 @@ export function AdminDashboard() {
                   {formatCurrency(totalSales)}
                 </div>
                 <div className="text-sm text-blue-100 mt-1">
-                  {sales.length} ta savdodan
+                  {filteredSales.length} ta savdodan
                 </div>
               </div>
               <div className="bg-white/20 rounded-full p-3">
