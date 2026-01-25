@@ -55,48 +55,46 @@ export function LoginScreen() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-blue-100 dark:from-blue-50 dark:to-blue-100 p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-white to-gray-100 p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-blue-600 dark:bg-blue-600">
-            <svg
-              className="h-12 w-12 text-white dark:text-white"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121L7.94 13.92l-2.994-.924c-.653-.204-.666-.653.136-.973l11.675-4.497c.537-.194 1.006.128.832.977z" />
-            </svg>
+          <div className="mx-auto mb-6 flex h-28 w-28 items-center justify-center rounded-3xl bg-white shadow-xl border border-gray-100 p-4">
+            <img
+              src="/icons/login-logo.png"
+              alt="Gilamchi Logo"
+              className="h-full w-full object-contain"
+            />
           </div>
-          <h1 className="mb-2 text-3xl text-gray-900 dark:text-gray-900">
-            Tizimga kirish
+          <h1 className="mb-2 text-4xl font-bold text-[#1F3F8C]">
+            Gilamchi
           </h1>
-          <p className="text-gray-600 dark:text-gray-600">
-            Gilam do'koni boshqaruv tizimi
+          <p className="text-gray-500 font-medium tracking-wide">
+            Boshqaruv tizimiga xush kelibsiz
           </p>
         </div>
 
-        <Card className="p-6 bg-white dark:bg-white border-gray-200 dark:border-gray-200">
+        <Card className="p-8 bg-white/80 backdrop-blur-sm border-gray-200 shadow-2xl rounded-3xl">
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-gray-900 dark:text-gray-900">Login</Label>
+              <Label className="text-gray-700 font-semibold ml-1">Login</Label>
               <Input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="admin"
-                className="bg-white dark:bg-white text-gray-900 dark:text-gray-900 border-gray-300 dark:border-gray-300"
+                placeholder="Loginni kiriting"
+                className="h-12 bg-gray-50 border-gray-200 focus:ring-[#1F3F8C] rounded-xl"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-gray-900 dark:text-gray-900">Parol</Label>
+              <Label className="text-gray-700 font-semibold ml-1">Parol</Label>
               <Input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="********"
-                className="bg-white dark:bg-white text-gray-900 dark:text-gray-900 border-gray-300 dark:border-gray-300"
+                className="h-12 bg-gray-50 border-gray-200 focus:ring-[#1F3F8C] rounded-xl"
                 required
               />
             </div>
@@ -104,7 +102,7 @@ export function LoginScreen() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white"
+              className="w-full h-14 bg-[#1F3F8C] hover:bg-[#152b61] text-white text-lg font-bold rounded-2xl shadow-lg shadow-[#1F3F8C]/20 transition-all active:scale-95"
               size="lg"
             >
               {loading ? "Kirish..." : "Kirish"}
