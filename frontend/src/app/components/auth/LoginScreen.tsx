@@ -60,7 +60,7 @@ export function LoginScreen() {
         <div className="text-center">
           <div className="mx-auto mb-6 flex h-28 w-28 items-center justify-center rounded-3xl bg-white shadow-xl border border-gray-100 p-2">
             <img
-              src="/icons/login-logo.png"
+              src="/icons/brand-logo-v1.png"
               alt="Gilamchi Logo"
               className="h-full w-full object-contain"
             />
