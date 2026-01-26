@@ -9,21 +9,9 @@ if TYPE_CHECKING:
 # Глобальная переменная для кэширования модели
 _model: Optional["SentenceTransformer"] = None
 
-def optimize_image(image_bytes: bytes, max_size: int = 800, quality: int = 85) -> bytes:
+def optimize_image(image_bytes: bytes, max_size: int = 800, quality: int = 85, enhance_details: bool = True) -> bytes:
     """
-    Оптимизирует изображение для быстрой обработки CLIP.
-    
-    Args:
-        image_bytes: Исходные байты изображения
-        max_size: Максимальный размер по большей стороне (default: 800px)
-        quality: Качество JPEG сжатия (default: 85)
-    
-    Returns:
-        Оптимизированные байты изображения
-        
-    Примечание:
-        CLIP модель не требует изображений больше 800x800px.
-        Уменьшение размера ускоряет обработку в 2-4 раза без потери качества embedding.
+    Оптимизирует изображение для CLIP и программно усиливает детали (узоры).
     """
     try:
         img = Image.open(io.BytesIO(image_bytes))
@@ -32,30 +20,40 @@ def optimize_image(image_bytes: bytes, max_size: int = 800, quality: int = 85) -
         if img.mode != 'RGB':
             img = img.convert('RGB')
         
-        # Изменение размера если изображение слишком большое
+        # 1. Усиление деталей (CLAHE)
+        if enhance_details:
+            try:
+                import cv2
+                # Переводим в массив для OpenCV
+                img_cv = np.array(img)
+                # Переводим в LAB для работы только с яркостью (L channel)
+                lab = cv2.cvtColor(img_cv, cv2.COLOR_RGB2LAB)
+                l, a, b = cv2.split(lab)
+                # Применяем адаптивное выравнивание гистограммы (вытягиваем узоры)
+                clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+                cl = clahe.apply(l)
+                # Собираем обратно
+                limg = cv2.merge((cl,a,b))
+                final_cv = cv2.cvtColor(limg, cv2.COLOR_LAB2RGB)
+                img = Image.fromarray(final_cv)
+                # print("Pattern details enhanced via CLAHE")
+            except ImportError:
+                # Если opencv-python не установлен, пропускаем этот шаг
+                pass
+        
+        # 2. Изменение размера
         if max(img.size) > max_size:
-            # Сохраняем пропорции
             ratio = max_size / max(img.size)
             new_size = tuple(int(dim * ratio) for dim in img.size)
             img = img.resize(new_size, Image.Resampling.LANCZOS)
-            print(f"Image resized from {img.size} to {new_size}")
         
         # Сжатие в JPEG
         output = io.BytesIO()
         img.save(output, format='JPEG', quality=quality, optimize=True)
-        optimized_bytes = output.getvalue()
-        
-        # Логирование экономии
-        original_size = len(image_bytes) / 1024  # KB
-        optimized_size = len(optimized_bytes) / 1024  # KB
-        savings = ((original_size - optimized_size) / original_size) * 100
-        print(f"Image optimized: {original_size:.1f}KB -> {optimized_size:.1f}KB (saved {savings:.1f}%)")
-        
-        return optimized_bytes
+        return output.getvalue()
         
     except Exception as e:
         print(f"Error optimizing image: {e}")
-        # Возвращаем оригинал при ошибке
         return image_bytes
 
 def get_model() -> "SentenceTransformer":
@@ -66,59 +64,56 @@ def get_model() -> "SentenceTransformer":
     global _model
     if _model is None:
         print("Loading CLIP model (clip-ViT-B-32)...")
-        # Импортируем здесь, чтобы не замедлять старт приложения
         from sentence_transformers import SentenceTransformer
-        
-        # CLIP-based модель, оптимизированная для изображений
-        # Размер: ~400MB, Embedding dimension: 512
         _model = SentenceTransformer('clip-ViT-B-32')
         print("Model loaded successfully!")
     return _model
 
 def extract_image_embedding(image_bytes: bytes, optimize: bool = True) -> Optional[np.ndarray]:
     """
-    Извлекает embedding из изображения используя CLIP.
-    
-    Args:
-        image_bytes: Байты изображения (JPEG, PNG, etc.)
-        optimize: Оптимизировать изображение перед обработкой (default: True)
-    
-    Returns:
-        numpy array размерности 512 или None при ошибке
-        
-    Примечание:
-        Embeddings устойчивы к:
-        - Изменениям освещения
-        - Небольшим поворотам
-        - Масштабированию
-        - Различным ракурсам
+    Извлекает комбинированный embedding (Global + Pattern Focus).
     """
     try:
-        # Оптимизация изображения для быстрой обработки
         if optimize:
             image_bytes = optimize_image(image_bytes)
         
-        # Открытие изображения из bytes
         img = Image.open(io.BytesIO(image_bytes))
-        
-        # Конвертация в RGB (CLIP требует RGB)
         if img.mode != 'RGB':
             img = img.convert('RGB')
         
-        # Получение модели
         model = get_model()
         
-        # Извлечение embedding
-        # normalize_embeddings=True делает вектор единичной длины, 
-        # что позволяет вычислять косинусное сходство через скалярное произведение (dot product)
-        embedding = model.encode(img, convert_to_numpy=True, normalize_embeddings=True)
+        # 1. Global View Embedding (общий вид)
+        global_embedding = model.encode(img, convert_to_numpy=True, normalize_embeddings=True)
         
-        return embedding
+        # 2. Pattern Focus Embedding (Zoom на центр)
+        # Вырезаем центральные 60% изображения (там обычно самый яркий узор)
+        width, height = img.size
+        # Ограничиваем crop так, чтобы не выйти за границы
+        crop_w = int(width * 0.6)
+        crop_h = int(height * 0.6)
+        left = (width - crop_w) // 2
+        top = (height - crop_h) // 2
+        right = left + crop_w
+        bottom = top + crop_h
+        
+        center_crop = img.crop((left, top, right, bottom))
+        pattern_embedding = model.encode(center_crop, convert_to_numpy=True, normalize_embeddings=True)
+        
+        # 3. Intelligent Fusion (Инновационное слияние)
+        # Мы смешиваем общий вид и узор в один вектор.
+        # Даем узору 65% веса, общему виду 35%, чтобы сканер лучше различал детали.
+        fused_embedding = (global_embedding * 0.35) + (pattern_embedding * 0.65)
+        
+        # Повторная нормализация после слияния
+        norm = np.linalg.norm(fused_embedding)
+        if norm > 0:
+            fused_embedding = fused_embedding / norm
+            
+        return fused_embedding
         
     except Exception as e:
         print(f"Error extracting embedding: {e}")
-        import traceback
-        traceback.print_exc()
         return None
 
 def compute_similarity(embedding1: np.ndarray, embedding2: np.ndarray) -> float:

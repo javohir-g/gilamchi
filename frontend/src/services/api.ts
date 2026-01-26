@@ -91,7 +91,8 @@ const fromProduct = (data: any): any => ({
   sellPricePerMeter: data.sell_price_per_meter,
   // Carpet fields
   // pricePerSquareMeter: data.price_per_square_meter, // Not in schema yet
-  availableSizes: data.available_sizes
+  availableSizes: data.available_sizes,
+  similarity_percentage: data.similarity_percentage
 });
 
 const toProduct = (data: any): any => ({
