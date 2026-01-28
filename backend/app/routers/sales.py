@@ -55,7 +55,7 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
         if product.remaining_length and product.remaining_length < sale.quantity:
              raise HTTPException(status_code=400, detail="Insufficient stock (length)")
         if product.remaining_length:
-            product.remaining_length -= float(sale.quantity)
+            product.remaining_length = float(product.remaining_length or 0) - float(sale.quantity)
             
             # Auto-delete product if remaining length reaches 0
             if product.remaining_length <= 0:
