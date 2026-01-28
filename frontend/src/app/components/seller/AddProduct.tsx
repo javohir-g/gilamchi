@@ -208,16 +208,20 @@ export function AddProduct() {
               const [w, h] = parts;
               const area = w * h;
 
-              const calculatedBuyPrice = area * buyRate;
-              const calculatedSellPrice = area * sellRate;
+              const calculatedBuyPrice = area * buyRate; // This is using buy_price_per_sqm (likely Sell Price in DB)
+              const calculatedSellPrice = area * sellRate; // This is using price_per_sqm (likely Cost in DB)
 
-              if (buyRate > 0) {
-                setBuyPriceUsd(calculatedBuyPrice.toFixed(2));
-                setBuyPrice((calculatedBuyPrice * 12800).toFixed(0));
+              // Swap the assignment based on user report
+              if (sellRate > 0) {
+                // Treat sellRate (price_per_sqm) as the Cost/Buy Price
+                const realBuyPrice = calculatedSellPrice;
+                setBuyPriceUsd(realBuyPrice.toFixed(2));
+                setBuyPrice((realBuyPrice * 12800).toFixed(0));
                 setIsUsdPriced(true);
               }
-              if (sellRate > 0) {
-                setSellPrice(calculatedSellPrice.toString());
+              if (buyRate > 0) {
+                // Treat buyRate (buy_price_per_sqm) as the Sell Price
+                setSellPrice(calculatedBuyPrice.toString());
               }
             }
           }
