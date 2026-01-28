@@ -586,7 +586,7 @@ export function Inventory() {
         targetBranchId === "all" ||
         String(p.branchId) === String(targetBranchId);
 
-      const matchesCollection = !selectedCollection || (p.collection || "Kolleksiyasiz") === selectedCollection;
+      const matchesCollection = !selectedCollection || String(p.collection || "Kolleksiyasiz") === selectedCollection;
       const hasSize = !selectedSize || (selectedSize === "O'lchamsiz"
         ? (!p.availableSizes || p.availableSizes.length === 0)
         : p.availableSizes?.some(s => getSizeStr(s) === selectedSize));
@@ -606,7 +606,7 @@ export function Inventory() {
           p.category === "Kovrik" && p.type === "unit";
       }
 
-      const matchesSearch = (p.code || "")
+      const matchesSearch = String(p.code || "")
         .toLowerCase()
         .includes(sizeSearchQuery.toLowerCase());
 
