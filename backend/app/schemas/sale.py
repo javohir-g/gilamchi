@@ -1,5 +1,5 @@
 from pydantic import BaseModel, UUID4, field_serializer
-from typing import Optional
+from typing import Optional, Union
 from datetime import datetime, timezone
 from ..models.sale import PaymentType
 from .product import ProductResponse
