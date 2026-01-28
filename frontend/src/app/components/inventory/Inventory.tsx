@@ -909,9 +909,9 @@ export function Inventory() {
   );
 
   const renderProducts = () => (
-    <div className="flex flex-col h-[calc(100vh-140px)]">
-      {/* 1. Collections Filter Bar */}
-      <div className="bg-card border-b border-border p-3 overflow-x-auto whitespace-nowrap scrollbar-hide flex gap-2">
+    <div className="flex flex-col">
+      {/* 1. Collections Filter Bar - Sticky */}
+      <div className="sticky top-0 z-20 bg-card/80 backdrop-blur-md border-b border-border p-3 overflow-x-auto whitespace-nowrap scrollbar-hide flex gap-2">
         <Button
           variant={selectedCollection === null ? "default" : "outline"}
           size="sm"
@@ -933,7 +933,7 @@ export function Inventory() {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 p-4 flex-1 overflow-y-auto pb-20">
+      <div className="grid grid-cols-2 gap-3 p-4 pb-24">
         <div className="col-span-2 mb-2">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -972,7 +972,7 @@ export function Inventory() {
             return (
               <Card
                 key={product.id}
-                className="relative overflow-hidden border border-border bg-card transition-all hover:shadow-lg"
+                className="relative flex flex-col h-full overflow-hidden border border-border bg-card transition-all hover:shadow-lg"
               >
                 {isAdmin && (
                   <div className="absolute top-2 right-2 z-10">
@@ -1001,34 +1001,38 @@ export function Inventory() {
                   </div>
                 )}
 
-                <div className="flex flex-col">
-                  <img
-                    src={product.photo}
-                    alt={product.code}
-                    className="w-full aspect-[4/5] object-cover"
-                  />
-                  <div className="p-3 space-y-2">
-                    <h3 className="text-sm font-medium text-card-foreground line-clamp-1">
-                      {product.code}
-                    </h3>
+                <div className="flex flex-col h-full">
+                  <div className="aspect-[4/5] relative overflow-hidden">
+                    <img
+                      src={product.photo}
+                      alt={product.code}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="p-3 flex-1 flex flex-col justify-between space-y-2">
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-medium text-card-foreground line-clamp-1">
+                        {product.code}
+                      </h3>
 
-                    {product.availableSizes && product.availableSizes.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {product.availableSizes.map((s: any, i: number) => {
-                          const sStr = getSizeStr(s);
-                          const qty = typeof s === 'object' ? s.quantity : null;
-                          return (
-                            <Badge
-                              key={i}
-                              variant="secondary"
-                              className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-0 text-[10px] px-2 py-0 h-5"
-                            >
-                              {sStr} {qty !== null && `(${qty})`}
-                            </Badge>
-                          );
-                        })}
-                      </div>
-                    )}
+                      {product.availableSizes && product.availableSizes.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {product.availableSizes.map((s: any, i: number) => {
+                            const sStr = getSizeStr(s);
+                            const qty = typeof s === 'object' ? s.quantity : null;
+                            return (
+                              <Badge
+                                key={i}
+                                variant="secondary"
+                                className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-0 text-[10px] px-2 py-0 h-5"
+                              >
+                                {sStr} {qty !== null && `(${qty})`}
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
 
                     <div className="space-y-2">
                       <div className="space-y-1">
