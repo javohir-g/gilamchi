@@ -337,9 +337,20 @@ export function AddProduct() {
   const pricePerM2 = useMemo(() => {
     if (buyPrice && type === "unit" && availableSizes.length > 0) {
       // Just a helper for the first size to give an idea
-      const [w, h] = availableSizes[0].split(/x|×/).map(v => parseFloat(v));
-      if (w && h) {
-        return (parseFloat(buyPrice) / (w * h)).toFixed(2);
+      const sizeObj = availableSizes[0];
+      let sizeStr = "";
+      if (typeof sizeObj === 'string') sizeStr = sizeObj;
+      else if (typeof sizeObj === 'number') sizeStr = String(sizeObj);
+      else if (sizeObj && typeof sizeObj === 'object' && sizeObj.size) sizeStr = String(sizeObj.size);
+
+      if (sizeStr) {
+        const parts = sizeStr.split(/x|×|X/).map((v: string) => parseFloat(v));
+        if (parts.length === 2) {
+          const [w, h] = parts;
+          if (w && h) {
+            return (parseFloat(buyPrice) / (w * h)).toFixed(2);
+          }
+        }
       }
     }
     return null;
