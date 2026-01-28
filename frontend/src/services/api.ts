@@ -85,6 +85,8 @@ const fromProduct = (data: any): any => ({
   quantity: data.quantity,
   maxQuantity: data.max_quantity,
   buyPrice: data.buy_price,
+  buyPriceUsd: data.buy_price_usd,
+  isUsdPriced: data.is_usd_priced,
   sellPrice: data.sell_price,
   totalLength: data.total_length,
   remainingLength: data.remaining_length,
@@ -106,6 +108,8 @@ const toProduct = (data: any): any => ({
   quantity: data.quantity || 0,
   max_quantity: data.maxQuantity,
   buy_price: data.buyPrice,
+  buy_price_usd: data.buyPriceUsd,
+  is_usd_priced: data.isUsdPriced,
   sell_price: data.sellPrice,
   total_length: data.totalLength,
   remaining_length: data.remainingLength,
@@ -150,13 +154,15 @@ const fromCollection = (data: any): any => ({
   id: data.id,
   name: data.name,
   icon: data.icon,
-  price_per_sqm: data.price_per_sqm
+  price_per_sqm: data.price_per_sqm,
+  buy_price_per_sqm: data.buy_price_per_sqm
 });
 
 const toCollection = (data: any): any => ({
   name: data.name,
   icon: data.icon,
-  price_per_sqm: data.price_per_sqm
+  price_per_sqm: data.price_per_sqm,
+  buy_price_per_sqm: data.buy_price_per_sqm
 });
 
 const fromDebt = (data: any): any => ({
