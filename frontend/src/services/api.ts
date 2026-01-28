@@ -75,7 +75,8 @@ const fromUser = (data: any): any => ({
 
 const fromProduct = (data: any): any => ({
   id: data.id,
-  name: data.name,
+  code: data.code,
+  name: data.code, // Alias for backward compatibility in UI
   category: data.category,
   type: data.type,
   branchId: data.branch_id,
@@ -96,7 +97,7 @@ const fromProduct = (data: any): any => ({
 });
 
 const toProduct = (data: any): any => ({
-  name: data.name,
+  code: data.code || data.name,
   category: data.category,
   type: data.type,
   branch_id: data.branchId,
@@ -122,7 +123,7 @@ const fromBranch = (data: any): any => ({
 const fromSale = (data: any): any => ({
   id: data.id,
   productId: data.product_id,
-  productName: data.product?.name || "Unknown", // Assuming backend expands product or we handle it
+  productName: data.product?.code || "Unknown", // Backend now uses code
   quantity: data.quantity,
   amount: data.amount,
   paymentType: data.payment_type,

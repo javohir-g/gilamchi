@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import get_settings
-from .routers import auth, branches, users, products, sales, debts, expenses
+from .routers import auth, branches, users, products, sales, debts, expenses, collections
 from .database import engine, Base
 
 settings = get_settings()

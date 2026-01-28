@@ -655,7 +655,7 @@ export function Inventory() {
           p.category === "Kovrik" && p.type === "unit";
       }
 
-      const matchesSearch = p.name
+      const matchesSearch = (p.name || "")
         .toLowerCase()
         .includes(sizeSearchQuery.toLowerCase());
 

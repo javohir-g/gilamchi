@@ -79,10 +79,10 @@ export function SellProduct() {
       : true;
     const matchesCollection = true;
     const matchesSearch =
-      product.name
+      (product.name || "")
         .toLowerCase()
         .includes(searchQuery.toLowerCase()) ||
-      product.category
+      (product.category || "")
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
     return (
