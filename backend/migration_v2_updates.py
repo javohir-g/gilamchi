@@ -43,8 +43,8 @@ def run_migration():
                 result = conn.execute(text("SELECT id FROM collections WHERE name = :name"), {"name": name})
                 if not result.fetchone():
                     conn.execute(text("""
-                        INSERT INTO collections (id, name, icon, price_per_sqm)
-                        VALUES (:id, :name, :icon, :price)
+                        INSERT INTO collections (id, name, icon, price_per_sqm, created_at, updated_at)
+                        VALUES (:id, :name, :icon, :price, NOW(), NOW())
                     """), {"id": uuid.uuid4(), "name": name, "icon": icon, "price": price})
             conn.commit()
             print("✓ Default collections seeded")
