@@ -11,7 +11,7 @@ import {
   Layers,
   ArrowRight
 } from "lucide-react";
-import { useAppContext } from "../../context/AppContext";
+import { useApp } from "../../context/AppContext";
 import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/card";
 import { Input } from "../ui/input";
@@ -55,7 +55,7 @@ const parseSize = (sizeStr: string) => {
 };
 
 const Inventory: React.FC = () => {
-  const { products, user, branches, collections } = useAppContext();
+  const { products, user, branches, collections } = useApp();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBranch, setSelectedBranch] = useState<string>("all");
   const [selectedCollection, setSelectedCollection] = useState<string>("");
@@ -270,8 +270,8 @@ const Inventory: React.FC = () => {
                   key={coll.id}
                   variant={selectedCollection === coll.name ? "default" : "outline"}
                   className={`h-9 px-4 rounded-full transition-all ${selectedCollection === coll.name
-                      ? "shadow-md shadow-primary/20 scale-105"
-                      : "hover:bg-accent/50 text-muted-foreground"
+                    ? "shadow-md shadow-primary/20 scale-105"
+                    : "hover:bg-accent/50 text-muted-foreground"
                     }`}
                   onClick={() => setSelectedCollection(coll.name)}
                 >
