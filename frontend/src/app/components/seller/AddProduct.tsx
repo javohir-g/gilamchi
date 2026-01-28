@@ -639,8 +639,8 @@ export function AddProduct() {
                     type="button"
                     onClick={() => setIsUsdPriced(false)}
                     className={`flex-1 flex items-center justify-center py-1.5 rounded-lg text-[10px] font-bold transition-all ${!isUsdPriced
-                        ? "bg-white dark:bg-slate-900 shadow-sm text-blue-600"
-                        : "text-slate-400"
+                      ? "bg-white dark:bg-slate-900 shadow-sm text-blue-600"
+                      : "text-slate-400"
                       }`}
                   >
                     SO'M
@@ -649,28 +649,29 @@ export function AddProduct() {
                     type="button"
                     onClick={() => setIsUsdPriced(true)}
                     className={`flex-1 flex items-center justify-center py-1.5 rounded-lg text-[10px] font-bold transition-all ${isUsdPriced
-                        ? "bg-white dark:bg-slate-900 shadow-sm text-green-600"
-                        : "text-slate-400"
+                      ? "bg-white dark:bg-slate-900 shadow-sm text-green-600"
+                      : "text-slate-400"
                       }`}
                   >
                     USD
                   </button>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="relative">
-                  <Input
-                    type="number"
-                    value={buyPrice}
-                    onChange={(e) => setBuyPrice(e.target.value)}
-                    placeholder="0"
-                    className="h-12 rounded-xl pl-12 text-lg font-semibold"
-                  />
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">
-                    UZS
+              <div className="grid grid-cols-1 gap-4">
+                {!isUsdPriced ? (
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      value={buyPrice}
+                      onChange={(e) => setBuyPrice(e.target.value)}
+                      placeholder="0"
+                      className="h-12 rounded-xl pl-12 text-lg font-semibold"
+                    />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">
+                      UZS
+                    </div>
                   </div>
-                </div>
-                {isUsdPriced && (
+                ) : (
                   <div className="relative">
                     <Input
                       type="number"
@@ -691,40 +692,49 @@ export function AddProduct() {
             </div>
 
             <div className={`grid ${type === "meter" ? "grid-cols-2" : "grid-cols-1"} gap-4`}>
-              <div>
-                <Label className="mb-2 block text-sm font-medium">
-                  {type === "meter" ? "Sotish (butun rulon)" : "Sotish narxi"}
-                </Label>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    value={sellPrice}
-                    onChange={(e) => setSellPrice(e.target.value)}
-                    placeholder="0"
-                    className="h-12 rounded-xl pl-12 text-lg font-semibold text-green-600"
-                  />
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-green-600 font-bold">
-                    UZS
-                  </div>
-                </div>
-              </div>
-
-              {type === "meter" && (
+              {type === "unit" && (
                 <div>
-                  <Label className="mb-2 block text-sm font-medium text-blue-600">Metr uchun narx</Label>
+                  <Label className="mb-2 block text-sm font-medium">Sotish narxi</Label>
                   <div className="relative">
                     <Input
                       type="number"
-                      value={sellPricePerMeter}
-                      onChange={(e) => setSellPricePerMeter(e.target.value)}
+                      value={sellPrice}
+                      onChange={(e) => setSellPrice(e.target.value)}
                       placeholder="0"
-                      className="h-12 rounded-xl pl-12 text-lg font-semibold border-blue-200 bg-blue-50/10"
+                      className="h-12 rounded-xl pl-12 text-lg font-semibold text-green-600"
                     />
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-400 font-bold">
-                      m
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-green-600 font-bold">
+                      UZS
                     </div>
                   </div>
                 </div>
+              )}
+
+              {type === "meter" && (
+                <>
+                  <div className="hidden">
+                    <Input
+                      type="number"
+                      value={sellPrice}
+                      onChange={(e) => setSellPrice(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label className="mb-2 block text-sm font-medium text-blue-600">Metr uchun narx (Sotish)</Label>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        value={sellPricePerMeter}
+                        onChange={(e) => setSellPricePerMeter(e.target.value)}
+                        placeholder="0"
+                        className="h-12 rounded-xl pl-12 text-lg font-semibold border-blue-200 bg-blue-50/10"
+                      />
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-400 font-bold">
+                        m
+                      </div>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           </Card>
