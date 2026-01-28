@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+﻿import { useState, useMemo } from "react";
 import {
   Search,
   Filter,
@@ -70,25 +70,6 @@ type CategoryType =
   | "Ovalniy"
   | "Kovrik";
 
-// Utility to safely extract size string from both string and object formats
-const getSizeStr = (s: any): string => {
-  if (typeof s === 'string') return s;
-  if (s && typeof s === 'object' && s.size) return s.size;
-  return "";
-};
-
-// Robust size parsing handling various encodings of the multiplication sign
-const parseSize = (sizeStr: string) => {
-  const parts = sizeStr.split(/[^0-9.]+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return {
-      width: parts[0].trim(),
-      height: parts[1].trim()
-    };
-  }
-  return null;
-};
-
 export function Inventory() {
   const navigate = useNavigate();
   const {
@@ -133,18 +114,18 @@ export function Inventory() {
 
   // Collection Icons Map
   const collectionIcons: Record<string, string> = {
-    Lara: "🏺",
-    Emili: "🌸",
-    Melord: "🤴",
-    Mashad: "🎨",
-    Izmir: "✈️",
-    Isfahan: "🕌",
-    Prestige: "💎",
-    Sultan: "👳",
+    Lara: "ЁЯМ║",
+    Emili: "",
+    Melord: "ЁЯСС",
+    Mashad: "ЁЯОи",
+    Izmir: "тЬи",
+    Isfahan: "ЁЯПЫя╕П",
+    Prestige: "ЁЯТО",
+    Sultan: "ЁЯХМ",
   };
 
   const getCollectionIcon = (name: string) =>
-    collectionIcons[name] || "📦";
+    collectionIcons[name] || "ЁЯУж";
 
   // Category Icons and Colors Map
   const categoryConfig: Record<
@@ -152,25 +133,25 @@ export function Inventory() {
     { icon: string; color: string; bgColor: string }
   > = {
     Gilamlar: {
-      icon: "🧶",
+      icon: "ЁЯз╡",
       color: "text-blue-700 dark:text-blue-400",
       bgColor:
         "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800",
     },
     Metrajlar: {
-      icon: "📏",
+      icon: "ЁЯУП",
       color: "text-blue-700 dark:text-blue-400",
       bgColor:
         "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800",
     },
     Ovalniy: {
-      icon: "⭕",
+      icon: "тнХ",
       color: "text-blue-700 dark:text-blue-400",
       bgColor:
         "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800",
     },
     Kovrik: {
-      icon: "🟦",
+      icon: "ЁЯФ╢",
       color: "text-blue-700 dark:text-blue-400",
       bgColor:
         "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800",
@@ -189,12 +170,16 @@ export function Inventory() {
     const relevantProducts = products.filter((p) => {
       const isCorrectBranch =
         targetBranchId === "all" ||
-        String(p.branchId) === String(targetBranchId);
+        p.branchId === targetBranchId;
 
       // Category match logic
       let matchesCategory = false;
       if (selectedCategoryType === "Gilamlar") {
         matchesCategory = p.category === "Gilamlar" && p.type === "unit";
+      } else if (selectedCategoryType === "Paloslar") {
+        matchesCategory = p.category === "Paloslar" && p.type === "unit";
+      } else if (selectedCategoryType === "Joynamozlar") {
+        matchesCategory = p.category === "Joynamozlar" && p.type === "unit";
       } else if (selectedCategoryType === "Metrajlar") {
         matchesCategory =
           p.category === "Metrajlar" || p.type === "meter";
@@ -236,11 +221,15 @@ export function Inventory() {
     return products.filter((p) => {
       const isCorrectBranch =
         targetBranchId === "all" ||
-        String(p.branchId) === String(targetBranchId);
+        p.branchId === targetBranchId;
 
       let matchesCategory = false;
       if (categoryType === "Gilamlar") {
         matchesCategory = p.category === "Gilamlar" && p.type === "unit";
+      } else if (categoryType === "Paloslar") {
+        matchesCategory = p.category === "Paloslar" && p.type === "unit";
+      } else if (categoryType === "Joynamozlar") {
+        matchesCategory = p.category === "Joynamozlar" && p.type === "unit";
       } else if (categoryType === "Metrajlar") {
         matchesCategory =
           p.category === "Metrajlar" || p.type === "meter";
@@ -266,13 +255,17 @@ export function Inventory() {
     return products.filter((p) => {
       const isCorrectBranch =
         targetBranchId === "all" ||
-        String(p.branchId) === String(targetBranchId);
+        p.branchId === targetBranchId;
       const matchesCollection = (p.collection || "Kolleksiyasiz") === collectionName;
 
       // Category match logic
       let matchesCategory = false;
       if (selectedCategoryType === "Gilamlar") {
         matchesCategory = p.category === "Gilamlar" && p.type === "unit";
+      } else if (selectedCategoryType === "Paloslar") {
+        matchesCategory = p.category === "Paloslar" && p.type === "unit";
+      } else if (selectedCategoryType === "Joynamozlar") {
+        matchesCategory = p.category === "Joynamozlar" && p.type === "unit";
       } else if (selectedCategoryType === "Metrajlar") {
         matchesCategory =
           p.category === "Metrajlar" || p.type === "meter";
@@ -300,7 +293,7 @@ export function Inventory() {
     const relevantProducts = products.filter((p) => {
       const isCorrectBranch =
         targetBranchId === "all" ||
-        String(p.branchId) === String(targetBranchId);
+        p.branchId === targetBranchId;
       const matchesCollection =
         (p.collection || "Kolleksiyasiz") === selectedCollection;
 
@@ -308,6 +301,10 @@ export function Inventory() {
       let matchesCategory = false;
       if (selectedCategoryType === "Gilamlar") {
         matchesCategory = p.category === "Gilamlar" && p.type === "unit";
+      } else if (selectedCategoryType === "Paloslar") {
+        matchesCategory = p.category === "Paloslar" && p.type === "unit";
+      } else if (selectedCategoryType === "Joynamozlar") {
+        matchesCategory = p.category === "Joynamozlar" && p.type === "unit";
       } else if (selectedCategoryType === "Metrajlar") {
         matchesCategory =
           p.category === "Metrajlar" || p.type === "meter";
@@ -324,14 +321,23 @@ export function Inventory() {
       );
     });
 
+    // Aggregate all available sizes and extract widths
     const widthSet = new Set<string>();
     relevantProducts.forEach((p) => {
       if (p.availableSizes && p.availableSizes.length > 0) {
+        p.availableSizes.forEach((s) => {
+          const parts = s.split(/├Ч|x/);
+          if (parts.length >= 1) {
+            widthSet.add(parts[0].trim());
+          }
+        });
+      } else if (p.availableSizes && p.availableSizes.length > 0) {
+        // Handle new object format
         p.availableSizes.forEach((s: any) => {
-          const sStr = getSizeStr(s);
-          const parts = parseSize(sStr);
-          if (parts) {
-            widthSet.add(parts.width);
+          const sizeStr = typeof s === 'string' ? s : s.size;
+          const parts = sizeStr.split(/├Ч|x/);
+          if (parts.length >= 1) {
+            widthSet.add(parts[0].trim());
           }
         });
       } else {
@@ -339,6 +345,7 @@ export function Inventory() {
       }
     });
 
+    // Sort widths numerically
     return Array.from(widthSet).sort((a, b) => {
       return parseFloat(a) - parseFloat(b);
     });
@@ -361,23 +368,25 @@ export function Inventory() {
     return products.filter((p) => {
       const isCorrectBranch =
         targetBranchId === "all" ||
-        String(p.branchId) === String(targetBranchId);
+        p.branchId === targetBranchId;
       const matchesCollection =
         (p.collection || "Kolleksiyasiz") === selectedCollection;
-      
       const hasWidth = width === "O'lchamsiz"
         ? (!p.availableSizes || p.availableSizes.length === 0)
         : p.availableSizes?.some(
-          (s: any) => {
-            const parts = parseSize(getSizeStr(s));
-            return parts && parts.width === width;
-          }
+          (s) =>
+            s.startsWith(width + "x") ||
+            s.startsWith(width + "├Ч"),
         );
 
       // Category match logic
       let matchesCategory = false;
       if (selectedCategoryType === "Gilamlar") {
         matchesCategory = p.category === "Gilamlar" && p.type === "unit";
+      } else if (selectedCategoryType === "Paloslar") {
+        matchesCategory = p.category === "Paloslar" && p.type === "unit";
+      } else if (selectedCategoryType === "Joynamozlar") {
+        matchesCategory = p.category === "Joynamozlar" && p.type === "unit";
       } else if (selectedCategoryType === "Metrajlar") {
         matchesCategory =
           p.category === "Metrajlar" || p.type === "meter";
@@ -408,23 +417,25 @@ export function Inventory() {
     const matchingProducts = products.filter((p) => {
       const isCorrectBranch =
         targetBranchId === "all" ||
-        String(p.branchId) === String(targetBranchId);
+        p.branchId === targetBranchId;
       const matchesCollection =
         (p.collection || "Kolleksiyasiz") === selectedCollection;
-      
       const hasWidth = width === "O'lchamsiz"
         ? (!p.availableSizes || p.availableSizes.length === 0)
         : p.availableSizes?.some(
-          (s: any) => {
-            const parts = parseSize(getSizeStr(s));
-            return parts && parts.width === width;
-          }
+          (s) =>
+            s.startsWith(width + "x") ||
+            s.startsWith(width + "├Ч"),
         );
 
       // Category match logic
       let matchesCategory = false;
       if (selectedCategoryType === "Gilamlar") {
         matchesCategory = p.category === "Gilamlar" && p.type === "unit";
+      } else if (selectedCategoryType === "Paloslar") {
+        matchesCategory = p.category === "Paloslar" && p.type === "unit";
+      } else if (selectedCategoryType === "Joynamozlar") {
+        matchesCategory = p.category === "Joynamozlar" && p.type === "unit";
       } else if (selectedCategoryType === "Metrajlar") {
         matchesCategory =
           p.category === "Metrajlar" || p.type === "meter";
@@ -463,7 +474,7 @@ export function Inventory() {
     const relevantProducts = products.filter((p) => {
       const isCorrectBranch =
         targetBranchId === "all" ||
-        String(p.branchId) === String(targetBranchId);
+        p.branchId === targetBranchId;
       const matchesCollection =
         (p.collection || "Kolleksiyasiz") === selectedCollection;
 
@@ -471,6 +482,10 @@ export function Inventory() {
       let matchesCategory = false;
       if (selectedCategoryType === "Gilamlar") {
         matchesCategory = p.category === "Gilamlar" && p.type === "unit";
+      } else if (selectedCategoryType === "Paloslar") {
+        matchesCategory = p.category === "Paloslar" && p.type === "unit";
+      } else if (selectedCategoryType === "Joynamozlar") {
+        matchesCategory = p.category === "Joynamozlar" && p.type === "unit";
       } else if (selectedCategoryType === "Metrajlar") {
         matchesCategory =
           p.category === "Metrajlar" || p.type === "meter";
@@ -487,6 +502,7 @@ export function Inventory() {
       );
     });
 
+    // Find sizes that match the selected width
     const matchingSizes = new Set<string>();
     relevantProducts.forEach((p) => {
       if (selectedWidth === "O'lchamsiz") {
@@ -495,19 +511,21 @@ export function Inventory() {
         }
       } else if (p.availableSizes) {
         p.availableSizes.forEach((s: any) => {
-          const sStr = getSizeStr(s);
-          const parts = parseSize(sStr);
-          if (parts && parts.width === selectedWidth) {
-            matchingSizes.add(sStr);
+          const sizeStr = typeof s === 'string' ? s : s.size;
+          const parts = sizeStr.split(/├Ч|x/);
+          if (parts.length === 2 && parts[0].trim() === selectedWidth) {
+            matchingSizes.add(sizeStr);
           }
         });
       }
     });
 
+    // Sort sizes naturally
     return Array.from(matchingSizes).sort((a, b) => {
       const getArea = (s: string) => {
-        const parts = parseSize(s);
-        if (parts) return parseFloat(parts.width) * parseFloat(parts.height);
+        const parts = s.split(/├Ч|x/);
+        if (parts.length === 2)
+          return parseFloat(parts[0]) * parseFloat(parts[1]);
         return 0;
       };
       return getArea(a) - getArea(b);
@@ -532,12 +550,12 @@ export function Inventory() {
     const matchingProducts = products.filter((p) => {
       const isCorrectBranch =
         targetBranchId === "all" ||
-        String(p.branchId) === String(targetBranchId);
+        p.branchId === targetBranchId;
       const matchesCollection =
         (p.collection || "Kolleksiyasiz") === selectedCollection;
       const hasSize = size === "O'lchamsiz"
         ? (!p.availableSizes || p.availableSizes.length === 0)
-        : p.availableSizes?.some(s => getSizeStr(s) === size);
+        : p.availableSizes?.some(s => (typeof s === 'string' ? s : s.size) === size);
 
       // Category match logic
       let matchesCategory = false;
@@ -571,6 +589,47 @@ export function Inventory() {
     }, 0);
   };
 
+  // 2. Get available sizes for the selected collection (LEGACY - keeping for compatibility)
+  const sizesForCollection = useMemo(() => {
+    if (!selectedCollection) return [];
+
+    const targetBranchId = isAdmin
+      ? filterBranch
+      : user?.branchId;
+    const relevantProducts = products.filter(
+      (p) =>
+        (targetBranchId === "all" ||
+          p.branchId === targetBranchId) &&
+        (p.collection || "Kolleksiyasiz") === selectedCollection,
+    );
+
+    // Aggregate all available sizes
+    const allSizes = new Set<string>();
+    relevantProducts.forEach((p) => {
+      if (p.availableSizes) {
+        p.availableSizes.forEach((s) => allSizes.add(s));
+      }
+    });
+
+    // Sort sizes naturally (e.g. 1x2, 2x3, 3x4)
+    return Array.from(allSizes).sort((a, b) => {
+      // rough heuristic sorting
+      const getArea = (s: string) => {
+        const parts = s.split(/├Ч|x/);
+        if (parts.length === 2)
+          return parseFloat(parts[0]) * parseFloat(parts[1]);
+        return 0;
+      };
+      return getArea(a) - getArea(b);
+    });
+  }, [
+    products,
+    user?.branchId,
+    selectedCollection,
+    isAdmin,
+    filterBranch,
+  ]);
+
   // 4. Get final products based on selection
   const finalProducts = useMemo(() => {
     if (!selectedCategoryType) return [];
@@ -586,7 +645,7 @@ export function Inventory() {
       const matchesCollection = !selectedCollection || (p.collection || "Kolleksiyasiz") === selectedCollection;
       const hasSize = !selectedSize || (selectedSize === "O'lchamsiz"
         ? (!p.availableSizes || p.availableSizes.length === 0)
-        : p.availableSizes?.some(s => getSizeStr(s) === selectedSize));
+        : p.availableSizes?.some(s => (typeof s === 'string' ? s : s.size) === selectedSize));
 
       // Category match logic
       let matchesCategory = false;
@@ -603,7 +662,7 @@ export function Inventory() {
           p.category === "Kovrik" && p.type === "unit";
       }
 
-      const matchesSearch = (p.code || "")
+      const matchesSearch = (p.name || "")
         .toLowerCase()
         .includes(sizeSearchQuery.toLowerCase());
 
@@ -630,21 +689,30 @@ export function Inventory() {
 
   const handleBack = () => {
     if (viewMode === "products") {
-      setViewMode(selectedCategoryType === "Metrajlar" ? "widths" : "heights");
+      // Go back to categories for a simplified view
+      setViewMode("categories");
+      setSelectedCategoryType(null);
+      setSelectedCollection(null);
+      setSelectedSize(null);
+      setSelectedWidth(null);
+      setSizeSearchQuery("");
     } else if (viewMode === "heights") {
       setViewMode("widths");
     } else if (viewMode === "widths") {
       setViewMode("collections");
+      setSelectedCollection(null);
       setSelectedWidth(null);
+      setSizeSearchQuery("");
     } else if (viewMode === "collections") {
       setViewMode("categories");
-      setSelectedCollection(null);
+      setSelectedCategoryType(null);
     }
   };
 
   const handleCategorySelect = (category: CategoryType) => {
     setSelectedCategoryType(category);
-    setViewMode("collections");
+    // Jump directly to products for a simplified view as requested
+    setViewMode("products");
   };
 
   const handleCollectionSelect = (collection: string) => {
@@ -655,29 +723,19 @@ export function Inventory() {
 
   const handleWidthClick = (width: string) => {
     setSelectedWidth(width);
-    if (selectedCategoryType === "Metrajlar") {
-      // Find the first matching size for metraj
-      const matchingSizes = products.filter(p => 
-        (p.collection || "Kolleksiyasiz") === selectedCollection && 
-        p.availableSizes?.some(s => {
-          const parts = parseSize(getSizeStr(s));
-          return parts && parts.width === width;
-        })
-      ).flatMap(p => p.availableSizes || []);
-      
-      const distinctSize = matchingSizes.find(s => {
-        const parts = parseSize(getSizeStr(s));
-        return parts && parts.width === width;
-      });
 
-      if (distinctSize) {
-        setSelectedSize(getSizeStr(distinctSize));
-        setViewMode("products");
-      } else if (width === "O'lchamsiz") {
-        setSelectedSize("O'lchamsiz");
+    // For Metrajlar, go directly to products
+    if (selectedCategoryType === "Metrajlar") {
+      // Find any size that starts with this width for Metrajlar products
+      const matchingSize = sizesForCollection.find((s) =>
+        s.startsWith(width),
+      );
+      if (matchingSize) {
+        setSelectedSize(matchingSize);
         setViewMode("products");
       }
     } else {
+      // For Gilamlar, Ovalniy, Kovrik, go to heights
       setViewMode("heights");
     }
   };
@@ -687,15 +745,24 @@ export function Inventory() {
     setViewMode("products");
   };
 
+  const handleSizeSelect = (
+    size: string,
+    type: CategoryType,
+  ) => {
+    setSelectedSize(size);
+    setSelectedCategoryType(type);
+    setViewMode("products");
+  };
+
   // --- Admin Action Handlers ---
 
   const handleMoveClick = (
     product: Product,
     e: React.MouseEvent,
   ) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Prevent card click if any
     setProductToMove(product);
-    setTargetBranchId(String(product.branchId));
+    setTargetBranchId(product.branchId);
     setMoveDialogOpen(true);
   };
 
@@ -740,7 +807,7 @@ export function Inventory() {
           value={filterBranch}
           onValueChange={setFilterBranch}
         >
-          <SelectTrigger className="h-12 bg-card border-border">
+          <SelectTrigger className="h-12 bg-input-background border-border">
             <SelectValue placeholder="Barcha filiallar" />
           </SelectTrigger>
           <SelectContent>
@@ -748,7 +815,7 @@ export function Inventory() {
               Barcha filiallar
             </SelectItem>
             {branches.map((branch) => (
-              <SelectItem key={branch.id} value={String(branch.id)}>
+              <SelectItem key={branch.id} value={branch.id}>
                 {branch.name}
               </SelectItem>
             ))}
@@ -766,24 +833,24 @@ export function Inventory() {
           ] as CategoryType[]
         ).map((category) => {
           const count = getCategoryCount(category);
-          const config = categoryConfig[category];
+          const config = categoryConfig[category] || categoryConfig["Gilamlar"] || { icon: "ЁЯУж", color: "", bgColor: "" };
           return (
             <Card
               key={category}
-              className={`cursor-pointer border-2 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] ${config.bgColor}`}
+              className={`cursor-pointer border-2 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] ${config?.bgColor || "bg-gray-50 border-gray-200"}`}
               onClick={() => handleCategorySelect(category)}
             >
               <div className="p-6 text-center">
                 <div className="text-5xl mb-3">
-                  {config.icon}
+                  {config?.icon || "ЁЯУж"}
                 </div>
                 <h3
-                  className={`text-lg mb-2 font-semibold ${config.color}`}
+                  className={`text-lg mb-2 font-semibold ${config?.color || "text-gray-700"}`}
                 >
                   {category}
                 </h3>
                 <div
-                  className={`flex items-center justify-center space-x-2 text-sm ${config.color}`}
+                  className={`flex items-center justify-center space-x-2 text-sm ${config?.color || "text-gray-500"}`}
                 >
                   <Package className="h-4 w-4" />
                   <span>{count} dona</span>
@@ -804,7 +871,7 @@ export function Inventory() {
           return (
             <Card
               key={collection}
-              className="cursor-pointer border border-border bg-card transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+              className="cursor-pointer border border-border bg-card transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] dark:hover:shadow-xl dark:hover:shadow-blue-900/10"
               onClick={() => handleCollectionSelect(collection)}
             >
               <div className="p-6 text-center">
@@ -851,10 +918,11 @@ export function Inventory() {
           >
             <div className="mb-3 text-center">
               <span className="text-3xl font-bold text-card-foreground">
-                {width === "O'lchamsiz" ? width : `${width}x`}
+                {width}x
               </span>
             </div>
 
+            {/* Progress Bar */}
             <div className="space-y-1">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>Qoldiq</span>
@@ -893,7 +961,7 @@ export function Inventory() {
         return (
           <Card
             key={size}
-            className="cursor-pointer border border-border bg-card transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] p-4"
+            className="cursor-pointer border border-border bg-card transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] dark:hover:shadow-xl dark:hover:shadow-blue-900/10 p-4"
             onClick={() => handleHeightSelect(size)}
           >
             <div className="mb-3 text-center">
@@ -902,6 +970,7 @@ export function Inventory() {
               </span>
             </div>
 
+            {/* Progress Bar */}
             <div className="space-y-1">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>Qoldiq</span>
@@ -924,45 +993,43 @@ export function Inventory() {
 
   const renderProducts = () => (
     <div className="grid grid-cols-2 gap-3 p-4">
-      <div className="col-span-2 mb-2">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Kod bo'yicha qidirish..." 
-            className="pl-9"
-            value={sizeSearchQuery}
-            onChange={(e) => setSizeSearchQuery(e.target.value)}
-          />
-        </div>
-      </div>
       {finalProducts.length === 0 ? (
         <div className="col-span-2 py-12 text-center text-muted-foreground">
           <p>Mahsulot topilmadi</p>
         </div>
       ) : (
         finalProducts.map((product) => {
+          // Calculate stock percentage
           let stockPercentage = 0;
           let currentStock = 0;
           let maxStock = 1;
 
           if (product.type === "unit") {
             currentStock = product.quantity || 0;
-            maxStock = product.maxQuantity || product.quantity || 1;
+            maxStock =
+              product.maxQuantity || product.quantity || 1;
             stockPercentage = (currentStock / maxStock) * 100;
           } else {
             currentStock = product.remainingLength || 0;
-            maxStock = product.totalLength || product.remainingLength || 1;
+            maxStock =
+              product.totalLength ||
+              product.remainingLength ||
+              1;
             stockPercentage = (currentStock / maxStock) * 100;
           }
 
+          // Determine progress bar color based on stock level
           let progressColor = "bg-green-500";
-          if (stockPercentage <= 25) progressColor = "bg-red-500";
-          else if (stockPercentage <= 50) progressColor = "bg-yellow-500";
+          if (stockPercentage <= 25) {
+            progressColor = "bg-red-500";
+          } else if (stockPercentage <= 50) {
+            progressColor = "bg-yellow-500";
+          }
 
           return (
             <Card
               key={product.id}
-              className="relative overflow-hidden border border-border bg-card transition-all hover:shadow-lg"
+              className="relative overflow-hidden border border-border bg-card transition-all hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-blue-900/10"
             >
               {isAdmin && (
                 <div className="absolute top-2 right-2 z-10">
@@ -977,14 +1044,29 @@ export function Inventory() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={(e) => handleEditClick(product, e)}>
-                        <Edit className="mr-2 h-4 w-4" /> Tahrirlash
+                      <DropdownMenuItem
+                        onClick={(e) =>
+                          handleEditClick(product, e)
+                        }
+                      >
+                        <Edit className="mr-2 h-4 w-4" />
+                        Tahrirlash
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={(e) => handleMoveClick(product, e)}>
-                        <ArrowRightLeft className="mr-2 h-4 w-4" /> Ko'chirish
+                      <DropdownMenuItem
+                        onClick={(e) =>
+                          handleMoveClick(product, e)
+                        }
+                      >
+                        <ArrowRightLeft className="mr-2 h-4 w-4" />
+                        Ko'chirish
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={(e) => handleDeleteClick(product, e)}>
-                        <Trash2 className="mr-2 h-4 w-4" /> O'chirish
+                      <DropdownMenuItem
+                        onClick={(e) =>
+                          handleDeleteClick(product, e)
+                        }
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        O'chirish
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -994,54 +1076,73 @@ export function Inventory() {
               <div className="flex flex-col">
                 <img
                   src={product.photo}
-                  alt={product.code}
+                  alt={product.name}
                   className="w-full aspect-[4/5] object-cover"
                 />
                 <div className="p-3 space-y-2">
                   <h3 className="text-sm font-medium text-card-foreground line-clamp-1">
-                    {product.code}
+                    {product.name}
                   </h3>
 
-                  {product.availableSizes && product.availableSizes.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {product.availableSizes.map((s: any, i: number) => {
-                        const sStr = getSizeStr(s);
-                        const qty = typeof s === 'object' ? s.quantity : null;
-                        return (
+                  {product.availableSizes &&
+                    product.availableSizes.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {product.availableSizes.map((size) => (
                           <Badge
-                            key={i}
+                            key={size}
                             variant="secondary"
                             className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-0 text-[10px] px-2 py-0 h-5"
                           >
-                            {sStr} {qty !== null && `(${qty})`}
+                            {size}
                           </Badge>
-                        );
-                      })}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    )}
 
                   <div className="space-y-2">
+                    {/* Stock Info with Progress Bar */}
                     <div className="space-y-1">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">Omborda:</span>
+                        <span className="text-muted-foreground">
+                          Omborda:
+                        </span>
                         <span className="font-medium text-foreground">
                           {product.type === "unit" ? (
-                            <>{product.quantity} dona</>
+                            <>
+                              {product.quantity}/
+                              {product.maxQuantity ||
+                                product.quantity}{" "}
+                              dona
+                            </>
                           ) : (
-                            <>{product.remainingLength}/{product.totalLength} m</>
+                            <>
+                              {product.remainingLength}/
+                              {product.totalLength ||
+                                product.remainingLength}{" "}
+                              m
+                            </>
                           )}
                         </span>
                       </div>
+
+                      {/* Progress Bar */}
                       <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
                           className={`h-full ${progressColor} transition-all duration-300`}
-                          style={{ width: `${stockPercentage}%` }}
+                          style={{
+                            width: `${stockPercentage}%`,
+                          }}
                         />
                       </div>
                     </div>
 
-                    <div className="text-blue-600 dark:text-blue-400 font-bold text-sm">
-                      {new Intl.NumberFormat("uz-UZ").format(product.sellPrice)} so'm
+                    <div className="text-blue-600 dark:text-blue-400 font-bold">
+                      {new Intl.NumberFormat("uz-UZ").format(
+                        product.type === "unit"
+                          ? product.sellPrice
+                          : product.sellPricePerMeter || 0,
+                      )}{" "}
+                      so'm
                     </div>
                   </div>
                 </div>
@@ -1055,6 +1156,7 @@ export function Inventory() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
+      {/* Header */}
       <div className="sticky top-0 z-10 bg-card border-b border-border shadow-sm">
         <div className="p-4 flex items-center gap-3">
           {viewMode !== "categories" && (
@@ -1067,7 +1169,7 @@ export function Inventory() {
               <ChevronLeft className="h-6 w-6" />
             </Button>
           )}
-          <h1 className="text-xl text-card-foreground flex-1 font-bold">
+          <h1 className="text-xl text-card-foreground flex-1">
             {viewMode === "categories"
               ? "Kategoriyalar"
               : viewMode === "collections"
@@ -1094,14 +1196,29 @@ export function Inventory() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => navigate("/seller/add-product")}>
-                  <Plus className="mr-2 h-4 w-4" /> Mahsulot qo'shish
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigate("/seller/add-product")
+                  }
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Mahsulot qo'shish
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/admin/manage-collections")}>
-                  <Package className="mr-2 h-4 w-4" /> Kolleksiyalarni boshqarish
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigate("/admin/manage-collections")
+                  }
+                >
+                  <Package className="mr-2 h-4 w-4" />
+                  Kolleksiyalarni boshqarish
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/admin/manage-sizes")}>
-                  <Ruler className="mr-2 h-4 w-4" /> O'lchamlarni boshqarish
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigate("/admin/manage-sizes")
+                  }
+                >
+                  <Ruler className="mr-2 h-4 w-4" />
+                  O'lchamlarni boshqarish
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -1125,7 +1242,10 @@ export function Inventory() {
       {viewMode === "heights" && renderHeights()}
       {viewMode === "products" && renderProducts()}
 
-      <Dialog open={moveDialogOpen} onOpenChange={setMoveDialogOpen}>
+      <Dialog
+        open={moveDialogOpen}
+        onOpenChange={setMoveDialogOpen}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Mahsulotni ko'chirish</DialogTitle>
@@ -1135,15 +1255,19 @@ export function Inventory() {
           </DialogHeader>
           <div className="py-4 space-y-4">
             <p className="text-sm text-muted-foreground">
-              "{productToMove?.code}" mahsulotini qaysi filialga ko'chirmoqchisiz?
+              "{productToMove?.name}" mahsulotini qaysi filialga
+              ko'chirmoqchisiz?
             </p>
-            <Select value={targetBranchId} onValueChange={setTargetBranchId}>
+            <Select
+              value={targetBranchId}
+              onValueChange={setTargetBranchId}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Filialni tanlang" />
               </SelectTrigger>
               <SelectContent>
                 {branches.map((b) => (
-                  <SelectItem key={b.id} value={String(b.id)}>
+                  <SelectItem key={b.id} value={b.id}>
                     {b.name}
                   </SelectItem>
                 ))}
@@ -1151,27 +1275,41 @@ export function Inventory() {
             </Select>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setMoveDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setMoveDialogOpen(false)}
+            >
               Bekor qilish
             </Button>
-            <Button onClick={handleConfirmMove}>Tasdiqlash</Button>
+            <Button onClick={handleConfirmMove}>
+              Tasdiqlash
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <Dialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Mahsulotni o'chirish</DialogTitle>
-            <DialogDescription>Bu amalni bekor qilish mumkin emas</DialogDescription>
+            <DialogDescription>
+              Bu amalni bekor qilish mumkin emas
+            </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
             <p className="text-sm text-muted-foreground">
-              "{productToDelete?.code}" mahsulotini o'chirmoqchisiz?
+              "{productToDelete?.name}" mahsulotini
+              o'chirmoqchisiz?
             </p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
               Bekor qilish
             </Button>
             <Button
