@@ -236,7 +236,7 @@ export function ManageCollections() {
             </div>
             <div>
               <Label htmlFor="collection-price" className="mb-2 block">
-                Sotish narxi ($/m²)
+                Sotib olish narxi ($/m²)
               </Label>
               <Input
                 id="collection-price"
@@ -249,7 +249,7 @@ export function ManageCollections() {
             </div>
             <div>
               <Label htmlFor="collection-buy-price" className="mb-2 block">
-                Sotib olish narxi ($/m²)
+                Sotish narxi ($/m²)
               </Label>
               <Input
                 id="collection-buy-price"
