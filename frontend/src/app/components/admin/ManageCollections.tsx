@@ -37,6 +37,7 @@ export function ManageCollections() {
   const [newCollectionName, setNewCollectionName] = useState("");
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
   const [editCollectionName, setEditCollectionName] = useState("");
+  const [collectionPrice, setCollectionPrice] = useState<string>("");
 
   // Collection Icons Map
   const collectionIcons: Record<string, string> = {
@@ -184,7 +185,7 @@ export function ManageCollections() {
                         {collection}
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        {count} ta mahsulot
+                        {count} ta mahsulot • {collection.price_per_sqm || 0} $/m²
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -222,17 +223,32 @@ export function ManageCollections() {
               Mahsulot qo'shishda bu kolleksiyani tanlay olasiz
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <Label htmlFor="new-collection" className="mb-2 block">
-              Kolleksiya nomi
-            </Label>
-            <Input
-              id="new-collection"
-              value={newCollectionName}
-              onChange={(e) => setNewCollectionName(e.target.value)}
-              placeholder="Masalan: Lara, Emili, Isfahan..."
-              className="h-12"
-            />
+          <div className="py-4 space-y-4">
+            <div>
+              <Label htmlFor="new-collection" className="mb-2 block">
+                Kolleksiya nomi
+              </Label>
+              <Input
+                id="new-collection"
+                value={newCollectionName}
+                onChange={(e) => setNewCollectionName(e.target.value)}
+                placeholder="Masalan: Lara, Emili, Isfahan..."
+                className="h-12"
+              />
+            </div>
+            <div>
+              <Label htmlFor="collection-price" className="mb-2 block">
+                Kvadrat metr narxi ($)
+              </Label>
+              <Input
+                id="collection-price"
+                type="number"
+                value={collectionPrice}
+                onChange={(e) => setCollectionPrice(e.target.value)}
+                placeholder="Masalan: 15"
+                className="h-12"
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button

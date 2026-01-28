@@ -73,6 +73,14 @@ export function AdminDashboard() {
     (sum, sale) => sum + (sale.profit || 0),
     0,
   );
+  const totalAdminProfit = filteredSales.reduce(
+    (sum, sale) => sum + (sale.admin_profit || 0),
+    0,
+  );
+  const totalSellerProfit = filteredSales.reduce(
+    (sum, sale) => sum + (sale.seller_profit || 0),
+    0,
+  );
   const cashSales = filteredSales
     .filter((s) => s.paymentType === "cash")
     .reduce((sum, sale) => sum + sale.amount, 0);
@@ -203,11 +211,33 @@ export function AdminDashboard() {
                   <div className="flex items-center space-x-2 mb-2">
                     <HandCoins className="h-5 w-5 text-white" />
                     <span className="text-sm text-emerald-100">
-                      Qo'shimcha foyda
+                      Filial foydasi
                     </span>
                   </div>
                   <div className="text-3xl font-bold text-white">
-                    {formatCurrency(totalProfit)}
+                    {formatCurrency(totalSellerProfit)}
+                  </div>
+                </div>
+                <div className="bg-white/20 rounded-full p-3">
+                  <DollarSign className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* Admin Profit */}
+          {totalAdminProfit > 0 && (
+            <Card className="p-6 bg-gradient-to-br from-indigo-500 to-indigo-600 dark:from-indigo-700 dark:to-indigo-800 border-0 shadow-lg shadow-indigo-500/20">
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <TrendingUp className="h-5 w-5 text-white" />
+                    <span className="text-sm text-indigo-100">
+                      Sklad foydasi (Admin)
+                    </span>
+                  </div>
+                  <div className="text-3xl font-bold text-white">
+                    {formatCurrency(totalAdminProfit)}
                   </div>
                 </div>
                 <div className="bg-white/20 rounded-full p-3">

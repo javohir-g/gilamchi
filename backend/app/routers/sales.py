@@ -39,23 +39,31 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
                 product.deleted_at = datetime.now(timezone.utc)
                 product.deleted_by = current_user.id
     
-    # Calculate amounts if strictly needed or rely on frontend
-    # Logic: Profit = (SellPrice - BuyPrice) * qty + (extra_profit)
-    # Here we assume frontend sends the final amount, or we calculate? 
-    # Prompt says "profit" is extra profit.
-    # Director's profit logic: (sellPrice - buyPrice) * quantity.
-    # We store the "profit" field as the Extra Profit above standard.
+    # Profit calculation:
+    # Admin Profit = (Product.sell_price - Product.buy_price) * Quantity
+    # Seller Profit = Sale.amount - (Product.sell_price * Quantity)
+    # Total Profit = Sale.amount - (Product.buy_price * Quantity)
     
-    # For now, just create the record
+    qty = float(sale.quantity)
+    base_sell_price = float(product.sell_price)
+    buy_price = float(product.buy_price)
+    sale_amount = float(sale.amount or (base_sell_price * qty))
+    
+    admin_profit = (base_sell_price - buy_price) * qty
+    seller_profit = sale_amount - (base_sell_price * qty)
+    total_profit = sale_amount - (buy_price * qty)
+
     new_sale = Sale(
         product_id=sale.product_id,
-        branch_id=current_user.branch_id if current_user.branch_id else product.branch_id, # Fallback
+        branch_id=current_user.branch_id if current_user.branch_id else product.branch_id,
         seller_id=current_user.id,
         quantity=sale.quantity,
-        amount=sale.amount or (float(product.sell_price) * sale.quantity), # Fallback calculation
+        amount=sale_amount,
         payment_type=sale.payment_type,
         order_id=sale.order_id,
-        profit=0, # Logic to calculate extra profit can be complex if sale amount varies
+        profit=total_profit,
+        admin_profit=admin_profit,
+        seller_profit=seller_profit,
         width=sale.width,
         length=sale.length,
         area=sale.area

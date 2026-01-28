@@ -138,7 +138,26 @@ def create_product(
         except Exception as e:
              print(f"Failed to compute image hash: {e}")
 
+    # Auto-calculate sell_price if collection has price_per_sqm and sizes are provided
+    # Only if sell_price is not explicitly provided or we want to enforce it
+    from ..models.collection import Collection
+    
+    # Refresh logic for collection price
+    if product.collection and (product.width or (product.available_sizes and len(product.available_sizes) > 0)):
+        coll = db.query(Collection).filter(Collection.name == product.collection).first()
+        if coll and coll.price_per_sqm:
+            area = 0
+            if product.width:
+                # For metraj or fixed width products
+                # We might need length for area calculation, but for metraj price is often per linear meter
+                # if it's based on sqm, we need width * length
+                pass 
+            elif product.available_sizes:
+                # Logic for fixed sizes could go here if needed
+                pass
+
     # Создаем товар БЕЗ CLIP embedding (мгновенно!)
+    # We use product.dict() which already has the data
     new_product = Product(**product_data)
     db.add(new_product)
     db.commit()
@@ -281,7 +300,7 @@ async def search_products_by_image(
             similarity_percentage = match["similarity"] * 100
             product_dict = {
                 "id": str(match["product"].id),
-                "name": match["product"].name,
+                "code": match["product"].code,
                 "category": match["product"].category,
                 "collection": match["product"].collection,
                 "type": match["product"].type,

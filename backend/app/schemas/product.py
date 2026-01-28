@@ -4,12 +4,14 @@ from datetime import datetime
 from ..models.product import ProductCategory, ProductType
 
 class ProductBase(BaseModel):
-    name: str
+    code: str
     category: ProductCategory
     collection: Optional[str] = None
     type: ProductType
     
     buy_price: float
+    buy_price_usd: Optional[float] = None
+    is_usd_priced: bool = False
     sell_price: float
     sell_price_per_meter: Optional[float] = None
     
@@ -29,11 +31,13 @@ class ProductCreate(ProductBase):
     pass
 
 class ProductUpdate(BaseModel):
-    name: Optional[str] = None
+    code: Optional[str] = None
     category: Optional[ProductCategory] = None
     collection: Optional[str] = None
     type: Optional[ProductType] = None
     buy_price: Optional[float] = None
+    buy_price_usd: Optional[float] = None
+    is_usd_priced: Optional[bool] = None
     sell_price: Optional[float] = None
     sell_price_per_meter: Optional[float] = None
     quantity: Optional[int] = None

@@ -26,7 +26,9 @@ class Sale(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     area: Mapped[float | None] = mapped_column(DECIMAL(10, 2), nullable=True) # width * length * quantity
     
     payment_type: Mapped[PaymentType] = mapped_column(SQLEnum(PaymentType))
-    profit: Mapped[float] = mapped_column(DECIMAL(15, 2), default=0) # Extra profit
+    profit: Mapped[float] = mapped_column(DECIMAL(15, 2), default=0) # Total extra profit
+    admin_profit: Mapped[float] = mapped_column(DECIMAL(15, 2), default=0)
+    seller_profit: Mapped[float] = mapped_column(DECIMAL(15, 2), default=0)
     
     date: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True)
     order_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)

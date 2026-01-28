@@ -146,6 +146,16 @@ export function BranchProfitDetail() {
     0
   );
 
+  const totalAdminProfit = filteredSales.reduce(
+    (sum, sale) => sum + (sale.admin_profit || 0),
+    0
+  );
+
+  const totalSellerProfit = filteredSales.reduce(
+    (sum, sale) => sum + (sale.seller_profit || 0),
+    0
+  );
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("uz-UZ").format(amount) + " so'm";
   };
@@ -195,25 +205,30 @@ export function BranchProfitDetail() {
 
       <div className="p-4 space-y-4">
         {/* Total Profit Card */}
-        <Card className="p-6 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-700 dark:to-blue-800 border-0">
-          <div className="flex items-start justify-between">
-            <div>
+        <div className="grid grid-cols-2 gap-4">
+          <Card className="p-6 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-700 dark:to-blue-800 border-0">
+            <div className="flex flex-col">
               <div className="flex items-center space-x-2 mb-2">
-                <TrendingUp className="h-5 w-5 text-white" />
-                <span className="text-sm text-blue-100">Jami foyda</span>
+                <TrendingUp className="h-4 w-4 text-white" />
+                <span className="text-xs text-blue-100">Sklad foydasi</span>
               </div>
-              <div className="text-3xl font-bold text-white">
-                {formatCurrency(totalProfit)}
-              </div>
-              <div className="text-sm text-blue-100 mt-1">
-                {filteredSales.length} ta savdodan
+              <div className="text-xl font-bold text-white">
+                {formatCurrency(totalAdminProfit)}
               </div>
             </div>
-            <div className="bg-white/20 rounded-full p-3">
-              <DollarSign className="h-6 w-6 text-white" />
+          </Card>
+          <Card className="p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 dark:from-emerald-700 dark:to-emerald-800 border-0">
+            <div className="flex flex-col">
+              <div className="flex items-center space-x-2 mb-2">
+                <DollarSign className="h-4 w-4 text-white" />
+                <span className="text-xs text-emerald-100">Sotuvchi foydasi</span>
+              </div>
+              <div className="text-xl font-bold text-white">
+                {formatCurrency(totalSellerProfit)}
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
 
         {/* Products Breakdown */}
         <div>

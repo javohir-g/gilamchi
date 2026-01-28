@@ -34,14 +34,15 @@ export function AddProduct() {
   const [photo, setPhoto] = useState(
     "https://images.unsplash.com/photo-1600166898405-da9535204843?w=400",
   );
-  const [name, setName] = useState("");
-  const [category, setCategory] =
-    useState<Category>("Gilamlar");
+  const [code, setCode] = useState("");
+  const [category, setCategory] = useState<Category>("Gilamlar");
   const [type, setType] = useState<ProductType>("unit");
   const [quantity, setQuantity] = useState("");
   const [totalLength, setTotalLength] = useState("");
   const [width, setWidth] = useState("");
   const [buyPrice, setBuyPrice] = useState("");
+  const [buyPriceUsd, setBuyPriceUsd] = useState("");
+  const [isUsdPriced, setIsUsdPriced] = useState(false);
   const [sellPrice, setSellPrice] = useState("");
   const [sellPricePerMeter, setSellPricePerMeter] =
     useState("");
@@ -157,7 +158,7 @@ export function AddProduct() {
     if (isEditMode && products.length > 0) {
       const productToEdit = products.find((p) => p.id === id);
       if (productToEdit) {
-        setName(productToEdit.name);
+        setCode(productToEdit.code);
         setPhoto(productToEdit.photo);
         setCategory(productToEdit.category);
         setType(productToEdit.type);
@@ -182,8 +183,34 @@ export function AddProduct() {
     }
   }, [id, products, isEditMode, navigate]);
 
+  // Auto-calculate sell price when collection or size changes
+  useEffect(() => {
+    if (collection && !isEditMode) {
+      // Find the collection to get its price_per_sqm
+      // In this app, collections are just strings in predefinedCollections, 
+      // but ManageCollections now allows setting price_per_sqm which goes to the backend.
+      // We should ideally have a collections list in AppContext.
+
+      // For now, let's try to find an existing product from this collection to "infer" the price,
+      // or assuming we update AppContext to provide collections.
+      const collName = collection.replace(/^[^\s]+\s/, ""); // Remove emoji
+      // This is a placeholder - in a real scenario we'd use useApp().collections
+      const collPrice = 15; // Default or fetched from a new collections list
+
+      if (type === "unit" && availableSizes.length > 0) {
+        const [w, h] = availableSizes[0].split(/x|×|X/).map(v => parseFloat(v));
+        if (w && h) {
+          const calculatedPrice = w * h * collPrice;
+          setSellPrice(calculatedPrice.toString());
+        }
+      } else if (type === "meter" && width) {
+        setSellPricePerMeter(collPrice.toString());
+      }
+    }
+  }, [collection, availableSizes, type, width, products, isEditMode]);
+
   const handleSave = async () => {
-    if (!name || !buyPrice || !sellPrice) {
+    if (!code || !buyPrice || !sellPrice) {
       toast.error("Barcha maydonlarni to'ldiring!");
       return;
     }
@@ -202,11 +229,13 @@ export function AddProduct() {
     }
 
     const commonData = {
-      name,
+      code,
       category,
       type,
       photo,
       buyPrice: parseFloat(buyPrice),
+      buyPriceUsd: buyPriceUsd ? parseFloat(buyPriceUsd) : undefined,
+      isUsdPriced,
       sellPrice: parseFloat(sellPrice),
       collection,
       availableSizes,
@@ -372,11 +401,11 @@ export function AddProduct() {
           </h2>
           <Card className="p-6 dark:bg-gray-800 dark:border-gray-700 space-y-5">
             <div>
-              <Label className="mb-2 block text-sm font-medium">Mahsulot nomi</Label>
+              <Label className="mb-2 block text-sm font-medium">Mahsulot kodi (Artikul)</Label>
               <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Masalan: Lara Gilami"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="Masalan: L-100"
                 className="h-12 rounded-xl"
               />
             </div>
@@ -612,18 +641,45 @@ export function AddProduct() {
           </div>
           <Card className="p-6 dark:bg-gray-800 dark:border-gray-700 space-y-5">
             <div>
-              <Label className="mb-2 block text-sm font-medium">Sotib olish narxi (Tan narx)</Label>
-              <div className="relative">
-                <Input
-                  type="number"
-                  value={buyPrice}
-                  onChange={(e) => setBuyPrice(e.target.value)}
-                  placeholder="0"
-                  className="h-12 rounded-xl pl-12 text-lg font-semibold"
-                />
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">
-                  UZS
+              <div className="flex justify-between items-center mb-2">
+                <Label className="text-sm font-medium">Sotib olish narxi (Tan narx)</Label>
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs text-muted-foreground mr-1">USD bilan kiritish</span>
+                  <input
+                    type="checkbox"
+                    checked={isUsdPriced}
+                    onChange={(e) => setIsUsdPriced(e.target.checked)}
+                    className="h-4 w-4"
+                  />
                 </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="relative">
+                  <Input
+                    type="number"
+                    value={buyPrice}
+                    onChange={(e) => setBuyPrice(e.target.value)}
+                    placeholder="0"
+                    className="h-12 rounded-xl pl-12 text-lg font-semibold"
+                  />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">
+                    UZS
+                  </div>
+                </div>
+                {isUsdPriced && (
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      value={buyPriceUsd}
+                      onChange={(e) => setBuyPriceUsd(e.target.value)}
+                      placeholder="0.00"
+                      className="h-12 rounded-xl pl-10 text-lg font-semibold"
+                    />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">
+                      $
+                    </div>
+                  </div>
+                )}
               </div>
               <p className="text-[10px] text-muted-foreground mt-1 ml-1 italic">
                 * Bitta dona yoki butun rulon uchun

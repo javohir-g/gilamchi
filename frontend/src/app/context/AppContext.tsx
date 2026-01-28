@@ -35,12 +35,14 @@ export interface User {
 
 export interface Product {
   id: string;
-  name: string;
+  code: string;
   category: Category;
   type: ProductType;
   branchId: string;
   photo: string;
-  collection?: string; // For carpets (Gilamlar) - e.g., 'Lara', 'Emili', 'Isfahan'
+  collection?: string;
+  buyPriceUsd?: number;
+  isUsdPriced?: boolean;
   // Unit fields
   quantity?: number;
   maxQuantity?: number; // Maximum/initial quantity for stock tracking
@@ -67,8 +69,10 @@ export interface Sale {
   branchId: string;
   sellerId: string;
   date: string;
-  profit?: number; // Extra profit when sold above standard price
-  orderId?: string; // Link to order if part of multi-product order
+  profit?: number; // Total profit
+  admin_profit?: number;
+  seller_profit?: number;
+  orderId?: string;
   type: ProductType; // unit or meter
   width?: number;
   length?: number;

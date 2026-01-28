@@ -17,12 +17,14 @@ class ProductType(str, enum.Enum):
 class Product(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     __tablename__ = "products"
 
-    name: Mapped[str] = mapped_column(String)
+    code: Mapped[str] = mapped_column(String)
     category: Mapped[ProductCategory] = mapped_column(SQLEnum(ProductCategory))
     collection: Mapped[str | None] = mapped_column(String, index=True, nullable=True)
     type: Mapped[ProductType] = mapped_column(SQLEnum(ProductType))
     
     buy_price: Mapped[float] = mapped_column(DECIMAL(15, 2))
+    buy_price_usd: Mapped[float | None] = mapped_column(DECIMAL(15, 2), nullable=True)
+    is_usd_priced: Mapped[bool] = mapped_column(default=False)
     sell_price: Mapped[float] = mapped_column(DECIMAL(15, 2))
     sell_price_per_meter: Mapped[float | None] = mapped_column(DECIMAL(15, 2), nullable=True)
     
