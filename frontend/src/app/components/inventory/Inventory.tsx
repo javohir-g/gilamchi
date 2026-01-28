@@ -609,7 +609,11 @@ export function Inventory() {
 
   const handleBack = () => {
     if (viewMode === "products") {
-      setViewMode(selectedCategoryType === "Metrajlar" ? "widths" : "heights");
+      setViewMode("categories");
+      setSelectedCategoryType(null);
+      setSelectedCollection(null);
+      setSelectedWidth(null);
+      setSelectedSize(null);
     } else if (viewMode === "heights") {
       setViewMode("widths");
     } else if (viewMode === "widths") {
@@ -623,7 +627,10 @@ export function Inventory() {
 
   const handleCategorySelect = (category: CategoryType) => {
     setSelectedCategoryType(category);
-    setViewMode("collections");
+    setSelectedCollection(null);
+    setSelectedWidth(null);
+    setSelectedSize(null);
+    setViewMode("products");
   };
 
   const handleCollectionSelect = (collection: string) => {
@@ -902,133 +909,158 @@ export function Inventory() {
   );
 
   const renderProducts = () => (
-    <div className="grid grid-cols-2 gap-3 p-4">
-      <div className="col-span-2 mb-2">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Kod bo'yicha qidirish..."
-            className="pl-9"
-            value={sizeSearchQuery}
-            onChange={(e) => setSizeSearchQuery(e.target.value)}
-          />
-        </div>
+    <div className="flex flex-col h-[calc(100vh-140px)]">
+      {/* 1. Collections Filter Bar */}
+      <div className="bg-card border-b border-border p-3 overflow-x-auto whitespace-nowrap scrollbar-hide flex gap-2">
+        <Button
+          variant={selectedCollection === null ? "default" : "outline"}
+          size="sm"
+          className="rounded-full px-4 h-9 font-medium"
+          onClick={() => setSelectedCollection(null)}
+        >
+          Hammasi
+        </Button>
+        {collections.map((c) => (
+          <Button
+            key={c}
+            variant={selectedCollection === c ? "default" : "outline"}
+            size="sm"
+            className="rounded-full px-4 h-9 font-medium whitespace-nowrap"
+            onClick={() => setSelectedCollection(c === selectedCollection ? null : c)}
+          >
+            {getCollectionIcon(c)} {c}
+          </Button>
+        ))}
       </div>
-      {finalProducts.length === 0 ? (
-        <div className="col-span-2 py-12 text-center text-muted-foreground">
-          <p>Mahsulot topilmadi</p>
+
+      <div className="grid grid-cols-2 gap-3 p-4 flex-1 overflow-y-auto pb-20">
+        <div className="col-span-2 mb-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Kod bo'yicha qidirish..."
+              className="pl-9 h-11 rounded-xl"
+              value={sizeSearchQuery}
+              onChange={(e) => setSizeSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
-      ) : (
-        finalProducts.map((product) => {
-          let stockPercentage = 0;
-          let currentStock = 0;
-          let maxStock = 1;
+        {finalProducts.length === 0 ? (
+          <div className="col-span-2 py-12 text-center text-muted-foreground">
+            <p>Mahsulot topilmadi</p>
+          </div>
+        ) : (
+          finalProducts.map((product) => {
+            let stockPercentage = 0;
+            let currentStock = 0;
+            let maxStock = 1;
 
-          if (product.type === "unit") {
-            currentStock = product.quantity || 0;
-            maxStock = product.maxQuantity || product.quantity || 1;
-            stockPercentage = (currentStock / maxStock) * 100;
-          } else {
-            currentStock = product.remainingLength || 0;
-            maxStock = product.totalLength || product.remainingLength || 1;
-            stockPercentage = (currentStock / maxStock) * 100;
-          }
+            if (product.type === "unit") {
+              currentStock = product.quantity || 0;
+              maxStock = product.maxQuantity || product.quantity || 1;
+              stockPercentage = (currentStock / maxStock) * 100;
+            } else {
+              currentStock = product.remainingLength || 0;
+              maxStock = product.totalLength || product.remainingLength || 1;
+              stockPercentage = (currentStock / maxStock) * 100;
+            }
 
-          let progressColor = "bg-green-500";
-          if (stockPercentage <= 25) progressColor = "bg-red-500";
-          else if (stockPercentage <= 50) progressColor = "bg-yellow-500";
+            let progressColor = "bg-green-500";
+            if (stockPercentage <= 25) progressColor = "bg-red-500";
+            else if (stockPercentage <= 50) progressColor = "bg-yellow-500";
 
-          return (
-            <Card
-              key={product.id}
-              className="relative overflow-hidden border border-border bg-card transition-all hover:shadow-lg"
-            >
-              {isAdmin && (
-                <div className="absolute top-2 right-2 z-10">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        className="h-8 w-8 rounded-full bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={(e) => handleEditClick(product, e)}>
-                        <Edit className="mr-2 h-4 w-4" /> Tahrirlash
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={(e) => handleMoveClick(product, e)}>
-                        <ArrowRightLeft className="mr-2 h-4 w-4" /> Ko'chirish
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={(e) => handleDeleteClick(product, e)}>
-                        <Trash2 className="mr-2 h-4 w-4" /> O'chirish
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              )}
+            return (
+              <Card
+                key={product.id}
+                className="relative overflow-hidden border border-border bg-card transition-all hover:shadow-lg"
+              >
+                {isAdmin && (
+                  <div className="absolute top-2 right-2 z-10">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="secondary"
+                          size="icon"
+                          className="h-8 w-8 rounded-full bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={(e) => handleEditClick(product, e)}>
+                          <Edit className="mr-2 h-4 w-4" /> Tahrirlash
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => handleMoveClick(product, e)}>
+                          <ArrowRightLeft className="mr-2 h-4 w-4" /> Ko'chirish
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => handleDeleteClick(product, e)}>
+                          <Trash2 className="mr-2 h-4 w-4" /> O'chirish
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
 
-              <div className="flex flex-col">
-                <img
-                  src={product.photo}
-                  alt={product.code}
-                  className="w-full aspect-[4/5] object-cover"
-                />
-                <div className="p-3 space-y-2">
-                  <h3 className="text-sm font-medium text-card-foreground line-clamp-1">
-                    {product.code}
-                  </h3>
+                <div className="flex flex-col">
+                  <img
+                    src={product.photo}
+                    alt={product.code}
+                    className="w-full aspect-[4/5] object-cover"
+                  />
+                  <div className="p-3 space-y-2">
+                    <h3 className="text-sm font-medium text-card-foreground line-clamp-1">
+                      {product.code}
+                    </h3>
 
-                  {product.availableSizes && product.availableSizes.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {product.availableSizes.map((s: any, i: number) => {
-                        const sStr = getSizeStr(s);
-                        const qty = typeof s === 'object' ? s.quantity : null;
-                        return (
-                          <Badge
-                            key={i}
-                            variant="secondary"
-                            className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-0 text-[10px] px-2 py-0 h-5"
-                          >
-                            {sStr} {qty !== null && `(${qty})`}
-                          </Badge>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">Omborda:</span>
-                        <span className="font-medium text-foreground">
-                          {product.type === "unit" ? (
-                            <>{product.quantity} dona</>
-                          ) : (
-                            <>{product.remainingLength}/{product.totalLength} m</>
-                          )}
-                        </span>
+                    {product.availableSizes && product.availableSizes.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {product.availableSizes.map((s: any, i: number) => {
+                          const sStr = getSizeStr(s);
+                          const qty = typeof s === 'object' ? s.quantity : null;
+                          return (
+                            <Badge
+                              key={i}
+                              variant="secondary"
+                              className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-0 text-[10px] px-2 py-0 h-5"
+                            >
+                              {sStr} {qty !== null && `(${qty})`}
+                            </Badge>
+                          );
+                        })}
                       </div>
-                      <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full ${progressColor} transition-all duration-300`}
-                          style={{ width: `${stockPercentage}%` }}
-                        />
-                      </div>
-                    </div>
+                    )}
 
-                    <div className="text-blue-600 dark:text-blue-400 font-bold text-sm">
-                      {new Intl.NumberFormat("uz-UZ").format(product.sellPrice)} so'm
+                    <div className="space-y-2">
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Omborda:</span>
+                          <span className="font-medium text-foreground">
+                            {product.type === "unit" ? (
+                              <>{product.quantity} dona</>
+                            ) : (
+                              <>{product.remainingLength}/{product.totalLength} m</>
+                            )}
+                          </span>
+                        </div>
+                        <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full ${progressColor} transition-all duration-300`}
+                            style={{ width: `${stockPercentage}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="text-blue-600 dark:text-blue-400 font-bold text-sm">
+                        {new Intl.NumberFormat("uz-UZ").format(product.sellPrice)} so'm
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </Card>
-          );
-        })
-      )}
+              </Card>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 
