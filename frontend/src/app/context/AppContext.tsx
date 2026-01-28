@@ -37,6 +37,7 @@ export interface User {
 export interface Product {
   id: string;
   code: string;
+  name?: string;
   category: Category;
   type: ProductType;
   branchId: string;

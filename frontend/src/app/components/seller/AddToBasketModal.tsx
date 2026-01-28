@@ -3,7 +3,7 @@ import { X, Plus, Minus } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Product, BasketItem } from "../../context/AppContext";
+import { Product, BasketItem, useApp } from "../../context/AppContext";
 import {
   Select,
   SelectContent,
@@ -23,17 +23,11 @@ export function AddToBasketModal({
   onAdd,
   onClose,
 }: AddToBasketModalProps) {
+  const { collections } = useApp();
   const isUnit = product.type === "unit";
-  const isCarpet =
-    product.category === "Gilamlar" &&
-    product.pricePerSquareMeter !== undefined;
-  const isMetraj =
-    product.category === "Metrajlar" &&
-    product.pricePerSquareMeter !== undefined;
+  const isCarpet = product.category === "Gilamlar";
+  const isMetraj = product.category === "Metrajlar";
   const isCarpetOrMetraj = isCarpet || isMetraj;
-  const maxQuantity = isUnit
-    ? (selectedSizeObj ? selectedSizeObj.quantity : (product.quantity || 0))
-    : product.remainingLength || 0;
 
   const [quantity, setQuantity] = useState(1);
   const [meters, setMeters] = useState("1");
@@ -42,13 +36,28 @@ export function AddToBasketModal({
   const [area, setArea] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [selectedSizeObj, setSelectedSizeObj] = useState<any>(null);
-  const [sellingPrice, setSellingPrice] = useState(
-    isCarpetOrMetraj
-      ? product.pricePerSquareMeter || 0
-      : isUnit
-        ? product.sellPrice
-        : product.sellPricePerMeter || 0,
-  );
+
+  // Determine initial price
+  const getInitialPrice = () => {
+    // 1. If it has a specific m2 price, use it
+    if (product.pricePerSquareMeter) return product.pricePerSquareMeter;
+
+    // 2. If it's a carpet/metraj, try to find collection price
+    if (isCarpetOrMetraj && product.collection) {
+      const coll = collections.find(c => c.name === product.collection);
+      if (coll?.price_per_sqm) return coll.price_per_sqm;
+    }
+
+    // 3. Fallback to sellPrice or sellPricePerMeter
+    return isUnit ? product.sellPrice : (product.sellPricePerMeter || 0);
+  };
+
+  const [sellingPrice, setSellingPrice] = useState(getInitialPrice());
+
+  // Max quantity calculation
+  const maxQuantity = isUnit
+    ? (selectedSizeObj ? selectedSizeObj.quantity : (product.quantity || 0))
+    : product.remainingLength || 0;
 
   // Calculate area when width or height changes
   useEffect(() => {

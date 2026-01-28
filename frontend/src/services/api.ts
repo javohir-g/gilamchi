@@ -92,8 +92,8 @@ const fromProduct = (data: any): any => ({
   remainingLength: data.remaining_length,
   width: data.width,
   sellPricePerMeter: data.sell_price_per_meter,
-  // Carpet fields
-  // pricePerSquareMeter: data.price_per_square_meter, // Not in schema yet
+  pricePerSquareMeter: data.price_per_sqm,
+  buyPricePerSquareMeter: data.buy_price_per_sqm,
   availableSizes: data.available_sizes,
   similarity_percentage: data.similarity_percentage
 });
@@ -115,6 +115,8 @@ const toProduct = (data: any): any => ({
   remaining_length: data.remainingLength,
   width: data.width,
   sell_price_per_meter: data.sellPricePerMeter,
+  price_per_sqm: data.pricePerSquareMeter,
+  buy_price_per_sqm: data.buyPricePerSquareMeter,
   available_sizes: data.availableSizes
 });
 

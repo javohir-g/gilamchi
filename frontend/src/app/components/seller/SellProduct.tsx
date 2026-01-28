@@ -369,7 +369,8 @@ export function SellProduct() {
                   <img
                     src={product.photo}
                     alt={product.code}
-                    className="w-full aspect-[4/5] object-cover cursor-pointer"
+                    className="w-full aspect-[4/5] object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={(e) => handleOpenBasketModal(e, product)}
                   />
                   <div className="p-3 space-y-2">
                     <div className="space-y-1">
@@ -489,7 +490,7 @@ export function SellProduct() {
 
       {/* Full-Screen Loading Modal for Image Analysis */}
       {isAnalyzing && (
-        <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center">
+        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center">
           <div className="w-20 h-20 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
         </div>
       )}
