@@ -26,6 +26,29 @@ def run_migration():
             """))
             conn.commit()
 
+            # Seed default collections
+            print("Seeding default collections...")
+            default_collections = [
+                ("Lara", "🌺", 15.0),
+                ("Emili", "🌸", 15.0),
+                ("Melord", "👑", 15.0),
+                ("Mashad", "🎨", 15.0),
+                ("Izmir", "✨", 15.0),
+                ("Isfahan", "🏛️", 15.0),
+                ("Prestige", "💎", 15.0),
+                ("Sultan", "🕌", 15.0)
+            ]
+            import uuid
+            for name, icon, price in default_collections:
+                result = conn.execute(text("SELECT id FROM collections WHERE name = :name"), {"name": name})
+                if not result.fetchone():
+                    conn.execute(text("""
+                        INSERT INTO collections (id, name, icon, price_per_sqm)
+                        VALUES (:id, :name, :icon, :price)
+                    """), {"id": uuid.uuid4(), "name": name, "icon": icon, "price": price})
+            conn.commit()
+            print("✓ Default collections seeded")
+
             # 1. Products: rename name to code
             print("Checking products table...")
             result = conn.execute(text("""

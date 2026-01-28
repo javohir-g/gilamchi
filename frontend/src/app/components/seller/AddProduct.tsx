@@ -27,7 +27,7 @@ import { AnimatePresence } from "motion/react";
 export function AddProduct() {
   const navigate = useNavigate();
   const { id } = useParams(); // Get product ID from URL if editing
-  const { user, addProduct, updateProduct, products, branches } = useApp();
+  const { user, addProduct, updateProduct, products, branches, collections } = useApp();
 
   const isEditMode = Boolean(id);
 
@@ -53,16 +53,7 @@ export function AddProduct() {
   const [sizeInput, setSizeInput] = useState("");
   const [isCameraOpen, setIsCameraOpen] = useState(false);
 
-  const predefinedCollections = [
-    "🌺 Lara",
-    "🌸 Emili",
-    "👑 Melord",
-    "🎨 Mashad",
-    "✨ Izmir",
-    "🏛️ Isfahan",
-    "💎 Prestige",
-    "🕌 Sultan"
-  ];
+  // We'll use collections from the context
   const [branchId, setBranchId] = useState<string>(user?.branchId || (branches.length > 0 ? branches[0].id : ""));
 
   // Update branchId if user or branches load
@@ -467,9 +458,9 @@ export function AddProduct() {
                     <SelectValue placeholder="Kolleksiyani tanlang" />
                   </SelectTrigger>
                   <SelectContent>
-                    {predefinedCollections.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
+                    {collections.map((c) => (
+                      <SelectItem key={c.id} value={c.name}>
+                        {c.name}
                       </SelectItem>
                     ))}
                     <SelectItem value="custom">Boshqa... (Qo'lda kiritish)</SelectItem>
@@ -643,14 +634,27 @@ export function AddProduct() {
             <div>
               <div className="flex justify-between items-center mb-2">
                 <Label className="text-sm font-medium">Sotib olish narxi (Tan narx)</Label>
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs text-muted-foreground mr-1">USD bilan kiritish</span>
-                  <input
-                    type="checkbox"
-                    checked={isUsdPriced}
-                    onChange={(e) => setIsUsdPriced(e.target.checked)}
-                    className="h-4 w-4"
-                  />
+                <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-32">
+                  <button
+                    type="button"
+                    onClick={() => setIsUsdPriced(false)}
+                    className={`flex-1 flex items-center justify-center py-1.5 rounded-lg text-[10px] font-bold transition-all ${!isUsdPriced
+                        ? "bg-white dark:bg-slate-900 shadow-sm text-blue-600"
+                        : "text-slate-400"
+                      }`}
+                  >
+                    SO'M
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsUsdPriced(true)}
+                    className={`flex-1 flex items-center justify-center py-1.5 rounded-lg text-[10px] font-bold transition-all ${isUsdPriced
+                        ? "bg-white dark:bg-slate-900 shadow-sm text-green-600"
+                        : "text-slate-400"
+                      }`}
+                  >
+                    USD
+                  </button>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
