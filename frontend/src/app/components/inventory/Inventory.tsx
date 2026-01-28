@@ -71,14 +71,17 @@ type CategoryType =
   | "Kovrik";
 
 // Utility to safely extract size string from both string and object formats
+// Utility to safely extract size string from both string and object formats
 const getSizeStr = (s: any): string => {
   if (typeof s === 'string') return s;
-  if (s && typeof s === 'object' && s.size) return s.size;
+  if (typeof s === 'number') return String(s);
+  if (s && typeof s === 'object' && s.size) return String(s.size);
   return "";
 };
 
 // Robust size parsing handling various encodings of the multiplication sign
-const parseSize = (sizeStr: string) => {
+const parseSize = (sizeStr: any) => {
+  if (!sizeStr || typeof sizeStr !== 'string') return null;
   const parts = sizeStr.split(/[^0-9.]+/).filter(Boolean);
   if (parts.length >= 2) {
     return {
@@ -364,7 +367,7 @@ export function Inventory() {
         String(p.branchId) === String(targetBranchId);
       const matchesCollection =
         (p.collection || "Kolleksiyasiz") === selectedCollection;
-      
+
       const hasWidth = width === "O'lchamsiz"
         ? (!p.availableSizes || p.availableSizes.length === 0)
         : p.availableSizes?.some(
@@ -411,7 +414,7 @@ export function Inventory() {
         String(p.branchId) === String(targetBranchId);
       const matchesCollection =
         (p.collection || "Kolleksiyasiz") === selectedCollection;
-      
+
       const hasWidth = width === "O'lchamsiz"
         ? (!p.availableSizes || p.availableSizes.length === 0)
         : p.availableSizes?.some(
@@ -657,14 +660,14 @@ export function Inventory() {
     setSelectedWidth(width);
     if (selectedCategoryType === "Metrajlar") {
       // Find the first matching size for metraj
-      const matchingSizes = products.filter(p => 
-        (p.collection || "Kolleksiyasiz") === selectedCollection && 
+      const matchingSizes = products.filter(p =>
+        (p.collection || "Kolleksiyasiz") === selectedCollection &&
         p.availableSizes?.some(s => {
           const parts = parseSize(getSizeStr(s));
           return parts && parts.width === width;
         })
       ).flatMap(p => p.availableSizes || []);
-      
+
       const distinctSize = matchingSizes.find(s => {
         const parts = parseSize(getSizeStr(s));
         return parts && parts.width === width;
@@ -927,8 +930,8 @@ export function Inventory() {
       <div className="col-span-2 mb-2">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Kod bo'yicha qidirish..." 
+          <Input
+            placeholder="Kod bo'yicha qidirish..."
             className="pl-9"
             value={sizeSearchQuery}
             onChange={(e) => setSizeSearchQuery(e.target.value)}
