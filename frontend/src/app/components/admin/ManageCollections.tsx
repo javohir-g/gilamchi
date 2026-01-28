@@ -29,13 +29,14 @@ import { BottomNav } from "../shared/BottomNav";
 
 export function ManageCollections() {
   const navigate = useNavigate();
-  const { products, renameCollection, deleteCollection } = useApp();
+  const { products, collections: ctxCollections, addCollection, updateCollection, deleteCollection: apiDeleteCollection } = useApp();
 
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState("");
-  const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
+  const [selectedCollectionName, setSelectedCollectionName] = useState<string | null>(null);
   const [editCollectionName, setEditCollectionName] = useState("");
   const [collectionPrice, setCollectionPrice] = useState<string>("");
 
@@ -53,82 +54,73 @@ export function ManageCollections() {
 
   const getCollectionIcon = (name: string) => collectionIcons[name] || "📦";
 
-  // Get unique collections
-  const collections = useMemo(() => {
-    const uniqueCollections = Array.from(
-      new Set(products.map((p) => p.collection).filter(Boolean))
-    ) as string[];
-    return uniqueCollections.sort();
-  }, [products]);
+  // Use collections from context
+  const collections = ctxCollections;
 
   // Helper to count products in a collection
   const getCollectionCount = (collectionName: string) => {
     return products.filter((p) => p.collection === collectionName).length;
   };
 
-  const handleAddCollection = () => {
+  const handleAddCollection = async () => {
     if (!newCollectionName.trim()) {
       toast.error("Kolleksiya nomini kiriting!");
       return;
     }
 
-    if (collections.includes(newCollectionName)) {
+    if (collections.some(c => c.name === newCollectionName)) {
       toast.error("Bu kolleksiya allaqachon mavjud!");
       return;
     }
 
-    toast.info(
-      "Yangi kolleksiya qo'shish uchun mahsulot qo'shishda bu kolleksiyani tanlang"
-    );
+    await addCollection({
+      name: newCollectionName,
+      price_per_sqm: collectionPrice ? parseFloat(collectionPrice) : undefined
+    });
+
+    toast.success("Kolleksiya qo'shildi!");
     setNewCollectionName("");
+    setCollectionPrice("");
     setAddDialogOpen(false);
   };
 
-  const handleEditCollection = () => {
-    if (!editCollectionName.trim() || !selectedCollection) {
+  const handleEditCollection = async () => {
+    if (!editCollectionName.trim() || !selectedCollectionId) {
       toast.error("Kolleksiya nomini kiriting!");
       return;
     }
 
-    if (collections.includes(editCollectionName) && editCollectionName !== selectedCollection) {
-      toast.error("Bu kolleksiya nomi allaqachon mavjud!");
-      return;
-    }
+    await updateCollection(selectedCollectionId, {
+      name: editCollectionName,
+      price_per_sqm: collectionPrice ? parseFloat(collectionPrice) : undefined
+    });
 
-    renameCollection(selectedCollection, editCollectionName);
-    toast.success("Kolleksiya nomi o'zgartirildi!");
+    toast.success("Kolleksiya yangilandi!");
     setEditDialogOpen(false);
-    setSelectedCollection(null);
+    setSelectedCollectionId(null);
     setEditCollectionName("");
+    setCollectionPrice("");
   };
 
-  const handleDeleteCollection = () => {
-    if (!selectedCollection) return;
+  const handleDeleteCollection = async () => {
+    if (!selectedCollectionId) return;
 
-    const count = getCollectionCount(selectedCollection);
-    if (count > 0) {
-      toast.error(
-        `Bu kolleksiyada ${count} ta mahsulot bor. Avval mahsulotlarni o'chiring yoki boshqa kolleksiyaga o'tkazing!`
-      );
-      setDeleteDialogOpen(false);
-      setSelectedCollection(null);
-      return;
-    }
-
-    deleteCollection(selectedCollection);
+    await apiDeleteCollection(selectedCollectionId);
     toast.success("Kolleksiya o'chirildi!");
     setDeleteDialogOpen(false);
-    setSelectedCollection(null);
+    setSelectedCollectionId(null);
   };
 
-  const openEditDialog = (collection: string) => {
-    setSelectedCollection(collection);
-    setEditCollectionName(collection);
+  const openEditDialog = (collection: any) => {
+    setSelectedCollectionId(collection.id);
+    setEditCollectionName(collection.name);
+    setCollectionPrice(collection.price_per_sqm?.toString() || "");
     setEditDialogOpen(true);
   };
 
-  const openDeleteDialog = (collection: string) => {
-    setSelectedCollection(collection);
+  const openDeleteDialog = (collection: any) => {
+    setSelectedCollectionId(collection.id);
+    setSelectedCollectionName(collection.name);
     setDeleteDialogOpen(true);
   };
 
@@ -172,17 +164,17 @@ export function ManageCollections() {
         ) : (
           <div className="grid grid-cols-1 gap-3">
             {collections.map((collection) => {
-              const count = getCollectionCount(collection);
+              const count = getCollectionCount(collection.name);
               return (
                 <Card
-                  key={collection}
+                  key={collection.id}
                   className="border border-border bg-card shadow-sm"
                 >
                   <div className="p-4 flex items-center gap-4">
-                    <div className="text-4xl">{getCollectionIcon(collection)}</div>
+                    <div className="text-4xl">{getCollectionIcon(collection.name)}</div>
                     <div className="flex-1">
                       <h3 className="text-lg font-medium text-card-foreground">
-                        {collection}
+                        {collection.name}
                       </h3>
                       <p className="text-sm text-muted-foreground">
                         {count} ta mahsulot • {collection.price_per_sqm || 0} $/m²
@@ -274,17 +266,32 @@ export function ManageCollections() {
               Bu kolleksiyaga tegishli barcha mahsulotlar yangilanadi
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <Label htmlFor="edit-collection" className="mb-2 block">
-              Yangi nom
-            </Label>
-            <Input
-              id="edit-collection"
-              value={editCollectionName}
-              onChange={(e) => setEditCollectionName(e.target.value)}
-              placeholder="Kolleksiya nomi..."
-              className="h-12"
-            />
+          <div className="py-4 space-y-4">
+            <div>
+              <Label htmlFor="edit-collection" className="mb-2 block">
+                Yangi nom
+              </Label>
+              <Input
+                id="edit-collection"
+                value={editCollectionName}
+                onChange={(e) => setEditCollectionName(e.target.value)}
+                placeholder="Kolleksiya nomi..."
+                className="h-12"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-collection-price" className="mb-2 block">
+                Kvadrat metr narxi ($)
+              </Label>
+              <Input
+                id="edit-collection-price"
+                type="number"
+                value={collectionPrice}
+                onChange={(e) => setCollectionPrice(e.target.value)}
+                placeholder="Masalan: 15"
+                className="h-12"
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button
@@ -308,7 +315,7 @@ export function ManageCollections() {
           <AlertDialogHeader>
             <AlertDialogTitle>Kolleksiyani o'chirish</AlertDialogTitle>
             <AlertDialogDescription>
-              "{selectedCollection}" kolleksiyasini o'chirmoqchimisiz? Bu
+              "{selectedCollectionName}" kolleksiyasini o'chirmoqchimisiz? Bu
               amalni bekor qilib bo'lmaydi.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -332,6 +339,6 @@ export function ManageCollections() {
       </AlertDialog>
 
       <BottomNav />
-    </div>
+    </div >
   );
 }

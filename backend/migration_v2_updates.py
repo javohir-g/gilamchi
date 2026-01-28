@@ -11,6 +11,21 @@ from sqlalchemy import text
 def run_migration():
     with engine.connect() as conn:
         try:
+            # 0. Collections: ensure table exists
+            print("Ensuring collections table exists...")
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS collections (
+                    id UUID PRIMARY KEY,
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                    deleted_at TIMESTAMP WITH TIME ZONE,
+                    name VARCHAR UNIQUE,
+                    icon VARCHAR,
+                    price_per_sqm DECIMAL(15, 2)
+                )
+            """))
+            conn.commit()
+
             # 1. Products: rename name to code
             print("Checking products table...")
             result = conn.execute(text("""

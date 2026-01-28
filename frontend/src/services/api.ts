@@ -144,6 +144,19 @@ const toSale = (data: any): any => ({
   // Backend calculates profit, checks stock etc.
 });
 
+const fromCollection = (data: any): any => ({
+  id: data.id,
+  name: data.name,
+  icon: data.icon,
+  price_per_sqm: data.price_per_sqm
+});
+
+const toCollection = (data: any): any => ({
+  name: data.name,
+  icon: data.icon,
+  price_per_sqm: data.price_per_sqm
+});
+
 const fromDebt = (data: any): any => ({
   id: data.id,
   debtorName: data.debtor_name,
@@ -322,5 +335,25 @@ export const expenseService = {
     await api.delete(`expenses/${id}`);
   }
 }
+
+export const collectionService = {
+  getAll: async () => {
+    const response = await api.get('collections/');
+    return response.data.map(fromCollection);
+  },
+  create: async (data: any) => {
+    const payload = toCollection(data);
+    const response = await api.post('collections/', payload);
+    return fromCollection(response.data);
+  },
+  update: async (id: string, data: any) => {
+    const payload = toCollection(data);
+    const response = await api.put(`collections/${id}`, payload);
+    return fromCollection(response.data);
+  },
+  delete: async (id: string) => {
+    await api.delete(`collections/${id}`);
+  }
+};
 
 export default api;

@@ -62,6 +62,7 @@ app.include_router(products.router, prefix="/api/products", tags=["products"])
 app.include_router(sales.router, prefix="/api/sales", tags=["sales"])
 app.include_router(debts.router, prefix="/api/debts", tags=["debts"])
 app.include_router(expenses.router, prefix="/api/expenses", tags=["expenses"])
+app.include_router(collections.router, prefix="/api/collections", tags=["collections"])
 
 @app.get("/")
 def read_root():

@@ -12,7 +12,8 @@ import {
   branchService,
   salesService,
   debtService,
-  expenseService
+  expenseService,
+  collectionService
 } from "../../services/api";
 
 export type UserRole = "admin" | "seller";
@@ -154,6 +155,13 @@ export interface Branch {
   status: "open" | "closed";
 }
 
+export interface Collection {
+  id: string;
+  name: string;
+  icon?: string;
+  price_per_sqm?: number;
+}
+
 interface AppContextType {
   user: User | null;
   setUser: (user: User | null) => void;
@@ -162,6 +170,7 @@ interface AppContextType {
   expenses: Expense[];
   debts: Debt[];
   branches: Branch[];
+  collections: Collection[];
   basket: BasketItem[];
   addToBasket: (item: BasketItem) => void;
   removeFromBasket: (id: string) => void;
@@ -181,9 +190,11 @@ interface AppContextType {
   updateProduct: (productId: string, updates: Partial<Product>) => void;
   deleteProduct: (productId: string) => void;
   renameCollection: (oldName: string, newName: string) => void;
-  deleteCollection: (collectionName: string) => void;
   renameSize: (oldSize: string, newSize: string, collectionName?: string) => void;
   deleteSize: (size: string, collectionName?: string) => void;
+  addCollection: (collection: Partial<Collection>) => Promise<void>;
+  updateCollection: (id: string, updates: Partial<Collection>) => Promise<void>;
+  deleteCollection: (id: string) => Promise<void>;
   addExpense: (expense: Expense) => void;
   updateExpense: (expenseId: string, expense: Expense) => void;
   deleteExpense: (expenseId: string) => void;
@@ -225,6 +236,7 @@ export function AppProvider({
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [debts, setDebts] = useState<Debt[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
+  const [collections, setCollections] = useState<Collection[]>([]);
   const [staff, setStaff] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [theme, setTheme] = useState<Theme>(() => {
@@ -265,7 +277,8 @@ export function AppProvider({
         fetchSafe(() => branchService.getAll(), setBranches),
         fetchSafe(() => salesService.getAll(), setSales),
         fetchSafe(() => debtService.getAll(), setDebts),
-        fetchSafe(() => expenseService.getAll(), setExpenses)
+        fetchSafe(() => expenseService.getAll(), setExpenses),
+        fetchSafe(() => collectionService.getAll(), setCollections)
       ]);
     } catch (error) {
       console.error("Failed to fetch data", error);
@@ -373,7 +386,37 @@ export function AppProvider({
     );
   };
 
-  const deleteCollection = (collectionName: string) => {
+  const addCollection = async (collection: Partial<Collection>) => {
+    try {
+      await collectionService.create(collection);
+      await fetchData();
+    } catch (error) {
+      console.error("Failed to add collection", error);
+      throw error;
+    }
+  };
+
+  const updateCollection = async (id: string, updates: Partial<Collection>) => {
+    try {
+      await collectionService.update(id, updates);
+      await fetchData();
+    } catch (error) {
+      console.error("Failed to update collection", error);
+      throw error;
+    }
+  };
+
+  const deleteCollection = async (id: string) => {
+    try {
+      await collectionService.delete(id);
+      await fetchData();
+    } catch (error) {
+      console.error("Failed to delete collection", error);
+      throw error;
+    }
+  };
+
+  const deleteCollectionLegacy = (collectionName: string) => {
     setProducts((prev) =>
       prev.map((p) =>
         p.collection === collectionName ? { ...p, collection: undefined } : p,
@@ -677,6 +720,7 @@ export function AppProvider({
         expenses,
         debts,
         branches,
+        collections,
         basket,
         addToBasket,
         removeFromBasket,
@@ -689,9 +733,11 @@ export function AppProvider({
         updateProduct,
         deleteProduct,
         renameCollection,
-        deleteCollection,
         renameSize,
         deleteSize,
+        addCollection,
+        updateCollection,
+        deleteCollection,
         addExpense,
         updateExpense,
         deleteExpense,
