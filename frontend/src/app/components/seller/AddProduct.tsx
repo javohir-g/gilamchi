@@ -187,49 +187,55 @@ export function AddProduct() {
   useEffect(() => {
     if (collection && !isEditMode) {
       const selectedCollectionData = collections.find(c => c.name === collection);
-      
+
       const buyRate = selectedCollectionData?.buy_price_per_sqm || 0;
       const sellRate = selectedCollectionData?.price_per_sqm || 0;
 
       if (type === "unit" && availableSizes.length > 0) {
         if (availableSizes.length > 0) {
-           const sizeObj = availableSizes[0];
-           const sizeStr = typeof sizeObj === 'string' ? sizeObj : sizeObj.size;
-           const parts = sizeStr.split(/x|×|X/).map((v: string) => parseFloat(v));
-           
-           if (parts.length === 2) {
-             const [w, h] = parts;
-             const area = w * h;
-             
-             const calculatedBuyPrice = area * buyRate;
-             const calculatedSellPrice = area * sellRate;
-             
-             if (buyRate > 0) {
-                 setBuyPriceUsd(calculatedBuyPrice.toFixed(2));
-                 setBuyPrice((calculatedBuyPrice * 12800).toFixed(0));
-                 setIsUsdPriced(true);
-             }
-             if (sellRate > 0) {
-                 setSellPrice(calculatedSellPrice.toString()); 
-             }
-           }
-        }
-      } else if (type === "meter" && width) {
-         const w = parseFloat(width);
-         const calculatedBuyPriceMeter = w * buyRate;
-         const calculatedSellPriceMeter = w * sellRate;
+          const sizeObj = availableSizes[0];
+          let sizeStr = "";
 
-         if (buyRate > 0) {
-             setBuyPriceUsd(calculatedBuyPriceMeter.toFixed(2));
-             setIsUsdPriced(true);
-         }
-         if (sellRate > 0) {
-             setSellPricePerMeter(calculatedSellPriceMeter.toFixed(2));
-             setSellPrice(calculatedSellPriceMeter.toString());
-         }
+          if (typeof sizeObj === 'string') sizeStr = sizeObj;
+          else if (typeof sizeObj === 'number') sizeStr = String(sizeObj);
+          else if (sizeObj && typeof sizeObj === 'object' && sizeObj.size) sizeStr = String(sizeObj.size);
+
+          if (sizeStr) {
+            const parts = sizeStr.split(/x|×|X/).map((v: string) => parseFloat(v));
+
+            if (parts.length === 2) {
+              const [w, h] = parts;
+              const area = w * h;
+
+              const calculatedBuyPrice = area * buyRate;
+              const calculatedSellPrice = area * sellRate;
+
+              if (buyRate > 0) {
+                setBuyPriceUsd(calculatedBuyPrice.toFixed(2));
+                setBuyPrice((calculatedBuyPrice * 12800).toFixed(0));
+                setIsUsdPriced(true);
+              }
+              if (sellRate > 0) {
+                setSellPrice(calculatedSellPrice.toString());
+              }
+            }
+          }
+        } else if (type === "meter" && width) {
+          const w = parseFloat(width);
+          const calculatedBuyPriceMeter = w * buyRate;
+          const calculatedSellPriceMeter = w * sellRate;
+
+          if (buyRate > 0) {
+            setBuyPriceUsd(calculatedBuyPriceMeter.toFixed(2));
+            setIsUsdPriced(true);
+          }
+          if (sellRate > 0) {
+            setSellPricePerMeter(calculatedSellPriceMeter.toFixed(2));
+            setSellPrice(calculatedSellPriceMeter.toString());
+          }
+        }
       }
-    }
-  }, [collection, availableSizes, type, width, products, isEditMode, collections]);
+    }, [collection, availableSizes, type, width, products, isEditMode, collections]);
 
   const handleSave = async () => {
     if (!code || !buyPrice || !sellPrice) {
