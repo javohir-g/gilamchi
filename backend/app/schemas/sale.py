@@ -12,6 +12,8 @@ class SaleBase(BaseModel):
     amount: float
     payment_type: PaymentType
     profit: float = 0
+    admin_profit: float = 0
+    seller_profit: float = 0
     width: Optional[float] = None
     length: Optional[float] = None
     area: Optional[float] = None

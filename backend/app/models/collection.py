@@ -1,4 +1,4 @@
-from sqlalchemy import String, Uuid, ForeignKey
+from sqlalchemy import String, Uuid, ForeignKey, DECIMAL
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base import UUIDMixin, TimestampMixin, SoftDeleteMixin, Base
 import uuid
