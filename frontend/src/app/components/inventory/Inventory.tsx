@@ -195,19 +195,7 @@ export function Inventory() {
         String(p.branchId) === String(targetBranchId);
 
       // Category match logic
-      let matchesCategory = false;
-      if (selectedCategoryType === "Gilamlar") {
-        matchesCategory = p.category === "Gilamlar" && p.type === "unit";
-      } else if (selectedCategoryType === "Metrajlar") {
-        matchesCategory =
-          p.category === "Metrajlar" || p.type === "meter";
-      } else if (selectedCategoryType === "Ovalniy") {
-        matchesCategory =
-          p.category === "Ovalniy" && p.type === "unit";
-      } else if (selectedCategoryType === "Kovrik") {
-        matchesCategory =
-          p.category === "Kovrik" && p.type === "unit";
-      }
+      const matchesCategory = p.category === selectedCategoryType || (selectedCategoryType === "Metrajlar" && p.type === "meter");
 
       return isCorrectBranch && matchesCategory;
     });
@@ -241,19 +229,7 @@ export function Inventory() {
         targetBranchId === "all" ||
         String(p.branchId) === String(targetBranchId);
 
-      let matchesCategory = false;
-      if (categoryType === "Gilamlar") {
-        matchesCategory = p.category === "Gilamlar" && p.type === "unit";
-      } else if (categoryType === "Metrajlar") {
-        matchesCategory =
-          p.category === "Metrajlar" || p.type === "meter";
-      } else if (categoryType === "Ovalniy") {
-        matchesCategory =
-          p.category === "Ovalniy" && p.type === "unit";
-      } else if (categoryType === "Kovrik") {
-        matchesCategory =
-          p.category === "Kovrik" && p.type === "unit";
-      }
+      const matchesCategory = p.category === categoryType || (categoryType === "Metrajlar" && p.type === "meter");
 
       return isCorrectBranch && matchesCategory;
     }).length;

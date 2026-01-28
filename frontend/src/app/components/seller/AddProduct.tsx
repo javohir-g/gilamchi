@@ -625,8 +625,11 @@ export function AddProduct() {
                           <span className="font-bold mr-1">{s.size}</span>
                           <span className="text-[10px] opacity-70">({s.quantity} dona)</span>
                           <X
-                            className="ml-2 h-3.5 w-3.5 cursor-pointer opacity-50 group-hover:opacity-100"
-                            onClick={() => setAvailableSizes(availableSizes.filter((item) => item.size !== s.size))}
+                            className="ml-2 h-3.5 w-3.5 cursor-pointer text-blue-400 hover:text-red-500 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setAvailableSizes(availableSizes.filter((item) => item.size !== s.size));
+                            }}
                           />
                         </Badge>
                       ))}
