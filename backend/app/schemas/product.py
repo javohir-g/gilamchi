@@ -22,7 +22,7 @@ class ProductBase(BaseModel):
     max_quantity: Optional[int] = None
     width: Optional[float] = None
     
-    available_sizes: Optional[List[str]] = None
+    available_sizes: Optional[List[dict]] = None
     photo: Optional[str] = None
     
     branch_id: UUID4
@@ -45,7 +45,7 @@ class ProductUpdate(BaseModel):
     total_length: Optional[float] = None
     max_quantity: Optional[int] = None
     width: Optional[float] = None
-    available_sizes: Optional[List[str]] = None
+    available_sizes: Optional[List[dict]] = None
     photo: Optional[str] = None
     branch_id: Optional[UUID4] = None
 

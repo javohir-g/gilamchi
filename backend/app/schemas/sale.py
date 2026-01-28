@@ -27,6 +27,7 @@ class SaleCreate(BaseModel):
     width: Optional[float] = None
     length: Optional[float] = None
     area: Optional[float] = None
+    size: Optional[str] = None
 
 class SaleResponse(SaleBase):
     id: UUID4

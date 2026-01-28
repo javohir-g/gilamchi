@@ -56,7 +56,7 @@ export interface Product {
   sellPricePerMeter?: number;
   // Carpet-specific fields (for Gilamlar category)
   pricePerSquareMeter?: number; // Price per m² in USD or local currency
-  availableSizes?: string[]; // e.g., ["1×2", "2×3", "3×4", "3×5"]
+  availableSizes?: any[]; // e.g., [{size: "1×2", quantity: 5}]
   similarity_percentage?: number; // AI search similarity score
 }
 
@@ -75,6 +75,7 @@ export interface Sale {
   seller_profit?: number;
   orderId?: string;
   type: ProductType; // unit or meter
+  size?: string; // Track which size was sold
   width?: number;
   length?: number;
   area?: number;
@@ -90,6 +91,7 @@ export interface BasketItem {
   pricePerUnit: number;
   total: number;
   photo: string;
+  size?: string; // Selected size for units
   // Carpet-specific fields (for Gilamlar category)
   width?: string; // e.g., "3"
   height?: string; // e.g., "4"

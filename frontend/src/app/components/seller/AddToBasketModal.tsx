@@ -32,7 +32,7 @@ export function AddToBasketModal({
     product.pricePerSquareMeter !== undefined;
   const isCarpetOrMetraj = isCarpet || isMetraj;
   const maxQuantity = isUnit
-    ? product.quantity || 0
+    ? (selectedSizeObj ? selectedSizeObj.quantity : (product.quantity || 0))
     : product.remainingLength || 0;
 
   const [quantity, setQuantity] = useState(1);
@@ -41,6 +41,7 @@ export function AddToBasketModal({
   const [height, setHeight] = useState("");
   const [area, setArea] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string>("");
+  const [selectedSizeObj, setSelectedSizeObj] = useState<any>(null);
   const [sellingPrice, setSellingPrice] = useState(
     isCarpetOrMetraj
       ? product.pricePerSquareMeter || 0
@@ -69,8 +70,16 @@ export function AddToBasketModal({
         setWidth(parts[0].trim());
         setHeight(parts[1].trim());
       }
+
+      // Update selectedSizeObj if availableSizes is updated
+      if (product.availableSizes) {
+        const found = product.availableSizes.find(s =>
+          (typeof s === 'string' ? s : s.size) === selectedSize
+        );
+        setSelectedSizeObj(typeof found === 'string' ? { size: found, quantity: product.quantity } : found);
+      }
     }
-  }, [selectedSize]);
+  }, [selectedSize, product.availableSizes, product.quantity]);
 
   const getQuantityValue = () => {
     if (isCarpet) {
@@ -119,6 +128,7 @@ export function AddToBasketModal({
       pricePerUnit: sellingPrice,
       total: calculateTotal(),
       photo: product.photo,
+      size: selectedSize || undefined,
       // Carpet-specific or Size-specific fields
       ...((isCarpetOrMetraj || selectedSize) && {
         width,
@@ -191,11 +201,15 @@ export function AddToBasketModal({
                   <SelectValue placeholder="O'lchamni tanlang" />
                 </SelectTrigger>
                 <SelectContent>
-                  {product.availableSizes.map((size) => (
-                    <SelectItem key={size} value={size}>
-                      {size}
-                    </SelectItem>
-                  ))}
+                  {product.availableSizes.map((s) => {
+                    const sizeName = typeof s === 'string' ? s : s.size;
+                    const sizeQty = typeof s === 'string' ? product.quantity : s.quantity;
+                    return (
+                      <SelectItem key={sizeName} value={sizeName}>
+                        {sizeName} ({sizeQty} dona)
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
               {area > 0 && (

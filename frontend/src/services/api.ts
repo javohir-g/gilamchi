@@ -142,6 +142,7 @@ const toSale = (data: any): any => ({
   branch_id: data.branchId,
   seller_id: data.sellerId,
   order_id: data.orderId,
+  size: data.size,
   // Backend calculates profit, checks stock etc.
 });
 

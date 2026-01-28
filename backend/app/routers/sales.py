@@ -19,10 +19,34 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
     if product.type == ProductType.UNIT:
         if product.quantity < sale.quantity:
              raise HTTPException(status_code=400, detail="Insufficient stock (quantity)")
+        
+        # Per-size stock handling
+        if sale.size and product.available_sizes:
+            sizes = list(product.available_sizes) if product.available_sizes else []
+            found = False
+            for s in sizes:
+                # Handle both old string format and new dict format for safety
+                if isinstance(s, dict) and s.get("size") == sale.size:
+                    if s.get("quantity", 0) < sale.quantity:
+                        raise HTTPException(status_code=400, detail=f"Insufficient stock for size {sale.size}")
+                    s["quantity"] = int(s["quantity"]) - int(sale.quantity)
+                    found = True
+                    break
+                elif isinstance(s, str) and s == sale.size:
+                    # If it's the old string format, we can't easily track individual quantity here
+                    # But we'll still decrement total quantity below
+                    found = True
+                    break
+            
+            if found:
+                from sqlalchemy.attributes import flag_modified
+                product.available_sizes = sizes
+                flag_modified(product, "available_sizes")
+
         product.quantity -= int(sale.quantity)
         
         # Auto-delete product if quantity reaches 0
-        if product.quantity == 0:
+        if product.quantity <= 0:
             from datetime import datetime, timezone
             product.deleted_at = datetime.now(timezone.utc)
             product.deleted_by = current_user.id

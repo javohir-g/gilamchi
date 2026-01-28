@@ -79,7 +79,7 @@ export function SellProduct() {
       : true;
     const matchesCollection = true;
     const matchesSearch =
-      (product.name || "")
+      (product.code || "")
         .toLowerCase()
         .includes(searchQuery.toLowerCase()) ||
       (product.category || "")
@@ -368,13 +368,13 @@ export function SellProduct() {
                 <div className="flex flex-col">
                   <img
                     src={product.photo}
-                    alt={product.name}
+                    alt={product.code}
                     className="w-full aspect-[4/5] object-cover cursor-pointer"
                   />
                   <div className="p-3 space-y-2">
                     <div className="space-y-1">
                       <h3 className="text-sm font-medium text-card-foreground line-clamp-2">
-                        {product.name}
+                        {product.code}
                       </h3>
                       {product.collection && (
                         <div className="flex items-center text-xs text-muted-foreground">
@@ -574,11 +574,14 @@ export function SellProduct() {
                           {/* Sizes Info */}
                           {product.availableSizes && product.availableSizes.length > 0 && (
                             <div className="flex flex-wrap gap-1 mb-2">
-                              {product.availableSizes.map((size: string) => (
-                                <Badge key={size} variant="secondary" className="px-2 py-0 h-5 text-[10px]">
-                                  {size}
-                                </Badge>
-                              ))}
+                              {product.availableSizes.map((s: any) => {
+                                const sizeName = typeof s === 'string' ? s : s.size;
+                                return (
+                                  <Badge key={sizeName} variant="secondary" className="px-2 py-0 h-5 text-[10px]">
+                                    {sizeName}
+                                  </Badge>
+                                );
+                              })}
                             </div>
                           )}
 

@@ -49,8 +49,9 @@ export function AddProduct() {
   const [collection, setCollection] = useState("");
   const [customCollection, setCustomCollection] = useState("");
   const [isCustomCollection, setIsCustomCollection] = useState(false);
-  const [availableSizes, setAvailableSizes] = useState<string[]>([]);
+  const [availableSizes, setAvailableSizes] = useState<any[]>([]);
   const [sizeInput, setSizeInput] = useState("");
+  const [sizeQuantityInput, setSizeQuantityInput] = useState("");
   const [isCameraOpen, setIsCameraOpen] = useState(false);
 
   // We'll use collections from the context
@@ -64,6 +65,14 @@ export function AddProduct() {
       setBranchId(branches[0].id.toString());
     }
   }, [user, branches, branchId]);
+
+  // Auto-calculate total quantity for unit products based on sizes
+  useEffect(() => {
+    if (type === "unit" && availableSizes.length > 0) {
+      const total = availableSizes.reduce((sum, s) => sum + (parseInt(s.quantity) || 0), 0);
+      setQuantity(total.toString());
+    }
+  }, [availableSizes, type]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -530,12 +539,21 @@ export function AddProduct() {
                       onChange={(e) => setSizeInput(e.target.value)}
                       placeholder="2x3"
                       className="h-12 flex-1 rounded-xl"
+                    />
+                    <Input
+                      type="number"
+                      value={sizeQuantityInput}
+                      onChange={(e) => setSizeQuantityInput(e.target.value)}
+                      placeholder="Soni"
+                      className="h-12 w-24 rounded-xl text-center"
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           e.preventDefault();
-                          if (sizeInput && !availableSizes.includes(sizeInput)) {
-                            setAvailableSizes([...availableSizes, sizeInput]);
+                          const qty = parseInt(sizeQuantityInput) || 1;
+                          if (sizeInput && !availableSizes.find(s => s.size === sizeInput)) {
+                            setAvailableSizes([...availableSizes, { size: sizeInput, quantity: qty }]);
                             setSizeInput("");
+                            setSizeQuantityInput("");
                           }
                         }
                       }}
@@ -544,9 +562,11 @@ export function AddProduct() {
                       type="button"
                       className="h-12 w-12 rounded-xl bg-blue-600"
                       onClick={() => {
-                        if (sizeInput && !availableSizes.includes(sizeInput)) {
-                          setAvailableSizes([...availableSizes, sizeInput]);
+                        const qty = parseInt(sizeQuantityInput) || 1;
+                        if (sizeInput && !availableSizes.find(s => s.size === sizeInput)) {
+                          setAvailableSizes([...availableSizes, { size: sizeInput, quantity: qty }]);
                           setSizeInput("");
+                          setSizeQuantityInput("");
                         }
                       }}
                     >
@@ -555,16 +575,17 @@ export function AddProduct() {
                   </div>
                   {availableSizes.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-4">
-                      {availableSizes.map((size) => (
+                      {availableSizes.map((s) => (
                         <Badge
-                          key={size}
+                          key={s.size}
                           variant="secondary"
                           className="flex items-center py-1.5 px-3 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-100 rounded-lg group"
                         >
-                          {size}
+                          <span className="font-bold mr-1">{s.size}</span>
+                          <span className="text-[10px] opacity-70">({s.quantity} dona)</span>
                           <X
                             className="ml-2 h-3.5 w-3.5 cursor-pointer opacity-50 group-hover:opacity-100"
-                            onClick={() => setAvailableSizes(availableSizes.filter((s) => s !== size))}
+                            onClick={() => setAvailableSizes(availableSizes.filter((item) => item.size !== s.size))}
                           />
                         </Badge>
                       ))}

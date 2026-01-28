@@ -331,6 +331,15 @@ export function Inventory() {
             widthSet.add(parts[0].trim());
           }
         });
+      } else if (p.availableSizes && p.availableSizes.length > 0) {
+        // Handle new object format
+        p.availableSizes.forEach((s: any) => {
+          const sizeStr = typeof s === 'string' ? s : s.size;
+          const parts = sizeStr.split(/×|x/);
+          if (parts.length >= 1) {
+            widthSet.add(parts[0].trim());
+          }
+        });
       } else {
         widthSet.add("O'lchamsiz");
       }
@@ -501,13 +510,11 @@ export function Inventory() {
           matchingSizes.add("O'lchamsiz");
         }
       } else if (p.availableSizes) {
-        p.availableSizes.forEach((s) => {
-          const parts = s.split(/×|x/);
-          if (
-            parts.length === 2 &&
-            parts[0].trim() === selectedWidth
-          ) {
-            matchingSizes.add(s);
+        p.availableSizes.forEach((s: any) => {
+          const sizeStr = typeof s === 'string' ? s : s.size;
+          const parts = sizeStr.split(/×|x/);
+          if (parts.length === 2 && parts[0].trim() === selectedWidth) {
+            matchingSizes.add(sizeStr);
           }
         });
       }
@@ -548,7 +555,7 @@ export function Inventory() {
         (p.collection || "Kolleksiyasiz") === selectedCollection;
       const hasSize = size === "O'lchamsiz"
         ? (!p.availableSizes || p.availableSizes.length === 0)
-        : p.availableSizes?.includes(size);
+        : p.availableSizes?.some(s => (typeof s === 'string' ? s : s.size) === size);
 
       // Category match logic
       let matchesCategory = false;
@@ -638,7 +645,7 @@ export function Inventory() {
       const matchesCollection = !selectedCollection || (p.collection || "Kolleksiyasiz") === selectedCollection;
       const hasSize = !selectedSize || (selectedSize === "O'lchamsiz"
         ? (!p.availableSizes || p.availableSizes.length === 0)
-        : p.availableSizes?.includes(selectedSize));
+        : p.availableSizes?.some(s => (typeof s === 'string' ? s : s.size) === selectedSize));
 
       // Category match logic
       let matchesCategory = false;
