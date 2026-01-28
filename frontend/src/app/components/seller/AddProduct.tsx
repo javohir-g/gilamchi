@@ -208,20 +208,16 @@ export function AddProduct() {
               const [w, h] = parts;
               const area = w * h;
 
-              const calculatedBuyPrice = area * buyRate; // This is using buy_price_per_sqm (likely Sell Price in DB)
-              const calculatedSellPrice = area * sellRate; // This is using price_per_sqm (likely Cost in DB)
+              const calculatedBuyPrice = area * buyRate;
+              const calculatedSellPrice = area * sellRate;
 
-              // Swap the assignment based on user report
-              if (sellRate > 0) {
-                // Treat sellRate (price_per_sqm) as the Cost/Buy Price
-                const realBuyPrice = calculatedSellPrice;
-                setBuyPriceUsd(realBuyPrice.toFixed(2));
-                setBuyPrice((realBuyPrice * 12800).toFixed(0));
+              if (buyRate > 0) {
+                setBuyPriceUsd(calculatedBuyPrice.toFixed(2));
+                setBuyPrice((calculatedBuyPrice * 12800).toFixed(0));
                 setIsUsdPriced(true);
               }
-              if (buyRate > 0) {
-                // Treat buyRate (buy_price_per_sqm) as the Sell Price
-                setSellPrice(calculatedBuyPrice.toString());
+              if (sellRate > 0) {
+                setSellPrice(calculatedSellPrice.toString());
               }
             }
           }
@@ -692,7 +688,7 @@ export function AddProduct() {
             </h2>
             {pricePerM2 && (
               <span className="text-[10px] text-blue-600 font-bold bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded">
-                ~ {pricePerM2} so'm / m²
+                Narxi: {pricePerM2} so'm / m²
               </span>
             )}
           </div>
@@ -727,23 +723,22 @@ export function AddProduct() {
 
             {/* Display Calculated Prices for Verification */}
             <div className="grid grid-cols-2 gap-4 pt-2">
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
-                <Label className="text-xs text-blue-600/70 dark:text-blue-400/70 uppercase font-bold tracking-wider">Xarid Narxi (Avto)</Label>
-                <div className="text-xl font-bold mt-1 text-blue-600 dark:text-blue-400">
-                  ${(parseFloat(sellPrice) / (parseFloat(quantity) || 1)).toFixed(2) || "0"} <span className="text-sm font-normal text-blue-400/70">/ dona</span>
-                  {/* Note: sellPrice state might be UZS or USD depending on previous logic. We are strictly moving to USD based on collection */}
-                </div>
-                <p className="text-[10px] text-blue-500/70 mt-1">
-                  Kolleksiya narxi: ${collections.find(c => c.name === collection)?.price_per_sqm || 0}/m²
-                </p>
-              </div>
               <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                <Label className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Sotish Narxi (Avto)</Label>
+                <Label className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Xarid Narxi (Avto)</Label>
                 <div className="text-xl font-bold mt-1 text-slate-700 dark:text-slate-300">
                   ${buyPriceUsd || "0"} <span className="text-sm font-normal text-muted-foreground">/ dona</span>
                 </div>
                 <p className="text-[10px] text-muted-foreground mt-1">
                   Kolleksiya narxi: ${collections.find(c => c.name === collection)?.buy_price_per_sqm || 0}/m²
+                </p>
+              </div>
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                <Label className="text-xs text-blue-600/70 dark:text-blue-400/70 uppercase font-bold tracking-wider">Sotish Narxi (Avto)</Label>
+                <div className="text-xl font-bold mt-1 text-blue-600 dark:text-blue-400">
+                  ${(parseFloat(sellPrice) / (parseFloat(quantity) || 1)).toFixed(2) || "0"} <span className="text-sm font-normal text-blue-400/70">/ dona</span>
+                </div>
+                <p className="text-[10px] text-blue-500/70 mt-1">
+                  Kolleksiya narxi: ${collections.find(c => c.name === collection)?.price_per_sqm || 0}/m²
                 </p>
               </div>
             </div>

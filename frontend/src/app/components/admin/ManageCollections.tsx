@@ -235,21 +235,8 @@ export function ManageCollections() {
               />
             </div>
             <div>
-              <Label htmlFor="collection-price" className="mb-2 block">
-                Sotib olish narxi ($/m²)
-              </Label>
-              <Input
-                id="collection-price"
-                type="number"
-                value={collectionPrice}
-                onChange={(e) => setCollectionPrice(e.target.value)}
-                placeholder="Masalan: 15"
-                className="h-12"
-              />
-            </div>
-            <div>
               <Label htmlFor="collection-buy-price" className="mb-2 block">
-                Sotish narxi ($/m²)
+                Sotib olish narxi ($/m²)
               </Label>
               <Input
                 id="collection-buy-price"
@@ -257,6 +244,19 @@ export function ManageCollections() {
                 value={collectionBuyPrice}
                 onChange={(e) => setCollectionBuyPrice(e.target.value)}
                 placeholder="Masalan: 10"
+                className="h-12"
+              />
+            </div>
+            <div>
+              <Label htmlFor="collection-price" className="mb-2 block">
+                Sotish narxi ($/m²)
+              </Label>
+              <Input
+                id="collection-price"
+                type="number"
+                value={collectionPrice}
+                onChange={(e) => setCollectionPrice(e.target.value)}
+                placeholder="Masalan: 15"
                 className="h-12"
               />
             </div>
