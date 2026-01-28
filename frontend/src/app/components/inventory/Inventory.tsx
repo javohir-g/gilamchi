@@ -54,7 +54,7 @@ const parseSize = (sizeStr: string) => {
   return null;
 };
 
-const Inventory: React.FC = () => {
+export const Inventory: React.FC = () => {
   const { products, user, branches, collections } = useApp();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBranch, setSelectedBranch] = useState<string>("all");
@@ -532,5 +532,3 @@ const Inventory: React.FC = () => {
     </div>
   );
 };
-
-export default Inventory;
