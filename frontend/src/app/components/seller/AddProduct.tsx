@@ -192,6 +192,7 @@ export function AddProduct() {
       const sellRate = selectedCollectionData?.price_per_sqm || 0;
 
       if (type === "unit" && availableSizes.length > 0) {
+        // Redundant check removed, accessing [0] safely
         if (availableSizes.length > 0) {
           const sizeObj = availableSizes[0];
           let sizeStr = "";
@@ -220,22 +221,23 @@ export function AddProduct() {
               }
             }
           }
-        } else if (type === "meter" && width) {
-          const w = parseFloat(width);
-          const calculatedBuyPriceMeter = w * buyRate;
-          const calculatedSellPriceMeter = w * sellRate;
+        }
+      } else if (type === "meter" && width) {
+        const w = parseFloat(width);
+        const calculatedBuyPriceMeter = w * buyRate;
+        const calculatedSellPriceMeter = w * sellRate;
 
-          if (buyRate > 0) {
-            setBuyPriceUsd(calculatedBuyPriceMeter.toFixed(2));
-            setIsUsdPriced(true);
-          }
-          if (sellRate > 0) {
-            setSellPricePerMeter(calculatedSellPriceMeter.toFixed(2));
-            setSellPrice(calculatedSellPriceMeter.toString());
-          }
+        if (buyRate > 0) {
+          setBuyPriceUsd(calculatedBuyPriceMeter.toFixed(2));
+          setIsUsdPriced(true);
+        }
+        if (sellRate > 0) {
+          setSellPricePerMeter(calculatedSellPriceMeter.toFixed(2));
+          setSellPrice(calculatedSellPriceMeter.toString());
         }
       }
-    }, [collection, availableSizes, type, width, products, isEditMode, collections]);
+    }
+  }, [collection, availableSizes, type, width, products, isEditMode, collections]);
 
   const handleSave = async () => {
     if (!code || !buyPrice || !sellPrice) {
