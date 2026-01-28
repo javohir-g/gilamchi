@@ -723,15 +723,6 @@ export function AddProduct() {
 
             {/* Display Calculated Prices for Verification */}
             <div className="grid grid-cols-2 gap-4 pt-2">
-              <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                <Label className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Xarid Narxi (Avto)</Label>
-                <div className="text-xl font-bold mt-1 text-slate-700 dark:text-slate-300">
-                  ${buyPriceUsd || "0"} <span className="text-sm font-normal text-muted-foreground">/ dona</span>
-                </div>
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  Kolleksiya narxi: ${collections.find(c => c.name === collection)?.buy_price_per_sqm || 0}/m²
-                </p>
-              </div>
               <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
                 <Label className="text-xs text-blue-600/70 dark:text-blue-400/70 uppercase font-bold tracking-wider">Sotish Narxi (Avto)</Label>
                 <div className="text-xl font-bold mt-1 text-blue-600 dark:text-blue-400">
@@ -740,6 +731,15 @@ export function AddProduct() {
                 </div>
                 <p className="text-[10px] text-blue-500/70 mt-1">
                   Kolleksiya narxi: ${collections.find(c => c.name === collection)?.price_per_sqm || 0}/m²
+                </p>
+              </div>
+              <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                <Label className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Xarid Narxi (Avto)</Label>
+                <div className="text-xl font-bold mt-1 text-slate-700 dark:text-slate-300">
+                  ${buyPriceUsd || "0"} <span className="text-sm font-normal text-muted-foreground">/ dona</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Kolleksiya narxi: ${collections.find(c => c.name === collection)?.buy_price_per_sqm || 0}/m²
                 </p>
               </div>
             </div>
