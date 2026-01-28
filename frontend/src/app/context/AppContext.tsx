@@ -162,6 +162,7 @@ export interface Collection {
   name: string;
   icon?: string;
   price_per_sqm?: number;
+  buy_price_per_sqm?: number;
 }
 
 interface AppContextType {

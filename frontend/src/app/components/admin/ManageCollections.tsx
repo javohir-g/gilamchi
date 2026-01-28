@@ -39,6 +39,7 @@ export function ManageCollections() {
   const [selectedCollectionName, setSelectedCollectionName] = useState<string | null>(null);
   const [editCollectionName, setEditCollectionName] = useState("");
   const [collectionPrice, setCollectionPrice] = useState<string>("");
+  const [collectionBuyPrice, setCollectionBuyPrice] = useState<string>("");
 
   // Collection Icons Map
   const collectionIcons: Record<string, string> = {
@@ -75,12 +76,14 @@ export function ManageCollections() {
 
     await addCollection({
       name: newCollectionName,
-      price_per_sqm: collectionPrice ? parseFloat(collectionPrice) : undefined
+      price_per_sqm: collectionPrice ? parseFloat(collectionPrice) : undefined,
+      buy_price_per_sqm: collectionBuyPrice ? parseFloat(collectionBuyPrice) : undefined
     });
 
     toast.success("Kolleksiya qo'shildi!");
     setNewCollectionName("");
     setCollectionPrice("");
+    setCollectionBuyPrice("");
     setAddDialogOpen(false);
   };
 
@@ -92,7 +95,8 @@ export function ManageCollections() {
 
     await updateCollection(selectedCollectionId, {
       name: editCollectionName,
-      price_per_sqm: collectionPrice ? parseFloat(collectionPrice) : undefined
+      price_per_sqm: collectionPrice ? parseFloat(collectionPrice) : undefined,
+      buy_price_per_sqm: collectionBuyPrice ? parseFloat(collectionBuyPrice) : undefined
     });
 
     toast.success("Kolleksiya yangilandi!");
@@ -100,6 +104,7 @@ export function ManageCollections() {
     setSelectedCollectionId(null);
     setEditCollectionName("");
     setCollectionPrice("");
+    setCollectionBuyPrice("");
   };
 
   const handleDeleteCollection = async () => {
@@ -115,6 +120,7 @@ export function ManageCollections() {
     setSelectedCollectionId(collection.id);
     setEditCollectionName(collection.name);
     setCollectionPrice(collection.price_per_sqm?.toString() || "");
+    setCollectionBuyPrice(collection.buy_price_per_sqm?.toString() || "");
     setEditDialogOpen(true);
   };
 
@@ -229,8 +235,21 @@ export function ManageCollections() {
               />
             </div>
             <div>
+              <Label htmlFor="collection-buy-price" className="mb-2 block">
+                Sotib olish narxi ($/m²)
+              </Label>
+              <Input
+                id="collection-buy-price"
+                type="number"
+                value={collectionBuyPrice}
+                onChange={(e) => setCollectionBuyPrice(e.target.value)}
+                placeholder="Masalan: 10"
+                className="h-12"
+              />
+            </div>
+            <div>
               <Label htmlFor="collection-price" className="mb-2 block">
-                Kvadrat metr narxi ($)
+                Sotish narxi ($/m²)
               </Label>
               <Input
                 id="collection-price"
@@ -280,8 +299,21 @@ export function ManageCollections() {
               />
             </div>
             <div>
+              <Label htmlFor="edit-collection-buy-price" className="mb-2 block">
+                Sotib olish narxi ($/m²)
+              </Label>
+              <Input
+                id="edit-collection-buy-price"
+                type="number"
+                value={collectionBuyPrice}
+                onChange={(e) => setCollectionBuyPrice(e.target.value)}
+                placeholder="Masalan: 10"
+                className="h-12"
+              />
+            </div>
+            <div>
               <Label htmlFor="edit-collection-price" className="mb-2 block">
-                Kvadrat metr narxi ($)
+                Sotish narxi ($/m²)
               </Label>
               <Input
                 id="edit-collection-price"

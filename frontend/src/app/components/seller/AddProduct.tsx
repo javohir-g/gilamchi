@@ -186,28 +186,50 @@ export function AddProduct() {
   // Auto-calculate sell price when collection or size changes
   useEffect(() => {
     if (collection && !isEditMode) {
-      // Find the collection to get its price_per_sqm
-      // In this app, collections are just strings in predefinedCollections, 
-      // but ManageCollections now allows setting price_per_sqm which goes to the backend.
-      // We should ideally have a collections list in AppContext.
-
-      // For now, let's try to find an existing product from this collection to "infer" the price,
-      // or assuming we update AppContext to provide collections.
-      const collName = collection.replace(/^[^\s]+\s/, ""); // Remove emoji
-      // This is a placeholder - in a real scenario we'd use useApp().collections
-      const collPrice = 15; // Default or fetched from a new collections list
+      const selectedCollectionData = collections.find(c => c.name === collection);
+      
+      const buyRate = selectedCollectionData?.buy_price_per_sqm || 0;
+      const sellRate = selectedCollectionData?.price_per_sqm || 0;
 
       if (type === "unit" && availableSizes.length > 0) {
-        const [w, h] = availableSizes[0].split(/x|×|X/).map(v => parseFloat(v));
-        if (w && h) {
-          const calculatedPrice = w * h * collPrice;
-          setSellPrice(calculatedPrice.toString());
+        if (availableSizes.length > 0) {
+           const sizeObj = availableSizes[0];
+           const sizeStr = typeof sizeObj === 'string' ? sizeObj : sizeObj.size;
+           const parts = sizeStr.split(/x|×|X/).map((v: string) => parseFloat(v));
+           
+           if (parts.length === 2) {
+             const [w, h] = parts;
+             const area = w * h;
+             
+             const calculatedBuyPrice = area * buyRate;
+             const calculatedSellPrice = area * sellRate;
+             
+             if (buyRate > 0) {
+                 setBuyPriceUsd(calculatedBuyPrice.toFixed(2));
+                 setBuyPrice((calculatedBuyPrice * 12800).toFixed(0));
+                 setIsUsdPriced(true);
+             }
+             if (sellRate > 0) {
+                 setSellPrice(calculatedSellPrice.toString()); 
+             }
+           }
         }
       } else if (type === "meter" && width) {
-        setSellPricePerMeter(collPrice.toString());
+         const w = parseFloat(width);
+         const calculatedBuyPriceMeter = w * buyRate;
+         const calculatedSellPriceMeter = w * sellRate;
+
+         if (buyRate > 0) {
+             setBuyPriceUsd(calculatedBuyPriceMeter.toFixed(2));
+             setIsUsdPriced(true);
+         }
+         if (sellRate > 0) {
+             setSellPricePerMeter(calculatedSellPriceMeter.toFixed(2));
+             setSellPrice(calculatedSellPriceMeter.toString());
+         }
       }
     }
-  }, [collection, availableSizes, type, width, products, isEditMode]);
+  }, [collection, availableSizes, type, width, products, isEditMode, collections]);
 
   const handleSave = async () => {
     if (!code || !buyPrice || !sellPrice) {
@@ -652,111 +674,55 @@ export function AddProduct() {
             )}
           </div>
           <Card className="p-6 dark:bg-gray-800 dark:border-gray-700 space-y-5">
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <Label className="text-sm font-medium">Sotib olish narxi (Tan narx)</Label>
-                <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-32">
-                  <button
-                    type="button"
-                    onClick={() => setIsUsdPriced(false)}
-                    className={`flex-1 flex items-center justify-center py-1.5 rounded-lg text-[10px] font-bold transition-all ${!isUsdPriced
-                      ? "bg-white dark:bg-slate-900 shadow-sm text-blue-600"
-                      : "text-slate-400"
-                      }`}
-                  >
-                    SO'M
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsUsdPriced(true)}
-                    className={`flex-1 flex items-center justify-center py-1.5 rounded-lg text-[10px] font-bold transition-all ${isUsdPriced
-                      ? "bg-white dark:bg-slate-900 shadow-sm text-green-600"
-                      : "text-slate-400"
-                      }`}
-                  >
-                    USD
-                  </button>
+            {/* Price inputs hidden as they are calculated automatically from Collection */}
+            <div className="hidden">
+              <div className="grid grid-cols-1 gap-4">
+                <div className="relative">
+                  <Input
+                    type="number"
+                    value={buyPrice}
+                    onChange={(e) => setBuyPrice(e.target.value)}
+                  />
+                  <Input
+                    type="number"
+                    value={buyPriceUsd}
+                    onChange={(e) => setBuyPriceUsd(e.target.value)}
+                  />
+                  <Input
+                    type="number"
+                    value={sellPrice}
+                    onChange={(e) => setSellPrice(e.target.value)}
+                  />
+                  <Input
+                    type="number"
+                    value={sellPricePerMeter}
+                    onChange={(e) => setSellPricePerMeter(e.target.value)}
+                  />
                 </div>
               </div>
-              <div className="grid grid-cols-1 gap-4">
-                {!isUsdPriced ? (
-                  <div className="relative">
-                    <Input
-                      type="number"
-                      value={buyPrice}
-                      onChange={(e) => setBuyPrice(e.target.value)}
-                      placeholder="0"
-                      className="h-12 rounded-xl pl-12 text-lg font-semibold"
-                    />
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">
-                      UZS
-                    </div>
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <Input
-                      type="number"
-                      value={buyPriceUsd}
-                      onChange={(e) => setBuyPriceUsd(e.target.value)}
-                      placeholder="0.00"
-                      className="h-12 rounded-xl pl-10 text-lg font-semibold"
-                    />
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">
-                      $
-                    </div>
-                  </div>
-                )}
-              </div>
-              <p className="text-[10px] text-muted-foreground mt-1 ml-1 italic">
-                * Bitta dona yoki butun rulon uchun
-              </p>
             </div>
 
-            <div className={`grid ${type === "meter" ? "grid-cols-2" : "grid-cols-1"} gap-4`}>
-              {type === "unit" && (
-                <div>
-                  <Label className="mb-2 block text-sm font-medium">Sotish narxi</Label>
-                  <div className="relative">
-                    <Input
-                      type="number"
-                      value={sellPrice}
-                      onChange={(e) => setSellPrice(e.target.value)}
-                      placeholder="0"
-                      className="h-12 rounded-xl pl-12 text-lg font-semibold text-green-600"
-                    />
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-green-600 font-bold">
-                      UZS
-                    </div>
-                  </div>
+            {/* Display Calculated Prices for Verification */}
+            <div className="grid grid-cols-2 gap-4 pt-2">
+              <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                <Label className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Xarid Narxi (Avto)</Label>
+                <div className="text-xl font-bold mt-1 text-slate-700 dark:text-slate-300">
+                  ${buyPriceUsd || "0"} <span className="text-sm font-normal text-muted-foreground">/ dona</span>
                 </div>
-              )}
-
-              {type === "meter" && (
-                <>
-                  <div className="hidden">
-                    <Input
-                      type="number"
-                      value={sellPrice}
-                      onChange={(e) => setSellPrice(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label className="mb-2 block text-sm font-medium text-blue-600">Metr uchun narx (Sotish)</Label>
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        value={sellPricePerMeter}
-                        onChange={(e) => setSellPricePerMeter(e.target.value)}
-                        placeholder="0"
-                        className="h-12 rounded-xl pl-12 text-lg font-semibold border-blue-200 bg-blue-50/10"
-                      />
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-400 font-bold">
-                        m
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Kolleksiya narxi: ${collections.find(c => c.name === collection)?.buy_price_per_sqm || 0}/m²
+                </p>
+              </div>
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                <Label className="text-xs text-blue-600/70 dark:text-blue-400/70 uppercase font-bold tracking-wider">Sotish Narxi (Avto)</Label>
+                <div className="text-xl font-bold mt-1 text-blue-600 dark:text-blue-400">
+                  ${(parseFloat(sellPrice) / (parseFloat(quantity) || 1)).toFixed(2) || "0"} <span className="text-sm font-normal text-blue-400/70">/ dona</span>
+                  {/* Note: sellPrice state might be UZS or USD depending on previous logic. We are strictly moving to USD based on collection */}
+                </div>
+                <p className="text-[10px] text-blue-500/70 mt-1">
+                  Kolleksiya narxi: ${collections.find(c => c.name === collection)?.price_per_sqm || 0}/m²
+                </p>
+              </div>
             </div>
           </Card>
         </section>

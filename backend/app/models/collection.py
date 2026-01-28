@@ -8,7 +8,8 @@ class Collection(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
 
     name: Mapped[str] = mapped_column(String, unique=True, index=True)
     icon: Mapped[str | None] = mapped_column(String, nullable=True) # Emoji or text
-    price_per_sqm: Mapped[float | None] = mapped_column(DECIMAL(15, 2), nullable=True)
+    price_per_sqm: Mapped[float | None] = mapped_column(DECIMAL(15, 2), nullable=True) # This is effectively Sell Price
+    buy_price_per_sqm: Mapped[float | None] = mapped_column(DECIMAL(15, 2), nullable=True)
 
 class Size(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     __tablename__ = "sizes"
