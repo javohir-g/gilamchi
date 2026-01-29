@@ -110,6 +110,7 @@ export function BranchProfitDetail() {
       totalQuantity: number;
       totalArea?: number;
       totalProfit: number;
+      totalSellerProfit: number;
       salesCount: number;
     }
   >();
@@ -119,12 +120,14 @@ export function BranchProfitDetail() {
     if (!product) return;
 
     const profit = calculateDirectorProfit(sale);
+    const sellerProfit = sale.seller_profit || 0;
     const existing = productProfitMap.get(sale.productId);
 
     if (existing) {
       existing.totalQuantity += sale.quantity;
       existing.totalArea = (existing.totalArea || 0) + (sale.area || 0);
       existing.totalProfit += profit;
+      existing.totalSellerProfit += sellerProfit;
       existing.salesCount += 1;
     } else {
       productProfitMap.set(sale.productId, {
@@ -132,13 +135,14 @@ export function BranchProfitDetail() {
         totalQuantity: sale.quantity,
         totalArea: sale.area,
         totalProfit: profit,
+        totalSellerProfit: sellerProfit,
         salesCount: 1,
       });
     }
   });
 
   const productProfits = Array.from(productProfitMap.values()).sort(
-    (a, b) => b.totalProfit - a.totalProfit
+    (a, b) => b.totalSellerProfit - a.totalSellerProfit
   );
 
   const totalProfit = productProfits.reduce(
@@ -281,13 +285,13 @@ export function BranchProfitDetail() {
                         </div>
                         <div className="text-right">
                           <div className="font-semibold text-card-foreground">
-                            {formatCurrency(pp.totalProfit)}
+                            {formatCurrency(pp.totalSellerProfit)}
                           </div>
                           <Badge
                             variant="outline"
-                            className="text-xs mt-1 border-blue-500 text-blue-600 dark:text-blue-400"
+                            className="text-[10px] mt-1 border-emerald-500 text-emerald-600 dark:text-emerald-400 bg-emerald-50/50"
                           >
-                            {percentageOfTotal}%
+                            Filial foydasi
                           </Badge>
                         </div>
                       </div>
@@ -296,13 +300,18 @@ export function BranchProfitDetail() {
                       <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border/50">
                         <div className="space-y-1">
                           <div className="text-xs text-muted-foreground">
-                            Jami sotildi
+                            Sklad foydasi
                           </div>
-                          <div className="text-sm font-medium text-card-foreground">
-                            {pp.product.type === "unit"
-                              ? `${pp.totalQuantity} dona`
-                              : `${(pp.totalArea || pp.totalQuantity).toFixed(1)} m²`
-                            }
+                          <div className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                            {formatCurrency(pp.totalProfit - pp.totalSellerProfit)}
+                          </div>
+                        </div>
+                        <div className="space-y-1 text-right">
+                          <div className="text-xs text-muted-foreground">
+                            Filial foydasi
+                          </div>
+                          <div className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                            {formatCurrency(pp.totalSellerProfit)}
                           </div>
                         </div>
                         <div className="space-y-1">

@@ -126,10 +126,20 @@ export function Hisob() {
       (sum, sale) => sum + calculateDirectorProfit(sale),
       0,
     );
+    const adminProfit = branchSales.reduce(
+      (sum, sale) => sum + (sale.admin_profit || 0),
+      0,
+    );
+    const sellerProfit = branchSales.reduce(
+      (sum, sale) => sum + (sale.seller_profit || 0),
+      0,
+    );
     return {
       branchId: branch.id,
       branchName: branch.name,
       profit,
+      adminProfit,
+      sellerProfit,
       salesCount: branchSales.length,
     };
   });
@@ -303,8 +313,13 @@ export function Hisob() {
                       <div className="font-bold text-lg text-card-foreground">
                         {bp.branchName}
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {bp.salesCount} ta savdo
+                      <div className="flex items-center space-x-2 mt-1">
+                        <Badge variant="secondary" className="text-[10px] bg-blue-50 text-blue-600 border-blue-100">
+                          Sklad: {formatCurrency(bp.adminProfit)}
+                        </Badge>
+                        <Badge variant="secondary" className="text-[10px] bg-emerald-50 text-emerald-600 border-emerald-100">
+                          Filial: {formatCurrency(bp.sellerProfit)}
+                        </Badge>
                       </div>
                     </div>
                   </div>
