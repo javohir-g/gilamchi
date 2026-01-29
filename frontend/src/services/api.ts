@@ -137,7 +137,13 @@ const fromSale = (data: any): any => ({
   sellerId: data.seller_id,
   date: data.date, // Use the actual business date field
   orderId: data.order_id,
-  type: data.product?.type || "unit" // Nested info
+  type: data.product?.type || "unit", // Nested info
+  profit: data.profit,
+  admin_profit: data.admin_profit,
+  seller_profit: data.seller_profit,
+  width: data.width,
+  length: data.length,
+  area: data.area
 });
 
 const toSale = (data: any): any => ({

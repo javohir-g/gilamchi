@@ -95,6 +95,11 @@ export function DailySales() {
     0,
   );
 
+  const totalBranchProfit = todaySales.reduce(
+    (sum, sale) => sum + (sale.seller_profit || 0),
+    0,
+  );
+
   // Group by payment type
   const cashTotal = todaySales
     .filter((s) => s.paymentType === "cash")
@@ -144,24 +149,44 @@ export function DailySales() {
 
       <div className="p-4 space-y-6">
         {/* Total Summary */}
-        <Card className="border-2 border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="mb-1 text-sm text-blue-700 dark:text-blue-300">
-                Jami summa
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="border-2 border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="mb-1 text-sm text-blue-700 dark:text-blue-300">
+                  Jami summa
+                </div>
+                <div className="text-3xl text-blue-900 dark:text-blue-100">
+                  {formatCurrency(totalAmount)}
+                </div>
+                <div className="mt-1 text-sm text-blue-700 dark:text-blue-300">
+                  {orders.length} ta buyurtma
+                </div>
               </div>
-              <div className="text-3xl text-blue-900 dark:text-blue-100">
-                {formatCurrency(totalAmount)}
-              </div>
-              <div className="mt-1 text-sm text-blue-700 dark:text-blue-300">
-                {orders.length} ta buyurtma
+              <div className="rounded-full bg-blue-200 dark:bg-blue-800 p-4">
+                <DollarSign className="h-10 w-10 text-blue-700 dark:text-blue-300" />
               </div>
             </div>
-            <div className="rounded-full bg-blue-200 dark:bg-blue-800 p-4">
-              <DollarSign className="h-10 w-10 text-blue-700 dark:text-blue-300" />
-            </div>
-          </div>
-        </Card>
+          </Card>
+
+          {totalBranchProfit > 0 && (
+            <Card className="border-2 border-emerald-200 dark:border-emerald-800 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950 dark:to-emerald-900 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="mb-1 text-sm text-emerald-700 dark:text-emerald-300">
+                    Filial foydasi
+                  </div>
+                  <div className="text-3xl text-emerald-900 dark:text-emerald-100">
+                    {formatCurrency(totalBranchProfit)}
+                  </div>
+                </div>
+                <div className="rounded-full bg-emerald-200 dark:bg-emerald-800 p-4">
+                  <DollarSign className="h-10 w-10 text-emerald-700 dark:text-emerald-300" />
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
 
         {/* Orders List */}
         <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
@@ -255,8 +280,24 @@ export function DailySales() {
                             minute: "2-digit",
                           })}
                         </div>
-                        <div className="text-lg text-blue-600 dark:text-blue-400">
-                          {formatCurrency(order.totalAmount)}
+                        <div className="text-right">
+                          <div className="text-lg text-blue-600 dark:text-blue-400">
+                            {formatCurrency(order.totalAmount)}
+                          </div>
+                          {(() => {
+                            const branchProfit = order.sales.reduce(
+                              (sum, sale) => sum + (sale.seller_profit || 0),
+                              0,
+                            );
+                            if (branchProfit > 0) {
+                              return (
+                                <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                                  +{formatCurrency(branchProfit)}
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
                         </div>
                       </div>
                     </div>
@@ -280,8 +321,15 @@ export function DailySales() {
                                     : `${(sale.area || sale.quantity).toFixed(1)} m²`}
                                 </div>
                               </div>
-                              <div className="text-blue-600 dark:text-blue-400">
-                                {formatCurrency(sale.amount)}
+                              <div className="text-right">
+                                <div className="text-blue-600 dark:text-blue-400">
+                                  {formatCurrency(sale.amount)}
+                                </div>
+                                {sale.seller_profit && sale.seller_profit > 0 && (
+                                  <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                                    +{formatCurrency(sale.seller_profit)}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           ))}

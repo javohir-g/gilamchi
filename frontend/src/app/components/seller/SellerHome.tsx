@@ -144,13 +144,13 @@ export function SellerHome() {
             </div>
           </Card>
 
-          {/* Extra Profit */}
+          {/* Branch Profit */}
           {(() => {
-            const totalProfitToday = todaySales.reduce(
-              (sum, sale) => sum + (sale.profit || 0),
+            const totalBranchProfit = todaySales.reduce(
+              (sum, sale) => sum + (sale.seller_profit || 0),
               0,
             );
-            if (totalProfitToday <= 0) return null;
+            if (totalBranchProfit <= 0) return null;
             return (
               <Card className="p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 dark:from-emerald-700 dark:to-emerald-800 border-0 shadow-lg shadow-emerald-500/20">
                 <div className="flex items-start justify-between">
@@ -158,11 +158,11 @@ export function SellerHome() {
                     <div className="flex items-center space-x-2 mb-2">
                       <HandCoins className="h-5 w-5 text-white" />
                       <span className="text-sm text-emerald-100">
-                        Qo'shimcha foyda
+                        Filial foydasi
                       </span>
                     </div>
                     <div className="text-3xl font-bold text-white">
-                      {formatCurrency(totalProfitToday)}
+                      {formatCurrency(totalBranchProfit)}
                     </div>
                   </div>
                   <div className="bg-white/20 rounded-full p-3">
@@ -249,23 +249,23 @@ export function SellerHome() {
                             {formatCurrency(order.totalAmount)}
                           </div>
                           {(() => {
-                            const totalProfit = order.sales.reduce(
-                              (sum, sale) => sum + (sale.profit || 0),
+                            const branchProfit = order.sales.reduce(
+                              (sum, sale) => sum + (sale.seller_profit || 0),
                               0,
                             );
-                            if (totalProfit !== 0) {
+                            if (branchProfit !== 0) {
                               return (
                                 <Badge
                                   variant="outline"
                                   className="text-xs font-bold mt-1 px-2 py-0.5 rounded-full"
                                   style={{
-                                    borderColor: totalProfit > 0 ? "#22c55e" : "#ef4444",
-                                    color: totalProfit > 0 ? "#22c55e" : "#ef4444",
-                                    backgroundColor: totalProfit > 0 ? "#22c55e10" : "#ef444410",
+                                    borderColor: branchProfit > 0 ? "#22c55e" : "#ef4444",
+                                    color: branchProfit > 0 ? "#22c55e" : "#ef4444",
+                                    backgroundColor: branchProfit > 0 ? "#22c55e10" : "#ef444410",
                                   }}
                                 >
-                                  {totalProfit > 0 ? "+" : ""}
-                                  {formatCurrency(totalProfit)}
+                                  {branchProfit > 0 ? "+" : ""}
+                                  {formatCurrency(branchProfit)}
                                 </Badge>
                               );
                             }
@@ -291,10 +291,24 @@ export function SellerHome() {
                                 <div className="text-muted-foreground text-xs">
                                   {sale.quantity}{" "}
                                   {sale.type === "unit" ? "dona" : "metr"}
+                                  {sale.area && ` • ${sale.area.toFixed(2)} m²`}
                                 </div>
                               </div>
-                              <div className="text-foreground font-bold">
-                                {formatCurrency(sale.amount)}
+                              <div className="text-right">
+                                <div className="text-foreground font-bold">
+                                  {formatCurrency(sale.amount)}
+                                </div>
+                                {sale.seller_profit && sale.seller_profit !== 0 && (
+                                  <div
+                                    className="text-xs font-semibold mt-0.5"
+                                    style={{
+                                      color: sale.seller_profit > 0 ? "#22c55e" : "#ef4444",
+                                    }}
+                                  >
+                                    {sale.seller_profit > 0 ? "+" : ""}
+                                    {formatCurrency(sale.seller_profit)}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           ))}
