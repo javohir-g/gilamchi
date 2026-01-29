@@ -219,7 +219,7 @@ export function BranchProfitDetail() {
             <div className="flex flex-col">
               <div className="flex items-center space-x-2 mb-2">
                 <TrendingUp className="h-4 w-4 text-white" />
-                <span className="text-xs text-blue-100">Sklad foydasi</span>
+                <span className="text-xs text-blue-100">Mening foydam</span>
               </div>
               <div className="text-xl font-bold text-white">
                 {formatCurrency(totalAdminProfit)}
@@ -230,7 +230,7 @@ export function BranchProfitDetail() {
             <div className="flex flex-col">
               <div className="flex items-center space-x-2 mb-2">
                 <DollarSign className="h-4 w-4 text-white" />
-                <span className="text-xs text-emerald-100">Sotuvchi foydasi</span>
+                <span className="text-xs text-emerald-100">Filiallar foydasi</span>
               </div>
               <div className="text-xl font-bold text-white">
                 {formatCurrency(totalSellerProfit)}
@@ -305,7 +305,7 @@ export function BranchProfitDetail() {
                       <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border/50">
                         <div className="space-y-1">
                           <div className="text-xs text-muted-foreground">
-                            Sklad foydasi
+                            Mening foydam
                           </div>
                           <div className="text-sm font-medium text-blue-600 dark:text-blue-400">
                             {formatCurrency(pp.totalProfit - pp.totalSellerProfit)}
@@ -313,7 +313,7 @@ export function BranchProfitDetail() {
                         </div>
                         <div className="space-y-1 text-right">
                           <div className="text-xs text-muted-foreground">
-                            Filial foydasi
+                            Filiallar foydasi
                           </div>
                           <div className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
                             {formatCurrency(pp.totalSellerProfit)}
@@ -360,7 +360,7 @@ export function BranchProfitDetail() {
               <li>• Jami {productProfits.length} xil mahsulot sotildi</li>
               <li>• Jami {filteredSales.length} ta savdo amalga oshirildi</li>
               <li>
-                • Umumiy foyda: {formatCurrency(totalProfit)} (Sklad: {formatCurrency(totalAdminProfit)}, Filial: {formatCurrency(totalSellerProfit)})
+                • Umumiy foyda: {formatCurrency(totalProfit)} (Mening: {formatCurrency(totalAdminProfit)}, Filiallar: {formatCurrency(totalSellerProfit)})
               </li>
             </ul>
           </div>
@@ -392,7 +392,7 @@ export function BranchProfitDetail() {
                 </div>
                 <div className="flex items-center space-x-4 text-xs">
                   <span className="text-muted-foreground">
-                    Sklad: <span className="text-blue-600">{formatCurrency(sale.admin_profit || 0)}</span>
+                    Men: <span className="text-blue-600">{formatCurrency(sale.admin_profit || 0)}</span>
                   </span>
                   <span className="text-muted-foreground">
                     Filial: <span className="text-emerald-600">{formatCurrency(sale.seller_profit || 0)}</span>
