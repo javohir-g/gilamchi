@@ -111,12 +111,17 @@ export function AdminDashboard() {
       (sum, sale) => sum + (sale.seller_profit || 0),
       0,
     );
+    const branchAdminProfit = branchSales.reduce(
+      (sum, sale) => sum + (sale.admin_profit || 0),
+      0,
+    );
 
     return {
       ...branch,
       todaySales: periodTotal, // Re-using property name but it's period-based now
       cashAmount: cashTotal,
       profit: branchProfit,
+      adminProfit: branchAdminProfit,
     };
   });
 
@@ -287,19 +292,34 @@ export function AdminDashboard() {
                       <div className="font-bold text-lg text-card-foreground">
                         {formatCurrency(branch.todaySales)}
                       </div>
-                      {branch.profit > 0 && (
-                        <Badge
-                          variant="outline"
-                          className="text-xs font-bold mt-1"
-                          style={{
-                            borderColor: "#22c55e",
-                            color: "#22c55e",
-                            backgroundColor: "#22c55e10",
-                          }}
-                        >
-                          +{formatCurrency(branch.profit)}
-                        </Badge>
-                      )}
+                      <div className="flex flex-col items-end gap-1 mt-1">
+                        {branch.adminProfit > 0 && (
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] font-bold"
+                            style={{
+                              borderColor: "#6366f1",
+                              color: "#6366f1",
+                              backgroundColor: "#6366f110",
+                            }}
+                          >
+                            Sklad: +{formatCurrency(branch.adminProfit)}
+                          </Badge>
+                        )}
+                        {branch.profit > 0 && (
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] font-bold"
+                            style={{
+                              borderColor: "#22c55e",
+                              color: "#22c55e",
+                              backgroundColor: "#22c55e10",
+                            }}
+                          >
+                            Filial: +{formatCurrency(branch.profit)}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                     <ChevronRight className="h-6 w-6 text-muted-foreground" />
                   </div>
