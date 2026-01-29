@@ -90,8 +90,13 @@ export function BranchDetail() {
     0,
   );
 
-  const totalExtraProfit = branchSales.reduce(
-    (sum, s) => sum + (s.profit || 0),
+  const totalAdminProfit = branchSales.reduce(
+    (sum, s) => sum + (s.admin_profit || 0),
+    0,
+  );
+
+  const totalSellerProfit = branchSales.reduce(
+    (sum, s) => sum + (s.seller_profit || 0),
     0,
   );
 
@@ -140,33 +145,28 @@ export function BranchDetail() {
       </div>
 
       <div className="p-4 space-y-6">
-        {/* Total Sales */}
-        <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
-          <div className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-            {getLabel("Jami savdo")}
-          </div>
-          <div className="text-3xl text-blue-600 dark:text-blue-400">
-            {formatCurrency(totalSales)}
-          </div>
-          <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {branchSales.length} ta mahsulot sotildi
-          </div>
-        </Card>
 
-        {/* Extra Profit */}
-        {totalExtraProfit > 0 && (
-          <Card className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-green-200 dark:border-green-800">
-            <div className="mb-2 text-sm text-green-700 dark:text-green-300">
-              {getLabel("Qo'shimcha foyda")}
+
+        {/* Profit Breakdown */}
+        <div className="grid grid-cols-2 gap-4">
+          <Card className="p-6 bg-gradient-to-br from-indigo-500 to-indigo-600 dark:from-indigo-700 dark:to-indigo-800 border-0 shadow-lg shadow-indigo-500/20">
+            <div className="mb-2 text-sm text-indigo-100">
+              {getLabel("Mening foydam")}
             </div>
-            <div className="text-3xl text-green-600 dark:text-green-400">
-              {formatCurrency(totalExtraProfit)}
-            </div>
-            <div className="mt-1 text-sm text-green-700 dark:text-green-300">
-              Mahsulotlar standart narxdan yuqoriroq sotildi
+            <div className="text-2xl font-bold text-white">
+              {formatCurrency(totalAdminProfit)}
             </div>
           </Card>
-        )}
+
+          <Card className="p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 dark:from-emerald-700 dark:to-emerald-800 border-0 shadow-lg shadow-emerald-500/20">
+            <div className="mb-2 text-sm text-emerald-100">
+              {getLabel("Filial foydasi")}
+            </div>
+            <div className="text-2xl font-bold text-white">
+              {formatCurrency(totalSellerProfit)}
+            </div>
+          </Card>
+        </div>
 
         {/* Expenses */}
         <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
@@ -280,6 +280,16 @@ export function BranchDetail() {
                             : "O'tkazma"}
                       </Badge>
                     </div>
+                    {(sale.admin_profit !== undefined || sale.seller_profit !== undefined) && (
+                      <div className="flex items-center space-x-3 mt-1.5 text-[10px]">
+                        <span className="text-indigo-600 dark:text-indigo-400 font-medium">
+                          Men: {formatCurrency(sale.admin_profit || 0)}
+                        </span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                          Filial: {formatCurrency(sale.seller_profit || 0)}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="text-right">
                     <div className="text-lg dark:text-white">
@@ -305,7 +315,7 @@ export function BranchDetail() {
             </div>
           )}
         </Card>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }
