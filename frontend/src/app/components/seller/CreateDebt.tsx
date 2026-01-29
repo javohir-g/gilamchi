@@ -19,9 +19,9 @@ export function CreateDebt() {
   const navigate = useNavigate();
   const location = useLocation();
   const { addDebt, user, clearBasket } = useApp();
-  
+
   const state = location.state as LocationState | null;
-  
+
   // If no state, redirect back
   if (!state || !user) {
     navigate("/seller/checkout");
@@ -54,7 +54,12 @@ export function CreateDebt() {
   });
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("uz-UZ").format(amount) + " so'm";
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount);
   };
 
   const handleSaveDebt = () => {

@@ -56,7 +56,7 @@ export function SellProductDetail() {
     addSale({
       id: `s${Date.now()}`,
       productId: product.id,
-      productName: product.name,
+      productName: product.code || "Unknown",
       quantity: saleQuantity,
       amount: totalAmount,
       paymentType,
@@ -75,7 +75,12 @@ export function SellProductDetail() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('uz-UZ').format(amount) + ' so\'m';
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount);
   };
 
   return (

@@ -130,7 +130,7 @@ export function AddToBasketModal({
     const item: BasketItem = {
       id: `b${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Unique ID
       productId: product.id,
-      productName: product.name,
+      productName: product.code || "Unknown",
       category: product.category,
       type: product.type,
       quantity: qty,
@@ -151,9 +151,12 @@ export function AddToBasketModal({
   };
 
   const formatCurrency = (amount: number) => {
-    return (
-      new Intl.NumberFormat("uz-UZ").format(amount) + " so'm"
-    );
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount);
   };
 
   return (

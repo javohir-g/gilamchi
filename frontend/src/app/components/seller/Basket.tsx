@@ -22,9 +22,12 @@ export function Basket() {
   const [editingItem, setEditingItem] = useState<BasketItem | null>(null);
 
   const formatCurrency = (amount: number) => {
-    return (
-      new Intl.NumberFormat("uz-UZ").format(amount) + " so'm"
-    );
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount);
   };
 
   const total = basket.reduce(

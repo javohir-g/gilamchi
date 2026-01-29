@@ -36,8 +36,8 @@ export function EditBasketItemModal({
     isMetraj && item.area && item.quantity
       ? (item.quantity / item.area).toFixed(1) // Extract meters from quantity
       : !isUnit && !isCarpetOrMetraj
-      ? item.quantity.toString()
-      : "1"
+        ? item.quantity.toString()
+        : "1"
   );
   const [width, setWidth] = useState(item.width || "");
   const [height, setHeight] = useState(item.height || "");
@@ -121,9 +121,12 @@ export function EditBasketItemModal({
   };
 
   const formatCurrency = (amount: number) => {
-    return (
-      new Intl.NumberFormat("uz-UZ").format(amount) + " so'm"
-    );
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount);
   };
 
   return (

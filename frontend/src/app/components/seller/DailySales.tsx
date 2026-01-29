@@ -112,9 +112,12 @@ export function DailySales() {
     .reduce((sum, s) => sum + s.amount, 0);
 
   const formatCurrency = (amount: number) => {
-    return (
-      new Intl.NumberFormat("uz-UZ").format(amount) + " so'm"
-    );
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount);
   };
 
   const toggleOrder = (orderId: string) => {

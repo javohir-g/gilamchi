@@ -33,20 +33,20 @@ export function Checkout() {
 
   // Helper function to format number with thousand separators
   const formatNumber = (value: string): string => {
-    // Remove all non-digit characters
-    const numericValue = value.replace(/\D/g, '');
+    // Remove all non-digit and non-dot characters
+    const cleanedValue = value.replace(/[^\d.]/g, '');
 
-    // Return empty if no digits
-    if (!numericValue) return '';
-
-    // Format with thousand separators
-    return new Intl.NumberFormat('en-US').format(parseInt(numericValue, 10));
+    // Ensure only one dot
+    const parts = cleanedValue.split('.');
+    if (parts.length > 2) {
+      return parts[0] + '.' + parts.slice(1).join('');
+    }
+    return cleanedValue;
   };
 
   // Helper function to parse formatted number to raw number
   const parseFormattedNumber = (value: string): number => {
-    const numericValue = value.replace(/,/g, '');
-    return parseFloat(numericValue) || 0;
+    return parseFloat(value) || 0;
   };
 
   // Calculate total from cash + card
@@ -55,9 +55,12 @@ export function Checkout() {
     parseFormattedNumber(cardAmount);
 
   const formatCurrency = (amount: number) => {
-    return (
-      new Intl.NumberFormat("uz-UZ").format(amount) + " so'm"
-    );
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount);
   };
 
   const handleComplete = () => {

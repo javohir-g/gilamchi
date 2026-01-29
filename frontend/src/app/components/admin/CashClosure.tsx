@@ -38,14 +38,19 @@ export function CashClosure() {
 
     setIsClosed(true);
     toast.success('Kunlik kassa yopildi!');
-    
+
     setTimeout(() => {
       navigate('/admin/dashboard');
     }, 2000);
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('uz-UZ').format(amount) + ' so\'m';
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount);
   };
 
   return (
@@ -112,13 +117,12 @@ export function CashClosure() {
         {/* Difference */}
         {receivedCash && (
           <Card
-            className={`p-6 ${
-              difference === 0
+            className={`p-6 ${difference === 0
                 ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800'
                 : difference > 0
-                ? 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800'
-                : 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
-            }`}
+                  ? 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800'
+                  : 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
+              }`}
           >
             <div className="mb-2 flex items-center text-sm">
               <AlertCircle className="mr-1 h-4 w-4" />
@@ -127,13 +131,12 @@ export function CashClosure() {
               </span>
             </div>
             <div
-              className={`text-3xl ${
-                difference === 0
+              className={`text-3xl ${difference === 0
                   ? 'text-green-700 dark:text-green-400'
                   : difference > 0
-                  ? 'text-blue-700 dark:text-blue-400'
-                  : 'text-red-700 dark:text-red-400'
-              }`}
+                    ? 'text-blue-700 dark:text-blue-400'
+                    : 'text-red-700 dark:text-red-400'
+                }`}
             >
               {difference > 0 ? '+' : ''}
               {formatCurrency(difference)}
