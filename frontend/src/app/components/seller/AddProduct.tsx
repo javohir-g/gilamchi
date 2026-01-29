@@ -217,7 +217,8 @@ export function AddProduct() {
                 setIsUsdPriced(true);
               }
               if (sellRate > 0) {
-                setSellPrice(calculatedSellPrice.toString());
+                // IMPORTANT: collection.price_per_sqm is in USD, but sellPrice should be in SOM
+                setSellPrice((calculatedSellPrice * 12800).toFixed(0));
               }
             }
           }
@@ -229,11 +230,14 @@ export function AddProduct() {
 
         if (buyRate > 0) {
           setBuyPriceUsd(calculatedBuyPriceMeter.toFixed(2));
+          // Also set SOM buy price for consistency
+          setBuyPrice((calculatedBuyPriceMeter * 12800).toFixed(0));
           setIsUsdPriced(true);
         }
         if (sellRate > 0) {
-          setSellPricePerMeter(calculatedSellPriceMeter.toFixed(2));
-          setSellPrice(calculatedSellPriceMeter.toString());
+          // Convert to SOM
+          setSellPricePerMeter((calculatedSellPriceMeter * 12800).toFixed(0));
+          setSellPrice((calculatedSellPriceMeter * 12800).toFixed(0));
         }
       }
     }
@@ -729,19 +733,25 @@ export function AddProduct() {
               <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
                 <Label className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Xarid Narxi (Avto)</Label>
                 <div className="text-xl font-bold mt-1 text-slate-700 dark:text-slate-300">
-                  ${buyPriceUsd || "0"} <span className="text-sm font-normal text-muted-foreground">/ dona</span>
+                  {buyPriceUsd ? `$${buyPriceUsd}` : "0"}
+                </div>
+                <div className="text-[10px] text-muted-foreground font-medium">
+                  ~ {new Intl.NumberFormat("uz-UZ").format(parseFloat(buyPrice) || 0)} so'm
                 </div>
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  Kolleksiya narxi: ${collections.find(c => c.name === collection)?.buy_price_per_sqm || 0}/m²
+                  Kolleksiya: ${collections.find(c => c.name === collection)?.buy_price_per_sqm || 0}/m²
                 </p>
               </div>
               <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
-                <Label className="text-xs text-blue-600/70 dark:text-blue-400/70 uppercase font-bold tracking-wider">Sotish Narxi (Avto)</Label>
+                <Label className="text-xs text-blue-600/70 dark:text-blue-400/70 uppercase font-bold tracking-wider">Sotish (Filialga)</Label>
                 <div className="text-xl font-bold mt-1 text-blue-600 dark:text-blue-400">
-                  ${(parseFloat(sellPrice) / (parseFloat(quantity) || 1)).toFixed(2) || "0"} <span className="text-sm font-normal text-blue-400/70">/ dona</span>
+                  {new Intl.NumberFormat("uz-UZ").format(parseFloat(sellPrice) || 0)} <span className="text-xs font-normal">so'm</span>
+                </div>
+                <div className="text-[10px] text-blue-500/70 font-medium">
+                  ~ ${(parseFloat(sellPrice) / 12800).toFixed(2)} USD
                 </div>
                 <p className="text-[10px] text-blue-500/70 mt-1">
-                  Kolleksiya narxi: ${collections.find(c => c.name === collection)?.price_per_sqm || 0}/m²
+                  Kolleksiya: ${collections.find(c => c.name === collection)?.price_per_sqm || 0}/m²
                 </p>
               </div>
             </div>
