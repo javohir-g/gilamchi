@@ -100,6 +100,7 @@ export function Inventory() {
     user,
     updateProduct,
     deleteProduct,
+    collections,
   } = useApp();
 
   // Admin / General State
@@ -1032,6 +1033,18 @@ export function Inventory() {
                           })}
                         </div>
                       )}
+
+                      {(() => {
+                        const collection = collections.find((c: any) => c.name === product.collection);
+                        if (collection?.price_usd_per_sqm && (product.category === "Gilamlar" || product.category === "Metrajlar")) {
+                          return (
+                            <div className="text-xs font-semibold text-green-600 dark:text-green-400">
+                              ${collection.price_usd_per_sqm}/m²
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
 
                     <div className="space-y-2">

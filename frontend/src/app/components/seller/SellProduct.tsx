@@ -31,7 +31,7 @@ export function SellProduct() {
   const [selectedCategory, setSelectedCategory] =
     useState<Category | null>(null);
   const navigate = useNavigate();
-  const { products, user, basket, addToBasket } = useApp();
+  const { products, user, basket, addToBasket, collections } = useApp();
 
   const categories: {
     name: Category;
@@ -383,6 +383,17 @@ export function SellProduct() {
                           <span className="ml-1">{product.collection}</span>
                         </div>
                       )}
+                      {(() => {
+                        const collection = collections.find(c => c.name === product.collection);
+                        if (collection?.price_usd_per_sqm && (product.category === "Gilamlar" || product.category === "Metrajlar")) {
+                          return (
+                            <div className="text-xs font-semibold text-green-600 dark:text-green-400">
+                              ${collection.price_usd_per_sqm}/m²
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
                     <Button
                       onClick={(e) =>

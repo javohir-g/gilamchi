@@ -108,7 +108,7 @@ export function AdminDashboard() {
       .filter((s) => s.paymentType === "cash")
       .reduce((sum, sale) => sum + sale.amount, 0);
     const branchProfit = branchSales.reduce(
-      (sum, sale) => sum + (sale.profit || 0),
+      (sum, sale) => sum + (sale.seller_profit || 0),
       0,
     );
 

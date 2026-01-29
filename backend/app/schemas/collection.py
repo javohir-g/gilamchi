@@ -7,6 +7,7 @@ class CollectionBase(BaseModel):
     icon: Optional[str] = None
     price_per_sqm: Optional[float] = None
     buy_price_per_sqm: Optional[float] = None
+    price_usd_per_sqm: Optional[float] = None
 
 class CollectionCreate(CollectionBase):
     pass
