@@ -355,11 +355,51 @@ export function BranchProfitDetail() {
               <li>• Jami {productProfits.length} xil mahsulot sotildi</li>
               <li>• Jami {filteredSales.length} ta savdo amalga oshirildi</li>
               <li>
-                • Direktor uchun umumiy foyda: {formatCurrency(totalProfit)}
+                • Umumiy foyda: {formatCurrency(totalProfit)} (Sklad: {formatCurrency(totalAdminProfit)}, Filial: {formatCurrency(totalSellerProfit)})
               </li>
             </ul>
           </div>
         </Card>
+
+        {/* Detailed Sales History */}
+        <div>
+          <h3 className="text-sm text-muted-foreground mb-3 px-1">
+            YAQINDAGI SAVDOLAR
+          </h3>
+          <div className="space-y-3">
+            {filteredSales.slice(0, 50).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((sale) => (
+              <Card key={sale.id} className="p-4 border border-border bg-card">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <div className="font-medium text-card-foreground">{sale.productName}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(sale.date).toLocaleString("uz-UZ")}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-blue-600 dark:text-blue-400">
+                      {formatCurrency(sale.amount)}
+                    </div>
+                    <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-600 border-emerald-100">
+                      +{formatCurrency(sale.seller_profit || 0)}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4 text-xs">
+                  <span className="text-muted-foreground">
+                    Sklad: <span className="text-blue-600">{formatCurrency(sale.admin_profit || 0)}</span>
+                  </span>
+                  <span className="text-muted-foreground">
+                    Filial: <span className="text-emerald-600">{formatCurrency(sale.seller_profit || 0)}</span>
+                  </span>
+                  <span className="text-muted-foreground">
+                    To'lov: <span className="font-medium uppercase">{sale.paymentType}</span>
+                  </span>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
