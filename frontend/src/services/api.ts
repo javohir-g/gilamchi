@@ -329,6 +329,7 @@ export const expenseService = {
       id: e.id,
       amount: e.amount,
       description: e.description,
+      category: e.category,
       branchId: e.branch_id,
       sellerId: e.seller_id,
       date: e.created_at,
@@ -338,12 +339,15 @@ export const expenseService = {
     const payload = {
       amount: data.amount,
       description: data.description,
+      category: data.category,
+      branch_id: data.branchId,
     };
     const response = await api.post('expenses/', payload);
     return {
       id: response.data.id,
       amount: response.data.amount,
       description: response.data.description,
+      category: response.data.category,
       branchId: response.data.branch_id,
       sellerId: response.data.seller_id,
       date: response.data.created_at,

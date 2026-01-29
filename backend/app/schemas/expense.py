@@ -13,6 +13,7 @@ class ExpenseCreate(BaseModel):
     amount: float
     description: str
     category: str = "branch"
+    branch_id: Optional[UUID4] = None
 
 class ExpenseResponse(ExpenseBase):
     id: UUID4

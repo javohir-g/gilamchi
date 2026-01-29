@@ -14,11 +14,16 @@ def create_expense(
     db: Session = Depends(get_db), 
     current_user = Depends(get_current_user)
 ):
+    branch_id = expense.branch_id or current_user.branch_id
+    
+    if not branch_id:
+        raise HTTPException(status_code=400, detail="Branch ID is required")
+        
     new_expense = Expense(
         amount=expense.amount,
         description=expense.description,
         category=expense.category,
-        branch_id=current_user.branch_id,
+        branch_id=branch_id,
         seller_id=current_user.id
     )
     
