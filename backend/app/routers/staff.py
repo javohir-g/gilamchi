@@ -5,7 +5,7 @@ from uuid import UUID
 from ..database import get_db
 from ..models.staff import Staff
 from ..schemas.staff import StaffCreate, StaffUpdate, StaffResponse
-from ..auth import get_current_user
+from ..utils.dependencies import get_current_user
 
 router = APIRouter(prefix="/staff", tags=["staff"])
 
