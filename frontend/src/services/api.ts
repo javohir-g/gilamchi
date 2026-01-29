@@ -163,14 +163,16 @@ const fromCollection = (data: any): any => ({
   name: data.name,
   icon: data.icon,
   price_per_sqm: data.price_per_sqm,
-  buy_price_per_sqm: data.buy_price_per_sqm
+  buy_price_per_sqm: data.buy_price_per_sqm,
+  price_usd_per_sqm: data.price_usd_per_sqm
 });
 
 const toCollection = (data: any): any => ({
   name: data.name,
   icon: data.icon,
   price_per_sqm: data.price_per_sqm,
-  buy_price_per_sqm: data.buy_price_per_sqm
+  buy_price_per_sqm: data.buy_price_per_sqm,
+  price_usd_per_sqm: data.price_usd_per_sqm
 });
 
 const fromDebt = (data: any): any => ({

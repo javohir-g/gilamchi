@@ -82,6 +82,15 @@ export interface Sale {
   area?: number;
 }
 
+export interface Collection {
+  id: string;
+  name: string;
+  icon?: string;
+  price_per_sqm?: number;
+  buy_price_per_sqm?: number;
+  price_usd_per_sqm?: number;
+}
+
 export interface BasketItem {
   id: string; // Unique ID for this basket item
   productId: string;

@@ -184,7 +184,7 @@ export function Inventory() {
   // --- Unified Logic ---
 
   // 1. Get unique collections filtered by category
-  const collections = useMemo(() => {
+  const filteredCollectionNames = useMemo(() => {
     if (!selectedCategoryType) return [];
 
     const targetBranchId = isAdmin
@@ -786,7 +786,7 @@ export function Inventory() {
   const renderCollections = () => (
     <div className="p-4 space-y-4">
       <div className="grid grid-cols-2 gap-3">
-        {collections.map((collection) => {
+        {filteredCollectionNames.map((collection) => {
           const count = getCollectionCount(collection);
           return (
             <Card
@@ -809,7 +809,7 @@ export function Inventory() {
             </Card>
           );
         })}
-        {collections.length === 0 && (
+        {filteredCollectionNames.length === 0 && (
           <div className="col-span-2 text-center py-10 text-gray-500">
             Hech qanday kolleksiya topilmadi
           </div>
@@ -921,7 +921,7 @@ export function Inventory() {
         >
           Hammasi
         </Button>
-        {collections.map((c) => (
+        {filteredCollectionNames.map((c) => (
           <Button
             key={c}
             variant={selectedCollection === c ? "default" : "outline"}
