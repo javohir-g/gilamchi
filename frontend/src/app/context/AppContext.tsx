@@ -13,7 +13,8 @@ import {
   salesService,
   debtService,
   expenseService,
-  collectionService
+  collectionService,
+  staffService
 } from "../../services/api";
 
 export type UserRole = "admin" | "seller";
@@ -132,6 +133,7 @@ export interface Expense {
   category: "branch" | "staff";
   branchId: string;
   sellerId: string;
+  staffId?: string; // ID of StaffMember
   date: string;
 }
 
@@ -168,6 +170,13 @@ export interface Branch {
   status: "open" | "closed";
 }
 
+export interface StaffMember {
+  id: string;
+  name: string;
+  branchId: string;
+  isActive: boolean;
+}
+
 export interface Collection {
   id: string;
   name: string;
@@ -184,6 +193,7 @@ interface AppContextType {
   expenses: Expense[];
   debts: Debt[];
   branches: Branch[];
+  staffMembers: StaffMember[];
   collections: Collection[];
   basket: BasketItem[];
   addToBasket: (item: BasketItem) => void;
@@ -209,6 +219,9 @@ interface AppContextType {
   addCollection: (collection: Partial<Collection>) => Promise<void>;
   updateCollection: (id: string, updates: Partial<Collection>) => Promise<void>;
   deleteCollection: (id: string) => Promise<void>;
+  addStaffMember: (data: Partial<StaffMember>) => Promise<void>;
+  updateStaffMember: (id: string, updates: Partial<StaffMember>) => Promise<void>;
+  deleteStaffMember: (id: string) => Promise<void>;
   addExpense: (expense: Expense) => void;
   updateExpense: (expenseId: string, expense: Expense) => void;
   deleteExpense: (expenseId: string) => void;
@@ -250,6 +263,7 @@ export function AppProvider({
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [debts, setDebts] = useState<Debt[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
+  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [staff, setStaff] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -292,7 +306,8 @@ export function AppProvider({
         fetchSafe(() => salesService.getAll(), setSales),
         fetchSafe(() => debtService.getAll(), setDebts),
         fetchSafe(() => expenseService.getAll(), setExpenses),
-        fetchSafe(() => collectionService.getAll(), setCollections)
+        fetchSafe(() => collectionService.getAll(), setCollections),
+        fetchSafe(() => staffService.getAll(), setStaffMembers)
       ]);
     } catch (error) {
       console.error("Failed to fetch data", error);
@@ -426,6 +441,36 @@ export function AppProvider({
       await fetchData();
     } catch (error) {
       console.error("Failed to delete collection", error);
+      throw error;
+    }
+  };
+
+  const addStaffMember = async (data: Partial<StaffMember>) => {
+    try {
+      await staffService.create(data);
+      await fetchData();
+    } catch (error) {
+      console.error("Failed to add staff member", error);
+      throw error;
+    }
+  };
+
+  const updateStaffMember = async (id: string, updates: Partial<StaffMember>) => {
+    try {
+      await staffService.update(id, updates);
+      await fetchData();
+    } catch (error) {
+      console.error("Failed to update staff member", error);
+      throw error;
+    }
+  };
+
+  const deleteStaffMember = async (id: string) => {
+    try {
+      await staffService.delete(id);
+      await fetchData();
+    } catch (error) {
+      console.error("Failed to delete staff member", error);
       throw error;
     }
   };
@@ -771,6 +816,10 @@ export function AppProvider({
         isLoading,
         addBranch,
         deleteBranch,
+        staffMembers,
+        addStaffMember,
+        updateStaffMember,
+        deleteStaffMember,
       }}
     >
       {children}

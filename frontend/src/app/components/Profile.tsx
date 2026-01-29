@@ -245,12 +245,24 @@ export function Profile() {
 
               <button
                 onClick={() => navigate("/admin/manage-staff")}
-                className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-accent"
+                className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-accent border-b dark:border-gray-700"
               >
                 <div className="flex items-center space-x-3">
                   <Users className="h-5 w-5 text-muted-foreground" />
                   <span className="text-card-foreground">
-                    Xodimlar
+                    Xodimlar (Sotuvchilar)
+                  </span>
+                </div>
+              </button>
+
+              <button
+                onClick={() => navigate("/admin/manage-staff-members")}
+                className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-accent"
+              >
+                <div className="flex items-center space-x-3">
+                  <Users className="h-5 w-5 text-blue-600" />
+                  <span className="text-card-foreground font-medium">
+                    Xodimlar ro'yxati
                   </span>
                 </div>
               </button>

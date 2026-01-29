@@ -1,0 +1,24 @@
+from pydantic import BaseModel, UUID4
+from typing import Optional
+from datetime import datetime
+
+class StaffBase(BaseModel):
+    name: str
+    branch_id: UUID4
+    is_active: bool = True
+
+class StaffCreate(StaffBase):
+    pass
+
+class StaffUpdate(BaseModel):
+    name: Optional[str] = None
+    branch_id: Optional[UUID4] = None
+    is_active: Optional[bool] = None
+
+class StaffResponse(StaffBase):
+    id: UUID4
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True

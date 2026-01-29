@@ -14,6 +14,7 @@ export function AddExpense() {
   const {
     user,
     expenses,
+    staffMembers,
     addExpense,
     updateExpense,
     deleteExpense,
@@ -25,6 +26,9 @@ export function AddExpense() {
     null,
   );
   const [category, setCategory] = useState<"branch" | "staff">("branch");
+  const [staffId, setStaffId] = useState<string>("");
+
+  const branchStaffMembers = staffMembers.filter(s => s.branchId === user?.branchId && s.isActive);
 
   // Get today's expenses for this seller
   const myExpenses = expenses.filter((expense) => {
@@ -55,6 +59,7 @@ export function AddExpense() {
           description,
           amount: parseFloat(amount),
           category,
+          staffId: category === "staff" ? staffId : undefined,
           branchId: user?.branchId || "",
           sellerId: user?.id || "",
           date:
@@ -71,6 +76,7 @@ export function AddExpense() {
           description,
           amount: parseFloat(amount),
           category,
+          staffId: category === "staff" ? staffId : undefined,
           branchId: user?.branchId || "",
           sellerId: user?.id || "",
           date: new Date().toISOString(),
@@ -90,6 +96,7 @@ export function AddExpense() {
     setDescription(expense.description);
     setAmount(expense.amount.toString());
     setCategory(expense.category || "branch");
+    setStaffId(expense.staffId || "");
     setEditingId(expense.id);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -113,6 +120,8 @@ export function AddExpense() {
   const handleCancel = () => {
     setDescription("");
     setAmount("");
+    setCategory("branch");
+    setStaffId("");
     setEditingId(null);
   };
 
@@ -171,6 +180,23 @@ export function AddExpense() {
               Sotuvchi xarajati
             </button>
           </div>
+
+          {category === "staff" && (
+            <div className="mb-4">
+              <Label htmlFor="staff" className="mb-2 block dark:text-white">Xodimni tanlang</Label>
+              <select
+                id="staff"
+                className="w-full h-12 p-3 border rounded-xl dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                value={staffId}
+                onChange={(e) => setStaffId(e.target.value)}
+              >
+                <option value="">Xodimni tanlang</option>
+                {branchStaffMembers.map(s => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <Label
             htmlFor="description"
@@ -251,7 +277,7 @@ export function AddExpense() {
                       {formatCurrency(expense.amount)}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {expense.category === "staff" ? "Sotuvchi" : "Filial"} • {new Date(
+                      {expense.category === "staff" ? `Sotuvchi (${staffMembers.find(s => s.id === expense.staffId)?.name || 'Noma\'lum'})` : "Filial"} • {new Date(
                         expense.date,
                       ).toLocaleTimeString("uz-UZ", {
                         hour: "2-digit",

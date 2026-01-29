@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Float, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, timezone
 from .base import Base, UUIDMixin, TimestampMixin
 import uuid
@@ -12,3 +12,7 @@ class Expense(Base, UUIDMixin, TimestampMixin):
     category: Mapped[str] = mapped_column(String, nullable=False, default="branch") # "branch" or "staff"
     branch_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("branches.id"), nullable=False)
     seller_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    staff_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("staff.id"), nullable=True)
+
+    # Relationship
+    staff_member = relationship("Staff", back_populates="expenses")

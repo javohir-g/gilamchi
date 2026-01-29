@@ -16,7 +16,7 @@ export function BranchDetail() {
   const { branchId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { branches, sales, products, expenses, debts } = useApp();
+  const { branches, sales, products, expenses, debts, staffMembers } = useApp();
 
   const branch = branches.find((b) => b.id === branchId);
 
@@ -200,6 +200,47 @@ export function BranchDetail() {
           </Card>
         </div>
 
+        {/* Staff Profit Distribution Breakdown */}
+        {staffMembers.filter(s => s.branchId === branchId && s.isActive).length > 0 && (
+          <Card className="p-5 dark:bg-gray-800 dark:border-gray-700 border-emerald-100 bg-emerald-50/30">
+            <h3 className="mb-4 text-xs font-black dark:text-emerald-400 text-emerald-700 tracking-widest uppercase text-center">
+              XODIMLAR O'RТASIDA TAQSIMOT
+            </h3>
+            <div className="space-y-3">
+              {(() => {
+                const activeStaff = staffMembers.filter(s => s.branchId === branchId && s.isActive);
+                const sharePerPerson = totalSellerProfit / activeStaff.length;
+
+                return activeStaff.map(staff => {
+                  const individualExpenses = branchExpenses
+                    .filter(e => e.category === "staff" && e.staffId === staff.id)
+                    .reduce((sum, e) => sum + e.amount, 0);
+                  const netPayout = sharePerPerson - individualExpenses;
+
+                  return (
+                    <div key={staff.id} className="flex items-center justify-between p-3 rounded-lg bg-white dark:bg-gray-900 shadow-sm border border-emerald-100/50 dark:border-emerald-900/30">
+                      <div>
+                        <div className="font-bold text-sm dark:text-white">{staff.name}</div>
+                        <div className="text-[10px] text-gray-400 uppercase">
+                          Ulush: {formatCurrency(sharePerPerson)} • Xarajat: {formatCurrency(individualExpenses)}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-sm font-black ${netPayout >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          {formatCurrency(netPayout)}
+                        </div>
+                        <div className="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">
+                          Qo'lga tegishi
+                        </div>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </Card>
+        )}
+
         {/* Unified History List */}
         <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
           <h3 className="mb-4 text-lg font-bold dark:text-white tracking-tight">
@@ -258,10 +299,15 @@ export function BranchDetail() {
                     )}
 
                     {item.entryType === "expense" && (
-                      <div className="mt-1">
+                      <div className="mt-1 flex gap-1">
                         <Badge variant="outline" className="text-[9px] uppercase border-orange-200 text-orange-600 bg-orange-50/50">
                           {(item as any).category === "staff" ? "Sotuvchi xarajati" : "Filial xarajati"}
                         </Badge>
+                        {(item as any).category === "staff" && (item as any).staffId && (
+                          <Badge variant="outline" className="text-[9px] uppercase border-blue-200 text-blue-600 bg-blue-50/50">
+                            {staffMembers.find(s => s.id === (item as any).staffId)?.name || "Noma'lum"}
+                          </Badge>
+                        )}
                       </div>
                     )}
                   </div>

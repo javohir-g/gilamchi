@@ -5,15 +5,12 @@ from typing import Optional
 class ExpenseBase(BaseModel):
     amount: float
     description: str
-    category: str = "branch" # "branch" or "staff"
-    branch_id: UUID4
-    seller_id: UUID4
-
-class ExpenseCreate(BaseModel):
-    amount: float
-    description: str
     category: str = "branch"
     branch_id: Optional[UUID4] = None
+    staff_id: Optional[UUID4] = None
+
+class ExpenseCreate(ExpenseBase):
+    pass
 
 class ExpenseResponse(ExpenseBase):
     id: UUID4

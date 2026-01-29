@@ -15,3 +15,4 @@ class Branch(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     products = relationship("Product", back_populates="branch")
     sales = relationship("Sale", back_populates="branch")
     debts = relationship("Debt", back_populates="branch")
+    staff_members = relationship("Staff", back_populates="branch")

@@ -167,6 +167,13 @@ const fromCollection = (data: any): any => ({
   price_usd_per_sqm: data.price_usd_per_sqm
 });
 
+const fromStaff = (data: any): any => ({
+  id: data.id,
+  name: data.name,
+  branchId: data.branch_id,
+  isActive: data.is_active
+});
+
 const toCollection = (data: any): any => ({
   name: data.name,
   icon: data.icon,
@@ -341,6 +348,7 @@ export const expenseService = {
       description: data.description,
       category: data.category,
       branch_id: data.branchId,
+      staff_id: data.staffId,
     };
     const response = await api.post('expenses/', payload);
     return {
@@ -350,6 +358,7 @@ export const expenseService = {
       category: response.data.category,
       branchId: response.data.branch_id,
       sellerId: response.data.seller_id,
+      staffId: response.data.staff_id,
       date: response.data.created_at,
     };
   },
@@ -375,6 +384,34 @@ export const collectionService = {
   },
   delete: async (id: string) => {
     await api.delete(`collections/${id}`);
+  }
+};
+
+export const staffService = {
+  getAll: async (branchId?: string) => {
+    const response = await api.get('staff/', { params: branchId ? { branch_id: branchId } : {} });
+    return response.data.map(fromStaff);
+  },
+  create: async (data: any) => {
+    const payload = {
+      name: data.name,
+      branch_id: data.branchId,
+      is_active: data.isActive
+    };
+    const response = await api.post('staff/', payload);
+    return fromStaff(response.data);
+  },
+  update: async (id: string, data: any) => {
+    const payload = {
+      name: data.name,
+      branch_id: data.branchId,
+      is_active: data.isActive
+    };
+    const response = await api.patch(`staff/${id}`, payload);
+    return fromStaff(response.data);
+  },
+  delete: async (id: string) => {
+    await api.delete(`staff/${id}`);
   }
 };
 

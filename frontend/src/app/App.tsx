@@ -20,6 +20,7 @@ import { BranchDetail } from './components/admin/BranchDetail';
 import { BranchProfitDetail } from './components/admin/BranchProfitDetail';
 import { CashClosure } from './components/admin/CashClosure';
 import { ManageStaff } from './components/admin/ManageStaff';
+import { ManageStaffMembers } from './components/admin/ManageStaffMembers';
 import { ManageCollections } from './components/admin/ManageCollections';
 import { ManageSizes } from './components/admin/ManageSizes';
 import { Inventory } from './components/inventory/Inventory';
@@ -223,6 +224,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRole="admin">
               <ManageStaff />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/manage-staff-members"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <ManageStaffMembers />
             </ProtectedRoute>
           }
         />

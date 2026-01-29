@@ -24,7 +24,8 @@ def create_expense(
         description=expense.description,
         category=expense.category,
         branch_id=branch_id,
-        seller_id=current_user.id
+        seller_id=current_user.id,
+        staff_id=expense.staff_id
     )
     
     db.add(new_expense)
