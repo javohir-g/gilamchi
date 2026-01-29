@@ -24,6 +24,7 @@ export function AddExpense() {
   const [editingId, setEditingId] = useState<string | null>(
     null,
   );
+  const [category, setCategory] = useState<"branch" | "staff">("branch");
 
   // Get today's expenses for this seller
   const myExpenses = expenses.filter((expense) => {
@@ -53,6 +54,7 @@ export function AddExpense() {
           id: editingId,
           description,
           amount: parseFloat(amount),
+          category,
           branchId: user?.branchId || "",
           sellerId: user?.id || "",
           date:
@@ -68,6 +70,7 @@ export function AddExpense() {
           id: `e${Date.now()}`,
           description,
           amount: parseFloat(amount),
+          category,
           branchId: user?.branchId || "",
           sellerId: user?.id || "",
           date: new Date().toISOString(),
@@ -86,6 +89,7 @@ export function AddExpense() {
   const handleEdit = (expense: any) => {
     setDescription(expense.description);
     setAmount(expense.amount.toString());
+    setCategory(expense.category || "branch");
     setEditingId(expense.id);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -143,8 +147,34 @@ export function AddExpense() {
         {/* Description */}
         <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
           <Label
+            className="mb-3 block dark:text-white"
+          >
+            Xarajat turi
+          </Label>
+          <div className="flex gap-2 mb-6">
+            <button
+              onClick={() => setCategory("branch")}
+              className={`flex-1 py-3 px-2 rounded-xl text-sm font-semibold transition-all ${category === "branch"
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-transparent"
+                }`}
+            >
+              Filial xarajati
+            </button>
+            <button
+              onClick={() => setCategory("staff")}
+              className={`flex-1 py-3 px-2 rounded-xl text-sm font-semibold transition-all ${category === "staff"
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-transparent"
+                }`}
+            >
+              Sotuvchi xarajati
+            </button>
+          </div>
+
+          <Label
             htmlFor="description"
-            className="mb-4 block dark:text-white"
+            className="mb-2 block dark:text-white"
           >
             Xarajat tavsifi
           </Label>
@@ -156,12 +186,6 @@ export function AddExpense() {
             className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"
           />
 
-          {/* <Label
-            htmlFor="amount"
-            className="mb-2 mt-4 block dark:text-white"
-          >
-            Summa
-          </Label> */}
           <Input
             id="amount"
             type="number"
@@ -227,7 +251,7 @@ export function AddExpense() {
                       {formatCurrency(expense.amount)}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {new Date(
+                      {expense.category === "staff" ? "Sotuvchi" : "Filial"} • {new Date(
                         expense.date,
                       ).toLocaleTimeString("uz-UZ", {
                         hour: "2-digit",
@@ -261,6 +285,6 @@ export function AddExpense() {
       </div>
 
       <BottomNav />
-    </div>
+    </div >
   );
 }

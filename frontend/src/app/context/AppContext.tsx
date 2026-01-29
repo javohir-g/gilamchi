@@ -129,6 +129,7 @@ export interface Expense {
   id: string;
   description: string;
   amount: number;
+  category: "branch" | "staff";
   branchId: string;
   sellerId: string;
   date: string;

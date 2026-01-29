@@ -17,6 +17,7 @@ def create_expense(
     new_expense = Expense(
         amount=expense.amount,
         description=expense.description,
+        category=expense.category,
         branch_id=current_user.branch_id,
         seller_id=current_user.id
     )
