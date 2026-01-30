@@ -26,6 +26,7 @@ def clear_database():
             "debts",
             "expenses",
             "sales",
+            "staff",
             "basket_items", # if exists
             "products",
             "branch_users", # if exists
