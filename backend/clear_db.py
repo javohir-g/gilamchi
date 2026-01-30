@@ -52,8 +52,11 @@ def clear_database():
         print(f"Error connecting to database: {e}")
 
 if __name__ == "__main__":
-    confirm = input("WARNING: This will delete ALL data from the database. Are you sure? (yes/no): ")
-    if confirm.lower() == "yes":
+    if len(sys.argv) > 1 and sys.argv[1] == "--force":
         clear_database()
     else:
-        print("Aborted.")
+        confirm = input("WARNING: This will delete ALL data from the database. Are you sure? (yes/no): ")
+        if confirm.lower() == "yes":
+            clear_database()
+        else:
+            print("Aborted.")
