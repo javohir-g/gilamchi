@@ -15,6 +15,14 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { useApp, Sale } from "../../context/AppContext";
 import { BottomNav } from "../shared/BottomNav";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { StaffProfitDistribution } from "../shared/StaffProfitDistribution";
 
 interface Order {
   orderId: string;
@@ -157,24 +165,40 @@ export function SellerHome() {
             );
             if (totalBranchProfit <= 0) return null;
             return (
-              <Card className="p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 dark:from-emerald-700 dark:to-emerald-800 border-0 shadow-lg shadow-emerald-500/20">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <HandCoins className="h-5 w-5 text-white" />
-                      <span className="text-sm text-emerald-100">
-                        Filial foydasi
-                      </span>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Card className="p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 dark:from-emerald-700 dark:to-emerald-800 border-0 shadow-lg shadow-emerald-500/20 cursor-pointer hover:opacity-90 transition-opacity">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <HandCoins className="h-5 w-5 text-white" />
+                          <span className="text-sm text-emerald-100">
+                            Filial foydasi
+                          </span>
+                        </div>
+                        <div className="text-3xl font-bold text-white">
+                          {formatCurrency(totalBranchProfit)}
+                        </div>
+                      </div>
+                      <div className="bg-white/20 rounded-full p-3">
+                        <DollarSign className="h-6 w-6 text-white" />
+                      </div>
                     </div>
-                    <div className="text-3xl font-bold text-white">
-                      {formatCurrency(totalBranchProfit)}
-                    </div>
-                  </div>
-                  <div className="bg-white/20 rounded-full p-3">
-                    <DollarSign className="h-6 w-6 text-white" />
-                  </div>
-                </div>
-              </Card>
+                  </Card>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Foyda taqsimoti</DialogTitle>
+                  </DialogHeader>
+                  <StaffProfitDistribution
+                    staffMembers={useApp().staffMembers}
+                    branchId={userBranch?.id || ""}
+                    totalSellerProfit={totalBranchProfit}
+                    totalBranchExpenses={0} // Seller view usually sees net profit already, or pass actual expenses if available
+                    branchExpenses={useApp().expenses.filter(e => e.branchId === userBranch?.id && isToday(e.date))}
+                  />
+                </DialogContent>
+              </Dialog>
             );
           })()}
         </div>
