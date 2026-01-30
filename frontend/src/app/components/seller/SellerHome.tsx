@@ -61,6 +61,15 @@ export function SellerHome() {
     0,
   );
 
+  // Calculate today's branch expenses
+  const todayBranchExpenses = useApp().expenses
+    .filter(e =>
+      e.branchId === userBranch?.id &&
+      isToday(e.date) &&
+      (!e.category || e.category === "branch")
+    )
+    .reduce((sum, e) => sum + e.amount, 0);
+
   // Group sales by orderId
   const orders: Order[] = [];
   const orderMap = new Map<string, Sale[]>();
@@ -194,7 +203,7 @@ export function SellerHome() {
                     staffMembers={useApp().staffMembers}
                     branchId={userBranch?.id || ""}
                     totalSellerProfit={totalBranchProfit}
-                    totalBranchExpenses={0} // Seller view usually sees net profit already, or pass actual expenses if available
+                    totalBranchExpenses={todayBranchExpenses}
                     branchExpenses={useApp().expenses.filter(e => e.branchId === userBranch?.id && isToday(e.date))}
                   />
                 </DialogContent>
