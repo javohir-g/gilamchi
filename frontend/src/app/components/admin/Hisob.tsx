@@ -21,6 +21,8 @@ import {
   Legend,
   Tooltip,
 } from "recharts";
+import { DatePickerWithRange } from "../ui/date-range-picker";
+import { DateRange } from "react-day-picker";
 
 type DateFilter = "today" | "week" | "month" | "custom";
 
@@ -29,10 +31,7 @@ export function Hisob() {
   const navigate = useNavigate();
   const [dateFilter, setDateFilter] =
     useState<DateFilter>("today");
-  const [showCustomDateModal, setShowCustomDateModal] =
-    useState(false);
-  const [customStartDate, setCustomStartDate] = useState("");
-  const [customEndDate, setCustomEndDate] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   // Filter sales by date
   const getFilteredSales = () => {
@@ -73,13 +72,14 @@ export function Hisob() {
         });
 
       case "custom":
-        if (!customStartDate || !customEndDate) return sales;
-        const start = new Date(customStartDate);
-        const end = new Date(customEndDate);
-        end.setHours(23, 59, 59, 999); // End of day
+        if (!dateRange?.from) return sales;
+        const from = new Date(dateRange.from);
+        from.setHours(0, 0, 0, 0);
+        const to = dateRange.to ? new Date(dateRange.to) : new Date(from);
+        to.setHours(23, 59, 59, 999);
         return sales.filter((sale) => {
           const saleDate = new Date(sale.date);
-          return saleDate >= start && saleDate <= end;
+          return saleDate >= from && saleDate <= to;
         });
 
       default:
@@ -160,22 +160,16 @@ export function Hisob() {
     }).format(amount);
   };
 
-  const applyCustomDate = () => {
-    if (customStartDate && customEndDate) {
-      setDateFilter("custom");
-      setShowCustomDateModal(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Sticky Filter Header */}
       <div className="sticky top-0 z-10 bg-card border-b border-border shadow-sm px-4 py-4">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-4 gap-2">
+          <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
             <button
               onClick={() => setDateFilter("today")}
-              className={`py-3 px-2 rounded-xl text-sm font-semibold transition-all ${dateFilter === "today"
+              className={`py-3 px-3 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${dateFilter === "today"
                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
                 : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
@@ -184,7 +178,7 @@ export function Hisob() {
             </button>
             <button
               onClick={() => setDateFilter("week")}
-              className={`py-3 px-2 rounded-xl text-sm font-semibold transition-all ${dateFilter === "week"
+              className={`py-3 px-3 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${dateFilter === "week"
                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
                 : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
@@ -193,7 +187,7 @@ export function Hisob() {
             </button>
             <button
               onClick={() => setDateFilter("month")}
-              className={`py-3 px-2 rounded-xl text-sm font-semibold transition-all ${dateFilter === "month"
+              className={`py-3 px-3 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${dateFilter === "month"
                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
                 : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
@@ -201,8 +195,8 @@ export function Hisob() {
               Oy
             </button>
             <button
-              onClick={() => setShowCustomDateModal(true)}
-              className={`py-3 px-2 rounded-xl text-sm font-semibold transition-all ${dateFilter === "custom"
+              onClick={() => setDateFilter("custom")}
+              className={`py-3 px-3 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${dateFilter === "custom"
                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
                 : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
@@ -210,43 +204,16 @@ export function Hisob() {
               Boshqa
             </button>
           </div>
+
+          {dateFilter === "custom" && (
+            <div className="mt-4 flex justify-center animate-in slide-in-from-top-2 fade-in">
+              <DatePickerWithRange date={dateRange} setDate={setDateRange} className="w-full sm:w-auto" />
+            </div>
+          )}
         </div>
       </div>
 
       <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
-        {dateFilter === "custom" &&
-          customStartDate &&
-          customEndDate && (
-            <Card className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-blue-200 dark:border-blue-800">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  <span className="text-sm text-blue-900 dark:text-blue-100">
-                    {new Date(
-                      customStartDate,
-                    ).toLocaleDateString("uz-UZ", {
-                      day: "numeric",
-                      month: "short",
-                    })}
-                    {" - "}
-                    {new Date(
-                      customEndDate,
-                    ).toLocaleDateString("uz-UZ", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </span>
-                </div>
-                <button
-                  onClick={() => setShowCustomDateModal(true)}
-                  className="text-xs text-blue-600 dark:text-blue-400 font-medium hover:underline"
-                >
-                  O'zgartirish
-                </button>
-              </div>
-            </Card>
-          )}
 
         {/* Total Profit Card */}
         <Card className="p-6 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-700 dark:to-blue-800 border-0 shadow-lg shadow-blue-500/20">
@@ -287,11 +254,12 @@ export function Hisob() {
                   });
                   if (
                     dateFilter === "custom" &&
-                    customStartDate &&
-                    customEndDate
+                    dateRange?.from
                   ) {
-                    params.append("start", customStartDate);
-                    params.append("end", customEndDate);
+                    params.append("start", dateRange.from.toISOString());
+                    if (dateRange.to) {
+                      params.append("end", dateRange.to.toISOString());
+                    }
                   }
                   navigate(
                     `/admin/branch-profit/${bp.branchId}?${params.toString()}`,
@@ -394,78 +362,6 @@ export function Hisob() {
         )}
       </div>
 
-      {/* Custom Date Modal */}
-      {showCustomDateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-sm bg-card border border-border rounded-3xl overflow-hidden">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold text-card-foreground">
-                  Sana tanlang
-                </h3>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowCustomDateModal(false)}
-                  className="rounded-full"
-                >
-                  <X className="h-5 w-5" />
-                </Button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="flex items-center space-x-2 mb-2 text-sm font-medium text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    <span>Boshlanish sanasi</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={customStartDate}
-                    onChange={(e) =>
-                      setCustomStartDate(e.target.value)
-                    }
-                    className="w-full p-3 border border-border rounded-xl bg-background text-card-foreground outline-none focus:border-blue-500 transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="flex items-center space-x-2 mb-2 text-sm font-medium text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    <span>Tugash sanasi</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={customEndDate}
-                    onChange={(e) =>
-                      setCustomEndDate(e.target.value)
-                    }
-                    className="w-full p-3 border border-border rounded-xl bg-background text-card-foreground outline-none focus:border-blue-500 transition-colors"
-                  />
-                </div>
-              </div>
-
-              <div className="flex space-x-3 mt-8">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowCustomDateModal(false)}
-                  className="flex-1 rounded-xl py-6"
-                >
-                  Bekor qilish
-                </Button>
-                <Button
-                  variant="default"
-                  onClick={applyCustomDate}
-                  className="flex-1 rounded-xl py-6 bg-blue-600 text-white hover:bg-blue-700"
-                  disabled={!customStartDate || !customEndDate}
-                >
-                  Qo'llash
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
 
       <BottomNav />
     </div>

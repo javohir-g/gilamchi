@@ -166,7 +166,7 @@ export function AdminDashboard() {
       {/* Filter Section */}
       <div className="bg-card border-b border-border px-4 py-4 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-3 gap-2">
+          <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
             <button
               onClick={() => setPeriod("today")}
               className={`py-3 px-3 rounded-xl text-sm font-semibold transition-all ${period === "today"
