@@ -339,6 +339,7 @@ export const expenseService = {
       category: e.category,
       branchId: e.branch_id,
       sellerId: e.seller_id,
+      staffId: e.staff_id,
       date: e.created_at,
     }));
   },
