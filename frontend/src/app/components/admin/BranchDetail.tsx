@@ -12,6 +12,7 @@ import {
   Legend,
 } from "recharts";
 import { StaffProfitDistribution } from "../shared/StaffProfitDistribution";
+import { StatsDrillDownDialog } from "../shared/StatsDrillDownDialog";
 
 export function BranchDetail() {
   const { branchId } = useParams();
@@ -164,41 +165,66 @@ export function BranchDetail() {
 
         {/* Stats Grid 2x2 */}
         <div className="grid grid-cols-2 gap-4">
-          <Card className="p-4 bg-gradient-to-br from-indigo-500 to-indigo-600 border-0 shadow-lg shadow-indigo-500/20">
-            <div className="mb-1 text-[10px] uppercase tracking-wider text-indigo-100 font-bold">
-              Mening foydam
-            </div>
-            <div className="text-xl font-bold text-white">
-              {formatCurrency(totalAdminProfit)}
-            </div>
-          </Card>
+          <StatsDrillDownDialog
+            title="Mening foydam (Admin)"
+            trigger={
+              <Card className="p-4 bg-gradient-to-br from-indigo-500 to-indigo-600 border-0 shadow-lg shadow-indigo-500/20">
+                <div className="mb-1 text-[10px] uppercase tracking-wider text-indigo-100 font-bold">
+                  Mening foydam
+                </div>
+                <div className="text-xl font-bold text-white">
+                  {formatCurrency(totalAdminProfit)}
+                </div>
+              </Card>
+            }
+            items={branchSales.map(s => ({ ...s, type: "sale" as const })).filter(s => (s.admin_profit || 0) > 0) as any[]}
+          />
 
-          <Card className="p-4 bg-gradient-to-br from-emerald-500 to-emerald-600 border-0 shadow-lg shadow-emerald-500/20">
-            <div className="mb-1 text-[10px] uppercase tracking-wider text-emerald-100 font-bold">
-              Filial foydasi
-            </div>
-            <div className="text-xl font-bold text-white">
-              {formatCurrency(totalSellerProfit)}
-            </div>
-          </Card>
+          <StatsDrillDownDialog
+            title="Filial foydasi"
+            trigger={
+              <Card className="p-4 bg-gradient-to-br from-emerald-500 to-emerald-600 border-0 shadow-lg shadow-emerald-500/20">
+                <div className="mb-1 text-[10px] uppercase tracking-wider text-emerald-100 font-bold">
+                  Filial foydasi
+                </div>
+                <div className="text-xl font-bold text-white">
+                  {formatCurrency(totalSellerProfit)}
+                </div>
+              </Card>
+            }
+            items={branchSales.map(s => ({ ...s, type: "sale" as const })).filter(s => (s.seller_profit || 0) > 0) as any[]}
+          />
 
-          <Card className="p-4 bg-gradient-to-br from-orange-500 to-orange-600 border-0 shadow-lg shadow-orange-500/20">
-            <div className="mb-1 text-[10px] uppercase tracking-wider text-orange-100 font-bold">
-              Filial xarajatlari
-            </div>
-            <div className="text-xl font-bold text-white">
-              {formatCurrency(totalBranchExpenses)}
-            </div>
-          </Card>
+          <StatsDrillDownDialog
+            title="Filial xarajatlari"
+            trigger={
+              <Card className="p-4 bg-gradient-to-br from-orange-500 to-orange-600 border-0 shadow-lg shadow-orange-500/20">
+                <div className="mb-1 text-[10px] uppercase tracking-wider text-orange-100 font-bold">
+                  Filial xarajatlari
+                </div>
+                <div className="text-xl font-bold text-white">
+                  {formatCurrency(totalBranchExpenses)}
+                </div>
+              </Card>
+            }
+            items={branchExpenses.filter(e => !e.category || e.category === "branch").map(e => ({ ...e, type: "expense" as const })) as any[]}
+          />
 
-          <Card className="p-4 bg-gradient-to-br from-rose-500 to-rose-600 border-0 shadow-lg shadow-rose-500/20">
-            <div className="mb-1 text-[10px] uppercase tracking-wider text-rose-100 font-bold">
-              Sotuvchilar xarajati
-            </div>
-            <div className="text-xl font-bold text-white">
-              {formatCurrency(totalStaffExpenses)}
-            </div>
-          </Card>
+          <StatsDrillDownDialog
+            title="Sotuvchilar xarajati"
+            trigger={
+              <Card className="p-4 bg-gradient-to-br from-rose-500 to-rose-600 border-0 shadow-lg shadow-rose-500/20">
+                <div className="mb-1 text-[10px] uppercase tracking-wider text-rose-100 font-bold">
+                  Sotuvchilar xarajati
+                </div>
+                <div className="text-xl font-bold text-white">
+                  {formatCurrency(totalStaffExpenses)}
+                </div>
+              </Card>
+            }
+            items={branchExpenses.filter(e => e.category === "staff").map(e => ({ ...e, type: "expense" as const })) as any[]}
+            staffMembers={staffMembers}
+          />
         </div>
 
         <StaffProfitDistribution
