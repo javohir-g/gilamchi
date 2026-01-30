@@ -7,7 +7,7 @@ from ..models.staff import Staff
 from ..schemas.staff import StaffCreate, StaffUpdate, StaffResponse
 from ..utils.dependencies import get_current_user
 
-router = APIRouter(prefix="/staff", tags=["staff"])
+router = APIRouter(tags=["staff"])
 
 @router.post("/", response_model=StaffResponse)
 def create_staff(
