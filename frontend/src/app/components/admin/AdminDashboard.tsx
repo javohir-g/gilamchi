@@ -18,11 +18,14 @@ import { Badge } from "../ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 import { useApp } from "../../context/AppContext";
 import { BottomNav } from "../shared/BottomNav";
+import { DatePickerWithRange } from "../ui/date-range-picker";
+import { DateRange } from "react-day-picker";
 
 export function AdminDashboard() {
   const [period, setPeriod] = useState<
-    "today" | "week" | "month"
+    "today" | "week" | "month" | "custom"
   >("today");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSalesDetailExpanded, setIsSalesDetailExpanded] =
     useState(false);
@@ -56,6 +59,16 @@ export function AdminDashboard() {
         return sales.filter((sale) => {
           const saleDate = new Date(sale.date);
           return saleDate >= monthStart;
+        });
+      case "custom":
+        if (!dateRange?.from) return sales;
+        const from = new Date(dateRange.from);
+        from.setHours(0, 0, 0, 0);
+        const to = dateRange.to ? new Date(dateRange.to) : new Date(from);
+        to.setHours(23, 59, 59, 999);
+        return sales.filter((sale) => {
+          const saleDate = new Date(sale.date);
+          return saleDate >= from && saleDate <= to;
         });
       default:
         return sales;
@@ -181,7 +194,22 @@ export function AdminDashboard() {
             >
               Oy
             </button>
+            <button
+              onClick={() => setPeriod("custom")}
+              className={`py-3 px-3 rounded-xl text-sm font-semibold transition-all ${period === "custom"
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
+                }`}
+            >
+              Boshqa
+            </button>
           </div>
+
+          {period === "custom" && (
+            <div className="mt-4 flex justify-center animate-in slide-in-from-top-2 fade-in">
+              <DatePickerWithRange date={dateRange} setDate={setDateRange} className="w-full sm:w-auto" />
+            </div>
+          )}
         </div>
       </div>
 
