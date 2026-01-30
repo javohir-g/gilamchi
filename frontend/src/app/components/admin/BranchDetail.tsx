@@ -209,7 +209,8 @@ export function BranchDetail() {
             <div className="space-y-3">
               {(() => {
                 const activeStaff = staffMembers.filter(s => s.branchId === branchId && s.isActive);
-                const sharePerPerson = totalSellerProfit / activeStaff.length;
+                const distributableProfit = totalSellerProfit - totalBranchExpenses;
+                const sharePerPerson = distributableProfit / activeStaff.length;
 
                 return activeStaff.map(staff => {
                   const individualExpenses = branchExpenses
