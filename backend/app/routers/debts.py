@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
+from decimal import Decimal
 from ..database import get_db
 from ..models.debt import Debt, Payment
 from ..schemas.debt import DebtCreate, DebtResponse, PaymentCreate, PaymentResponse
@@ -12,7 +13,7 @@ router = APIRouter()
 def create_debt(debt: DebtCreate, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     try:
         # Calculate initial remaining
-        remaining = debt.total_amount - debt.paid_amount
+        remaining = Decimal(str(debt.total_amount)) - Decimal(str(debt.paid_amount))
         
         new_debt = Debt(
             debtor_name=debt.debtor_name,
@@ -51,7 +52,9 @@ def create_payment(debt_id: str, payment: PaymentCreate, db: Session = Depends(g
     if not debt:
         raise HTTPException(status_code=404, detail="Debt not found")
         
-    if payment.amount > debt.remaining_amount:
+    payment_amount_dec = Decimal(str(payment.amount))
+    
+    if payment_amount_dec > debt.remaining_amount:
          raise HTTPException(status_code=400, detail="Payment exceeds remaining debt")
          
     new_payment = Payment(
@@ -62,8 +65,8 @@ def create_payment(debt_id: str, payment: PaymentCreate, db: Session = Depends(g
     )
     
     # Update Debt
-    debt.paid_amount += payment.amount
-    debt.remaining_amount -= payment.amount
+    debt.paid_amount += payment_amount_dec
+    debt.remaining_amount -= payment_amount_dec
     if debt.remaining_amount <= 0:
         debt.status = "paid"
         
