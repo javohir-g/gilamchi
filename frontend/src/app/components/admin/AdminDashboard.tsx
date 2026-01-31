@@ -277,6 +277,37 @@ export function AdminDashboard() {
               </div>
             </div>
           </Card>
+
+          {/* Debts Card */}
+          <Card
+            className="p-6 bg-gradient-to-br from-red-500 to-red-600 dark:from-red-700 dark:to-red-800 border-0 shadow-lg shadow-red-500/20 cursor-pointer transition-transform active:scale-95"
+            onClick={() => navigate("/admin/debts")}
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center space-x-2 mb-2">
+                  <AlertCircle className="h-5 w-5 text-white" />
+                  <span className="text-sm text-red-100">
+                    Qarzlar
+                  </span>
+                </div>
+                <div className="text-3xl font-bold text-white">
+                  {formatCurrency(totalDebtAmount)}
+                </div>
+                <div className="text-sm text-red-100 mt-1">
+                  {pendingDebts.length} ta qarzdor
+                  {overdueDebts.length > 0 && (
+                    <span className="font-bold ml-1">
+                      ({overdueDebts.length} o'tgan)
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="bg-white/20 rounded-full p-3">
+                <FileText className="h-6 w-6 text-white" />
+              </div>
+            </div>
+          </Card>
         </div>
 
         {/* Branch Breakdown */}
