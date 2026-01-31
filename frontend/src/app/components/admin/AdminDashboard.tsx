@@ -214,97 +214,106 @@ export function AdminDashboard() {
       </div>
 
       <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        {/* Stats Grid - 2x2 Layout */}
+        <div className="grid grid-cols-2 gap-4 md:gap-6">
           {/* Total Sales */}
-          <Card className="p-6 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-700 dark:to-blue-800 border-0 shadow-lg shadow-blue-500/20">
-            <div className="flex items-start justify-between">
+          <Card className="p-4 md:p-6 bg-gradient-to-br from-blue-600 to-blue-700 dark:from-blue-800 dark:to-blue-900 border-0 shadow-lg shadow-blue-500/20 relative overflow-hidden group">
+            <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform">
+              <DollarSign className="h-24 w-24 text-white" />
+            </div>
+            <div className="relative z-10 flex flex-col h-full justify-between">
               <div>
                 <div className="flex items-center space-x-2 mb-2">
-                  <TrendingUp className="h-5 w-5 text-white" />
-                  <span className="text-sm font-medium text-blue-100">
+                  <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-blue-100" />
+                  <span className="text-xs md:text-sm font-medium text-blue-100/80">
                     Jami savdo
                   </span>
                 </div>
-                <div className="text-3xl font-bold text-white">
+                <div className="text-xl md:text-3xl font-bold text-white tracking-tight">
                   {formatCurrency(totalSales)}
                 </div>
-                <div className="text-sm text-blue-100 mt-1">
-                  {filteredSales.length} ta savdodan
-                </div>
               </div>
-              <div className="bg-white/20 rounded-full p-3">
-                <DollarSign className="h-6 w-6 text-white" />
+              <div className="mt-2 text-[10px] md:text-xs text-blue-100/60 font-medium uppercase tracking-wider">
+                {filteredSales.length} ta savdodan
               </div>
             </div>
           </Card>
 
-          {/* Stats Cards */}
-          <Card className="p-6 bg-gradient-to-br from-indigo-500 to-indigo-600 dark:from-indigo-700 dark:to-indigo-800 border-0 shadow-lg shadow-indigo-500/20">
-            <div className="flex items-start justify-between">
+          {/* Admin Profit */}
+          <Card className="p-4 md:p-6 bg-gradient-to-br from-indigo-600 to-indigo-700 dark:from-indigo-800 dark:to-indigo-900 border-0 shadow-lg shadow-indigo-500/20 relative overflow-hidden group">
+            <div className="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform">
+              <HandCoins className="h-24 w-24 text-white" />
+            </div>
+            <div className="relative z-10 flex flex-col h-full justify-between">
               <div>
                 <div className="flex items-center space-x-2 mb-2">
-                  <TrendingUp className="h-5 w-5 text-white" />
-                  <span className="text-sm text-indigo-100">
+                  <HandCoins className="h-4 w-4 md:h-5 md:w-5 text-indigo-100" />
+                  <span className="text-xs md:text-sm font-medium text-indigo-100/80">
                     Mening foydam
                   </span>
                 </div>
-                <div className="text-3xl font-bold text-white">
+                <div className="text-xl md:text-3xl font-bold text-white tracking-tight">
                   {formatCurrency(totalAdminProfit)}
                 </div>
               </div>
-              <div className="bg-white/20 rounded-full p-3">
-                <HandCoins className="h-6 w-6 text-white" />
+              <div className="mt-2 text-[10px] md:text-xs text-indigo-100/60 font-medium uppercase tracking-wider">
+                Sof daromad
               </div>
             </div>
           </Card>
 
-          <Card className="p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 dark:from-emerald-700 dark:to-emerald-800 border-0 shadow-lg shadow-emerald-500/20">
-            <div className="flex items-start justify-between">
+          {/* Branch Profits */}
+          <Card className="p-4 md:p-6 bg-gradient-to-br from-emerald-600 to-emerald-700 dark:from-emerald-800 dark:to-emerald-900 border-0 shadow-lg shadow-emerald-500/20 relative overflow-hidden group">
+            <div className="absolute -left-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform">
+              <Building2 className="h-24 w-24 text-white" />
+            </div>
+            <div className="relative z-10 flex flex-col h-full justify-between">
               <div>
                 <div className="flex items-center space-x-2 mb-2">
-                  <DollarSign className="h-5 w-5 text-white" />
-                  <span className="text-sm text-emerald-100">
+                  <DollarSign className="h-4 w-4 md:h-5 md:w-5 text-emerald-100" />
+                  <span className="text-xs md:text-sm font-medium text-emerald-100/80">
                     Filiallar foydasi
                   </span>
                 </div>
-                <div className="text-3xl font-bold text-white">
+                <div className="text-xl md:text-3xl font-bold text-white tracking-tight">
                   {formatCurrency(totalSellerProfit)}
                 </div>
               </div>
-              <div className="bg-white/20 rounded-full p-3">
-                <Building2 className="h-6 w-6 text-white" />
+              <div className="mt-2 text-[10px] md:text-xs text-emerald-100/60 font-medium uppercase tracking-wider">
+                Umumiy filiallar
               </div>
             </div>
           </Card>
 
           {/* Debts Card */}
           <Card
-            className="p-6 bg-gradient-to-br from-red-500 to-red-600 dark:from-red-700 dark:to-red-800 border-0 shadow-lg shadow-red-500/20 cursor-pointer transition-transform active:scale-95"
+            className="p-4 md:p-6 bg-gradient-to-br from-rose-600 to-rose-700 dark:from-rose-800 dark:to-rose-900 border-0 shadow-lg shadow-rose-500/20 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 relative overflow-hidden group"
             onClick={() => navigate("/admin/debts")}
           >
-            <div className="flex items-start justify-between">
+            <div className="absolute -left-4 -top-4 opacity-10 group-hover:scale-110 transition-transform text-white">
+              <AlertCircle className="h-24 w-24" />
+            </div>
+            <div className="relative z-10 flex flex-col h-full justify-between">
               <div>
                 <div className="flex items-center space-x-2 mb-2">
-                  <AlertCircle className="h-5 w-5 text-white" />
-                  <span className="text-sm text-red-100">
+                  <AlertCircle className="h-4 w-4 md:h-5 md:w-5 text-rose-100" />
+                  <span className="text-xs md:text-sm font-medium text-rose-100/80">
                     Qarzlar
                   </span>
                 </div>
-                <div className="text-3xl font-bold text-white">
+                <div className="text-xl md:text-3xl font-bold text-white tracking-tight">
                   {formatCurrency(totalDebtAmount)}
                 </div>
-                <div className="text-sm text-red-100 mt-1">
-                  {pendingDebts.length} ta qarzdor
-                  {overdueDebts.length > 0 && (
-                    <span className="font-bold ml-1">
-                      ({overdueDebts.length} o'tgan)
-                    </span>
-                  )}
-                </div>
               </div>
-              <div className="bg-white/20 rounded-full p-3">
-                <FileText className="h-6 w-6 text-white" />
+              <div className="mt-2 flex items-center justify-between">
+                <div className="text-[10px] md:text-xs text-rose-100/60 font-medium uppercase tracking-wider">
+                  {pendingDebts.length} ta qarzdor
+                </div>
+                {overdueDebts.length > 0 && (
+                  <Badge className="bg-white/20 text-white text-[9px] md:text-[10px] border-0 leading-tight">
+                    {overdueDebts.length} o'tgan
+                  </Badge>
+                )}
               </div>
             </div>
           </Card>
