@@ -21,8 +21,9 @@ def run_migration():
             if result.fetchone():
                 print("Renaming debts.customer_name to debts.debtor_name...")
                 conn.execute(text("ALTER TABLE debts RENAME COLUMN customer_name TO debtor_name"))
+                print("✓ Renamed customer_name to debtor_name")
             else:
-                print("✓ debts.debtor_name already exists or customer_name missing")
+                print("ℹ debts.debtor_name already exists or customer_name missing")
 
             # 2. Rename customer_phone to phone_number
             result = conn.execute(text("""
@@ -33,8 +34,9 @@ def run_migration():
             if result.fetchone():
                 print("Renaming debts.customer_phone to debts.phone_number...")
                 conn.execute(text("ALTER TABLE debts RENAME COLUMN customer_phone TO phone_number"))
+                print("✓ Renamed customer_phone to phone_number")
             else:
-                print("✓ debts.phone_number already exists or customer_phone missing")
+                print("ℹ debts.phone_number already exists or customer_phone missing")
 
             # 3. Add order_details
             result = conn.execute(text("""
@@ -44,14 +46,23 @@ def run_migration():
             """))
             if not result.fetchone():
                 print("Adding debts.order_details...")
-                # Note: Defaulting to empty string for existing records if any
                 conn.execute(text("ALTER TABLE debts ADD COLUMN order_details TEXT DEFAULT ''"))
                 conn.execute(text("ALTER TABLE debts ALTER COLUMN order_details SET NOT NULL"))
+                print("✓ Added order_details column")
             else:
-                print("✓ debts.order_details already exists")
+                print("ℹ debts.order_details already exists")
 
             conn.commit()
             print("\n✓ Debt migration applied successfully!")
+            
+            # Final verification
+            print("\nCurrent columns in 'debts' table:")
+            result = conn.execute(text("""
+                SELECT column_name FROM information_schema.columns 
+                WHERE table_name='debts'
+            """))
+            for row in result:
+                print(f"- {row[0]}")
             
         except Exception as e:
             print(f"✗ Migration error: {e}")
