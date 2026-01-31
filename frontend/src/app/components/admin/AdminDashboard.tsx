@@ -166,10 +166,10 @@ export function AdminDashboard() {
       {/* Filter Section */}
       <div className="bg-card border-b border-border px-4 py-4 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto">
-          <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+          <div className="flex gap-2 w-full overflow-x-auto pb-2 md:pb-0 no-scrollbar">
             <button
               onClick={() => setPeriod("today")}
-              className={`py-3 px-3 rounded-xl text-sm font-semibold transition-all ${period === "today"
+              className={`flex-1 min-w-[70px] py-3 px-3 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${period === "today"
                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
                 : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
@@ -178,7 +178,7 @@ export function AdminDashboard() {
             </button>
             <button
               onClick={() => setPeriod("week")}
-              className={`py-3 px-3 rounded-xl text-sm font-semibold transition-all ${period === "week"
+              className={`flex-1 min-w-[70px] py-3 px-3 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${period === "week"
                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
                 : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
@@ -187,7 +187,7 @@ export function AdminDashboard() {
             </button>
             <button
               onClick={() => setPeriod("month")}
-              className={`py-3 px-3 rounded-xl text-sm font-semibold transition-all ${period === "month"
+              className={`flex-1 min-w-[70px] py-3 px-3 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${period === "month"
                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
                 : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
@@ -196,7 +196,7 @@ export function AdminDashboard() {
             </button>
             <button
               onClick={() => setPeriod("custom")}
-              className={`py-3 px-3 rounded-xl text-sm font-semibold transition-all ${period === "custom"
+              className={`flex-1 min-w-[70px] py-3 px-3 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${period === "custom"
                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
                 : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
