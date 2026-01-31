@@ -218,7 +218,7 @@ export function AdminDashboard() {
         <div className="grid grid-cols-2 gap-2 md:gap-3">
           {/* Total Sales */}
           <Card className="p-4 md:p-6 bg-gradient-to-br from-blue-600 to-blue-700 dark:from-blue-800 dark:to-blue-900 border-0 shadow-lg shadow-blue-500/20 relative overflow-hidden group">
-            <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform">
+            <div className="absolute -left-4 -top-4 opacity-10 group-hover:scale-110 transition-transform">
               <DollarSign className="h-24 w-24 text-white" />
             </div>
             <div className="relative z-10 flex flex-col h-full justify-between">
@@ -241,7 +241,7 @@ export function AdminDashboard() {
 
           {/* Admin Profit */}
           <Card className="p-4 md:p-6 bg-gradient-to-br from-indigo-600 to-indigo-700 dark:from-indigo-800 dark:to-indigo-900 border-0 shadow-lg shadow-indigo-500/20 relative overflow-hidden group">
-            <div className="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform">
+            <div className="absolute -left-4 -top-4 opacity-10 group-hover:scale-110 transition-transform">
               <HandCoins className="h-24 w-24 text-white" />
             </div>
             <div className="relative z-10 flex flex-col h-full justify-between">
@@ -264,7 +264,7 @@ export function AdminDashboard() {
 
           {/* Branch Profits */}
           <Card className="p-4 md:p-6 bg-gradient-to-br from-emerald-600 to-emerald-700 dark:from-emerald-800 dark:to-emerald-900 border-0 shadow-lg shadow-emerald-500/20 relative overflow-hidden group">
-            <div className="absolute -left-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform">
+            <div className="absolute -left-4 -top-4 opacity-10 group-hover:scale-110 transition-transform">
               <Building2 className="h-24 w-24 text-white" />
             </div>
             <div className="relative z-10 flex flex-col h-full justify-between">
