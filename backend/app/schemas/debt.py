@@ -19,8 +19,9 @@ class PaymentResponse(PaymentBase):
         from_attributes = True
 
 class DebtBase(BaseModel):
-    customer_name: str
-    customer_phone: Optional[str] = None
+    debtor_name: str
+    phone_number: Optional[str] = None
+    order_details: str
     branch_id: UUID4
     total_amount: float
     paid_amount: float = 0
@@ -29,8 +30,9 @@ class DebtBase(BaseModel):
     status: DebtStatus = DebtStatus.PENDING
 
 class DebtCreate(BaseModel):
-    customer_name: str
-    customer_phone: Optional[str] = None
+    debtor_name: str
+    phone_number: Optional[str] = None
+    order_details: str
     total_amount: float
     paid_amount: float = 0
     payment_deadline: date

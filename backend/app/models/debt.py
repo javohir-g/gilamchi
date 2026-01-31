@@ -13,8 +13,9 @@ class DebtStatus(str, enum.Enum):
 class Debt(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     __tablename__ = "debts"
 
-    customer_name: Mapped[str] = mapped_column(String)
-    customer_phone: Mapped[str | None] = mapped_column(String, nullable=True)
+    debtor_name: Mapped[str] = mapped_column(String)
+    phone_number: Mapped[str | None] = mapped_column(String, nullable=True)
+    order_details: Mapped[str] = mapped_column(Text)
     
     branch_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("branches.id"))
     seller_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"))

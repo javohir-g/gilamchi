@@ -14,8 +14,9 @@ def create_debt(debt: DebtCreate, db: Session = Depends(get_db), current_user = 
     remaining = debt.total_amount - debt.paid_amount
     
     new_debt = Debt(
-        customer_name=debt.customer_name,
-        customer_phone=debt.customer_phone,
+        debtor_name=debt.debtor_name,
+        phone_number=debt.phone_number,
+        order_details=debt.order_details,
         branch_id=current_user.branch_id, # Debts belong to the branch where created
         seller_id=current_user.id,
         total_amount=debt.total_amount,
