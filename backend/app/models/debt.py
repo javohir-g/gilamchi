@@ -2,7 +2,7 @@ from sqlalchemy import String, Integer, Float, Enum as SQLEnum, ForeignKey, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 import enum
 import uuid
-from datetime import date as date_type
+from datetime import date as date_type, datetime
 from .base import UUIDMixin, TimestampMixin, SoftDeleteMixin, Base
 
 class DebtStatus(str, enum.Enum):
