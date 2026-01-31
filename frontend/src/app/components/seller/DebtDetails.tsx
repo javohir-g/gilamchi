@@ -61,8 +61,10 @@ export function DebtDetails() {
     }).format(amount);
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | undefined | null) => {
+    if (!dateString) return "No'malum";
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Noto'g'ri sana";
     return new Intl.DateTimeFormat("uz-UZ", {
       day: "2-digit",
       month: "short",
@@ -72,8 +74,10 @@ export function DebtDetails() {
     }).format(date);
   };
 
-  const formatDateShort = (dateString: string) => {
+  const formatDateShort = (dateString: string | undefined | null) => {
+    if (!dateString) return "No'malum";
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Noto'g'ri sana";
     return new Intl.DateTimeFormat("uz-UZ", {
       day: "2-digit",
       month: "short",

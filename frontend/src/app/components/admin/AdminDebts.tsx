@@ -68,8 +68,10 @@ export function AdminDebts() {
     }).format(amount);
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | undefined | null) => {
+    if (!dateString) return "No'malum";
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Noto'g'ri sana";
     return new Intl.DateTimeFormat("uz-UZ", {
       day: "2-digit",
       month: "short",
@@ -244,10 +246,9 @@ export function AdminDebts() {
                 if (!aOverdue && bOverdue) return 1;
 
                 // Sort by date (newest first)
-                return (
-                  new Date(b.date).getTime() -
-                  new Date(a.date).getTime()
-                );
+                const dateA = new Date(a.date).getTime();
+                const dateB = new Date(b.date).getTime();
+                return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
               })
               .map((debt) => (
                 <Card

@@ -199,9 +199,9 @@ const fromDebt = (data: any): any => ({
   paymentHistory: (data.payments || []).map((p: any) => ({
     id: p.id,
     amount: p.amount,
-    date: p.created_at,
-    sellerId: p.seller_id,
-    sellerName: "Unknown", // Backend payment schema needs seller expand
+    date: p.payment_date || p.created_at,
+    sellerId: p.recorded_by || p.seller_id,
+    sellerName: "Noma'lum",
   }))
 });
 
