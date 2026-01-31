@@ -166,10 +166,10 @@ export function Hisob() {
       {/* Sticky Filter Header */}
       <div className="sticky top-0 z-10 bg-card border-b border-border shadow-sm px-4 py-4">
         <div className="max-w-7xl mx-auto">
-          <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+          <div className="flex gap-2 w-full overflow-x-auto pb-2 md:pb-0 no-scrollbar">
             <button
               onClick={() => setDateFilter("today")}
-              className={`py-3 px-3 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${dateFilter === "today"
+              className={`flex-1 min-w-[70px] py-3 px-3 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${dateFilter === "today"
                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
                 : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
@@ -178,7 +178,7 @@ export function Hisob() {
             </button>
             <button
               onClick={() => setDateFilter("week")}
-              className={`py-3 px-3 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${dateFilter === "week"
+              className={`flex-1 min-w-[70px] py-3 px-3 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${dateFilter === "week"
                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
                 : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
@@ -187,7 +187,7 @@ export function Hisob() {
             </button>
             <button
               onClick={() => setDateFilter("month")}
-              className={`py-3 px-3 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${dateFilter === "month"
+              className={`flex-1 min-w-[70px] py-3 px-3 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${dateFilter === "month"
                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
                 : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
@@ -196,7 +196,7 @@ export function Hisob() {
             </button>
             <button
               onClick={() => setDateFilter("custom")}
-              className={`py-3 px-3 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${dateFilter === "custom"
+              className={`flex-1 min-w-[70px] py-3 px-3 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${dateFilter === "custom"
                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
                 : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
