@@ -36,6 +36,7 @@ class DebtCreate(BaseModel):
     total_amount: float
     paid_amount: float = 0
     payment_deadline: date
+    branch_id: Optional[UUID4] = None
 
 class DebtResponse(DebtBase):
     id: UUID4
