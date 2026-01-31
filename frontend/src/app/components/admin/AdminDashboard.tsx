@@ -215,7 +215,7 @@ export function AdminDashboard() {
 
       <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
         {/* Stats Grid - 2x2 Layout */}
-        <div className="grid grid-cols-2 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 gap-2 md:gap-3">
           {/* Total Sales */}
           <Card className="p-4 md:p-6 bg-gradient-to-br from-blue-600 to-blue-700 dark:from-blue-800 dark:to-blue-900 border-0 shadow-lg shadow-blue-500/20 relative overflow-hidden group">
             <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform">
