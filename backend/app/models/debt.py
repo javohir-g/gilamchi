@@ -1,4 +1,4 @@
-from sqlalchemy import String, Integer, Float, Enum as SQLEnum, ForeignKey, Uuid, DECIMAL, DateTime, Text
+from sqlalchemy import String, Integer, Float, Enum as SQLEnum, ForeignKey, Uuid, DECIMAL, DateTime, Text, Date
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 import enum
 import uuid
@@ -24,7 +24,7 @@ class Debt(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     remaining_amount: Mapped[float] = mapped_column(DECIMAL(15, 2))
     paid_amount: Mapped[float] = mapped_column(DECIMAL(15, 2), default=0)
     
-    payment_deadline: Mapped[date_type] = mapped_column(DateTime) # Using DateTime for simplicity in SQLite usually, checking logic needed
+    payment_deadline: Mapped[date_type] = mapped_column(Date) # Changed from DateTime to Date
     status: Mapped[DebtStatus] = mapped_column(SQLEnum(DebtStatus), default=DebtStatus.PENDING, index=True)
 
     # Relationships

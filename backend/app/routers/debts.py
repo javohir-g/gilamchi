@@ -10,26 +10,33 @@ router = APIRouter()
 
 @router.post("/", response_model=DebtResponse)
 def create_debt(debt: DebtCreate, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
-    # Calculate initial remaining
-    remaining = debt.total_amount - debt.paid_amount
-    
-    new_debt = Debt(
-        debtor_name=debt.debtor_name,
-        phone_number=debt.phone_number,
-        order_details=debt.order_details,
-        branch_id=current_user.branch_id, # Debts belong to the branch where created
-        seller_id=current_user.id,
-        total_amount=debt.total_amount,
-        paid_amount=debt.paid_amount,
-        remaining_amount=remaining,
-        payment_deadline=debt.payment_deadline,
-        status="pending" if remaining > 0 else "paid"
-    )
-    
-    db.add(new_debt)
-    db.commit()
-    db.refresh(new_debt)
-    return new_debt
+    try:
+        # Calculate initial remaining
+        remaining = debt.total_amount - debt.paid_amount
+        
+        new_debt = Debt(
+            debtor_name=debt.debtor_name,
+            phone_number=debt.phone_number,
+            order_details=debt.order_details,
+            branch_id=current_user.branch_id, # Debts belong to the branch where created
+            seller_id=current_user.id,
+            total_amount=debt.total_amount,
+            paid_amount=debt.paid_amount,
+            remaining_amount=remaining,
+            payment_deadline=debt.payment_deadline,
+            status="pending" if remaining > 0 else "paid"
+        )
+        
+        db.add(new_debt)
+        db.commit()
+        db.refresh(new_debt)
+        return new_debt
+    except Exception as e:
+        import traceback
+        print(f"Error creating debt: {e}")
+        print(traceback.format_exc())
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/", response_model=List[DebtResponse])
 def read_debts(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user = Depends(get_current_user)):

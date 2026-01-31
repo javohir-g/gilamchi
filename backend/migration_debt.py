@@ -52,6 +52,14 @@ def run_migration():
             else:
                 print("ℹ debts.order_details already exists")
 
+            # 4. Ensure payment_deadline is DATE type (not TIMESTAMP)
+            print("Ensuring debts.payment_deadline is DATE type...")
+            try:
+                conn.execute(text("ALTER TABLE debts ALTER COLUMN payment_deadline TYPE DATE USING payment_deadline::DATE"))
+                print("✓ payment_deadline converted to DATE type")
+            except Exception as e:
+                print(f"ℹ Could not convert payment_deadline (it might already be DATE): {e}")
+
             conn.commit()
             print("\n✓ Debt migration applied successfully!")
             
