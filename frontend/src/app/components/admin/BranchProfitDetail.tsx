@@ -242,6 +242,20 @@ export function BranchProfitDetail() {
           </Card>
         </div>
 
+        {/* Summary Card */}
+        <Card className="p-4 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+          <div className="text-sm text-blue-900 dark:text-blue-100">
+            <p className="font-medium mb-2">Xulosa:</p>
+            <ul className="space-y-1 text-xs text-blue-700 dark:text-blue-200">
+              <li>• Jami {productProfits.length} xil mahsulot sotildi</li>
+              <li>• Jami {filteredSales.length} ta savdo amalga oshirildi</li>
+              <li>
+                • Umumiy foyda: {formatCurrency(totalProfit)} (Mening: {formatCurrency(totalAdminProfit)}, Filiallar: {formatCurrency(totalSellerProfit)})
+              </li>
+            </ul>
+          </div>
+        </Card>
+
         {/* Products Breakdown */}
         <div>
           <h3 className="text-sm text-muted-foreground mb-3 px-1">
@@ -346,20 +360,6 @@ export function BranchProfitDetail() {
             </div>
           )}
         </div>
-
-        {/* Summary Card */}
-        <Card className="p-4 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
-          <div className="text-sm text-blue-900 dark:text-blue-100">
-            <p className="font-medium mb-2">Xulosa:</p>
-            <ul className="space-y-1 text-xs text-blue-700 dark:text-blue-200">
-              <li>• Jami {productProfits.length} xil mahsulot sotildi</li>
-              <li>• Jami {filteredSales.length} ta savdo amalga oshirildi</li>
-              <li>
-                • Umumiy foyda: {formatCurrency(totalProfit)} (Mening: {formatCurrency(totalAdminProfit)}, Filiallar: {formatCurrency(totalSellerProfit)})
-              </li>
-            </ul>
-          </div>
-        </Card>
 
         {/* Detailed Sales History */}
         <div>
