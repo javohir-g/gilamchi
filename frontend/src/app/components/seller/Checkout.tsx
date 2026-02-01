@@ -25,20 +25,8 @@ export function Checkout() {
 
   const [cashAmount, setCashAmount] = useState("0");
   const [cardAmount, setCardAmount] = useState("0");
-  const [isNasiya, setIsNasiya] = useState(false);
 
-  const calculatedTotal = basket.reduce(
-    (sum, item) => {
-      if (!isNasiya) return sum + item.total;
-
-      const collection = collections.find(c => c.name === item.collection);
-      if (!collection || !collection.price_nasiya_per_sqm) return sum + item.total;
-
-      if (item.area) return sum + (collection.price_nasiya_per_sqm * item.area);
-      return sum + (collection.price_nasiya_per_sqm * item.quantity);
-    },
-    0,
-  );
+  const calculatedTotal = basket.reduce((sum, item) => sum + item.total, 0);
 
   // Helper function to format number with thousand separators
   const formatNumber = (value: string): string => {
@@ -100,7 +88,7 @@ export function Checkout() {
       });
     }
 
-    completeOrder(payments, total, isNasiya);
+    completeOrder(payments, total, false); // false = Savdo (regular sale)
     toast.success("Buyurtma muvaffaqiyatli yakunlandi!");
     navigate("/seller/home");
   };
@@ -142,11 +130,19 @@ export function Checkout() {
                 Savdo
               </button>
               <button
-                onClick={() => setIsNasiya(true)}
-                className={`flex-1 py-3 text-sm font-medium rounded-lg transition-all ${isNasiya
-                  ? "bg-white dark:bg-gray-700 shadow-sm text-orange-600 dark:text-orange-400"
-                  : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
-                  }`}
+                onClick={() => {
+                  // Navigate to debt creation with basket data
+                  navigate("/seller/create-debt", {
+                    state: {
+                      basketItems: basket,
+                      totalAmount: calculatedTotal,
+                      paidAmount: 0,
+                      remainingAmount: calculatedTotal,
+                      isNasiya: true
+                    },
+                  });
+                }}
+                className="flex-1 py-3 text-sm font-medium rounded-lg transition-all bg-white dark:bg-gray-700 shadow-sm text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-gray-600"
               >
                 Nasiya
               </button>
@@ -155,7 +151,7 @@ export function Checkout() {
             {/* Calculated Total */}
             <div>
               <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {isNasiya ? "Hisoblangan narx (Nasiya)" : "Hisoblangan narx (Savdo)"}
+                Hisoblangan narx (Savdo)
               </Label>
               <div className="text-xl font-semibold text-gray-700 dark:text-gray-300 mt-1">
                 {formatCurrency(calculatedTotal)}
@@ -234,29 +230,6 @@ export function Checkout() {
                   {profit > 0 ? "+" : ""}
                   {formatCurrency(profit)}
                 </div>
-
-                {/* Add debt button for loss */}
-                {profit < 0 && (
-                  <Button
-                    onClick={() => {
-                      // Navigate to CreateDebt with order data
-                      navigate("/seller/create-debt", {
-                        state: {
-                          basketItems: basket,
-                          totalAmount: calculatedTotal,
-                          paidAmount: sellerTotal,
-                          remainingAmount: Math.abs(profit),
-                          isNasiya: isNasiya // Pass the mode
-                        },
-                      });
-                    }}
-                    className="w-full mt-2 bg-orange-200 hover:bg-orange-300 dark:bg-orange-800 dark:hover:bg-orange-700 text-orange-900 dark:text-orange-100"
-                    size="sm"
-                  >
-                    <FileEdit className="h-4 w-4 mr-2" />
-                    Qarzga yozish
-                  </Button>
-                )}
               </motion.div>
             )}
           </div>
