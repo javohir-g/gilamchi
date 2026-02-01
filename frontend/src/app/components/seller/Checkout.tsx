@@ -121,11 +121,8 @@ export function Checkout() {
             {/* Price Type Toggle */}
             <div className="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl mb-4">
               <button
-                onClick={() => setIsNasiya(false)}
-                className={`flex-1 py-3 text-sm font-medium rounded-lg transition-all ${!isNasiya
-                  ? "bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400"
-                  : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
-                  }`}
+                onClick={() => {/* Already in Savdo mode, do nothing */ }}
+                className="flex-1 py-3 text-sm font-medium rounded-lg transition-all bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400"
               >
                 Savdo
               </button>
