@@ -109,6 +109,7 @@ export function BranchProfitDetail() {
       product: typeof products[0];
       totalQuantity: number;
       totalArea?: number;
+      totalAmount: number;
       totalProfit: number;
       totalSellerProfit: number;
       salesCount: number;
@@ -126,6 +127,7 @@ export function BranchProfitDetail() {
     if (existing) {
       existing.totalQuantity += sale.quantity;
       existing.totalArea = (existing.totalArea || 0) + (sale.area || 0);
+      existing.totalAmount += sale.amount;
       existing.totalProfit += profit;
       existing.totalSellerProfit += sellerProfit;
       existing.salesCount += 1;
@@ -134,6 +136,7 @@ export function BranchProfitDetail() {
         product,
         totalQuantity: sale.quantity,
         totalArea: sale.area,
+        totalAmount: sale.amount,
         totalProfit: profit,
         totalSellerProfit: sellerProfit,
         salesCount: 1,
@@ -305,37 +308,29 @@ export function BranchProfitDetail() {
                       <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border/50">
                         <div className="space-y-1">
                           <div className="text-xs text-muted-foreground">
-                            Mening foydam
-                          </div>
-                          <div className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                            {formatCurrency(pp.totalProfit - pp.totalSellerProfit)}
-                          </div>
-                        </div>
-                        <div className="space-y-1 text-right">
-                          <div className="text-xs text-muted-foreground">
-                            Filiallar foydasi
-                          </div>
-                          <div className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                            {formatCurrency(pp.totalSellerProfit)}
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="text-xs text-muted-foreground">
-                            Xarid narxi (donasiga)
+                            Завод нархи
                           </div>
                           <div className="text-sm font-medium text-card-foreground">
                             {formatCurrency(pp.product.buyPrice)}
                           </div>
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-1 text-right">
                           <div className="text-xs text-muted-foreground">
-                            {pp.product.type === "unit" ? "Sotish narxi" : "Sotish (metr)"}
+                            Касса нархи
                           </div>
                           <div className="text-sm font-medium text-card-foreground">
                             {formatCurrency(pp.product.type === "unit" ? pp.product.sellPrice : (pp.product.sellPricePerMeter || 0))}
                           </div>
                         </div>
                         <div className="space-y-1">
+                          <div className="text-xs text-muted-foreground">
+                            Сотилган нархи (о'рт)
+                          </div>
+                          <div className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                            {formatCurrency(pp.totalAmount / (pp.totalArea || pp.totalQuantity || 1))}
+                          </div>
+                        </div>
+                        <div className="space-y-1 text-right">
                           <div className="text-xs text-muted-foreground">
                             O'rtacha foyda
                           </div>
