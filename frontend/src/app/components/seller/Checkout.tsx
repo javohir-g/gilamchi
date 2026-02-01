@@ -74,11 +74,11 @@ export function Checkout() {
 
   const handleComplete = () => {
     const cash = parseFormattedNumber(cashAmount);
-    const card = parseFormattedNumber(cardAmount);
+    const card = isNasiya ? 0 : parseFormattedNumber(cardAmount);
     const total = cash + card;
 
     if (total <= 0) {
-      toast.error("Sotilgan narxni kiriting!");
+      toast.error(isNasiya ? "Boshlang'ich to'lovni kiriting!" : "Sotilgan narxni kiriting!");
       return;
     }
 
@@ -89,14 +89,14 @@ export function Checkout() {
           basketItems: basket,
           totalAmount: calculatedTotal,
           paidAmount: total,
-          remainingAmount: calculatedTotal - total,
+          remainingAmount: Math.max(0, calculatedTotal - total),
           isNasiya: true
         },
       });
       return;
     }
 
-    // Regular sale (Savdo)
+    // Regular sale (Sotish)
     const payments: Payment[] = [];
 
     // Add cash payment if amount > 0
@@ -115,7 +115,7 @@ export function Checkout() {
       });
     }
 
-    completeOrder(payments, total, false); // false = Savdo (regular sale)
+    completeOrder(payments, total, false); // false = Sotish (regular sale)
     toast.success("Buyurtma muvaffaqiyatli yakunlandi!");
     navigate("/seller/home");
   };
@@ -154,7 +154,7 @@ export function Checkout() {
                   : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
                   }`}
               >
-                Savdo
+                Sotish
               </button>
               <button
                 onClick={() => setIsNasiya(true)}
@@ -170,7 +170,7 @@ export function Checkout() {
             {/* Calculated Total */}
             <div>
               <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {isNasiya ? "Hisoblangan narx (Nasiya)" : "Hisoblangan narx (Savdo)"}
+                {isNasiya ? "Nasiya narxi" : "Kassa narxi"}
               </Label>
               <div className="text-xl font-semibold text-gray-700 dark:text-gray-300 mt-1">
                 {formatCurrency(calculatedTotal)}
@@ -179,57 +179,81 @@ export function Checkout() {
 
             {/* Seller Entered Total */}
             <div>
-              <Label className="text-lg font-semibold dark:text-white mb-3 block">
-                Sotilgan narx{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <div className="space-y-4">
-                {/* Cash Input */}
-                <div>
-                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 block">
-                    Naqd
+              {isNasiya ? (
+                // Nasiya mode: Single "Boshlang'ich to'lov" input
+                <>
+                  <Label className="text-lg font-semibold dark:text-white mb-3 block">
+                    Boshlang&apos;ich to&apos;lov{" "}
+                    <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     type="text"
                     value={cashAmount}
-                    onChange={(e) =>
-                      setCashAmount(formatNumber(e.target.value))
-                    }
-                    className="h-16 text-2xl font-semibold dark:bg-gray-700 dark:text-white border-2 border-blue-400 dark:border-blue-600 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900"
+                    onChange={(e) => setCashAmount(formatNumber(e.target.value))}
+                    className="h-16 text-2xl font-semibold dark:bg-gray-700 dark:text-white border-2 border-orange-400 dark:border-orange-600 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-2 focus:ring-orange-200 dark:focus:ring-orange-900"
                     placeholder="0"
                     min="0"
                   />
-                </div>
-
-                {/* Card/Transfer Input */}
-                <div>
-                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 block">
-                    Karta/O'tkazma
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                    Qolgan qarz: {formatCurrency(Math.max(0, calculatedTotal - parseFormattedNumber(cashAmount)))}
+                  </p>
+                </>
+              ) : (
+                // Regular sale mode: Cash + Card inputs
+                <>
+                  <Label className="text-lg font-semibold dark:text-white mb-3 block">
+                    Sotilgan narx{" "}
+                    <span className="text-red-500">*</span>
                   </Label>
-                  <Input
-                    type="text"
-                    value={cardAmount}
-                    onChange={(e) =>
-                      setCardAmount(formatNumber(e.target.value))
-                    }
-                    className="h-16 text-2xl font-semibold dark:bg-gray-700 dark:text-white border-2 border-blue-400 dark:border-blue-600 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900"
-                    placeholder="0"
-                    min="0"
-                  />
-                </div>
+                  <div className="space-y-4">
+                    {/* Cash Input */}
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 block">
+                        Naqd
+                      </Label>
+                      <Input
+                        type="text"
+                        value={cashAmount}
+                        onChange={(e) =>
+                          setCashAmount(formatNumber(e.target.value))
+                        }
+                        className="h-16 text-2xl font-semibold dark:bg-gray-700 dark:text-white border-2 border-blue-400 dark:border-blue-600 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900"
+                        placeholder="0"
+                        min="0"
+                      />
+                    </div>
 
-                {/* Total Display */}
-                <div className="pt-3 border-t dark:border-gray-600">
-                  <div className="flex justify-between items-center">
-                    <Label className="text-base font-medium text-gray-700 dark:text-gray-300">
-                      Jami sotilgan:
-                    </Label>
-                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      {formatCurrency(sellerTotal)}
+                    {/* Card/Transfer Input */}
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 block">
+                        Karta/O&apos;tkazma
+                      </Label>
+                      <Input
+                        type="text"
+                        value={cardAmount}
+                        onChange={(e) =>
+                          setCardAmount(formatNumber(e.target.value))
+                        }
+                        className="h-16 text-2xl font-semibold dark:bg-gray-700 dark:text-white border-2 border-blue-400 dark:border-blue-600 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900"
+                        placeholder="0"
+                        min="0"
+                      />
+                    </div>
+
+                    {/* Total Display */}
+                    <div className="pt-3 border-t dark:border-gray-600">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-base font-medium text-gray-700 dark:text-gray-300">
+                          Jami sotilgan:
+                        </Label>
+                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                          {formatCurrency(sellerTotal)}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
+                </>
+              )}
             </div>
 
             {/* Profit/Loss Indicator */}
