@@ -235,6 +235,96 @@ export function BranchDetail() {
           branchExpenses={branchExpenses}
         />
 
+        {/* Product Statistics */}
+        <Card className="p-6 dark:bg-gray-800 dark:border-gray-700 overflow-hidden">
+          <h3 className="mb-4 text-lg font-bold dark:text-white tracking-tight flex items-center gap-2">
+            <Package className="h-5 w-5 text-blue-500" />
+            MAHSULOTLAR STATISTIKASI
+          </h3>
+
+          <div className="space-y-6">
+            {/* Metrajli (By Area) */}
+            <div>
+              <div className="flex items-center justify-between mb-3 px-1">
+                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                  Metrajli (Top m²)
+                </h4>
+                <Badge variant="outline" className="text-[8px] border-blue-200 text-blue-600">
+                  MAYDON BO'YIHA
+                </Badge>
+              </div>
+              <div className="space-y-3">
+                {Object.values(branchSales.reduce((acc: any, sale) => {
+                  if (sale.type === 'meter') {
+                    if (!acc[sale.productId]) acc[sale.productId] = { name: sale.productName, value: 0 };
+                    acc[sale.productId].value += (sale.area || sale.quantity || 0);
+                  }
+                  return acc;
+                }, {}))
+                  .sort((a: any, b: any) => b.value - a.value)
+                  .slice(0, 5)
+                  .map((item: any, i) => (
+                    <div key={i} className="relative">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm font-medium dark:text-gray-200 truncate pr-4">{item.name}</span>
+                        <span className="text-sm font-bold text-blue-600">{item.value.toFixed(1)} m²</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-blue-500 rounded-full opacity-80"
+                          style={{ width: `${Math.min(100, (item.value / Math.max(...Object.values(branchSales).map((s: any) => s.area || 0), 1)) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                {branchSales.filter(s => s.type === 'meter').length === 0 && (
+                  <p className="text-xs text-center text-muted-foreground py-2">Metrajli mahsulotlar sotilmagan</p>
+                )}
+              </div>
+            </div>
+
+            {/* Tayyor (By Quantity) */}
+            <div>
+              <div className="flex items-center justify-between mb-3 px-1 border-t dark:border-gray-700 pt-4">
+                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                  Tayyor (Top dona)
+                </h4>
+                <Badge variant="outline" className="text-[8px] border-emerald-200 text-emerald-600">
+                  DONA BO'YIHA
+                </Badge>
+              </div>
+              <div className="space-y-3">
+                {Object.values(branchSales.reduce((acc: any, sale) => {
+                  if (sale.type === 'unit') {
+                    if (!acc[sale.productId]) acc[sale.productId] = { name: sale.productName, value: 0 };
+                    acc[sale.productId].value += (sale.quantity || 1);
+                  }
+                  return acc;
+                }, {}))
+                  .sort((a: any, b: any) => b.value - a.value)
+                  .slice(0, 5)
+                  .map((item: any, i) => (
+                    <div key={i} className="relative">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm font-medium dark:text-gray-200 truncate pr-4">{item.name}</span>
+                        <span className="text-sm font-bold text-emerald-600">{item.value} dona</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-emerald-500 rounded-full opacity-80"
+                          style={{ width: `${Math.min(100, (item.value / Math.max(...Object.values(branchSales).map((s: any) => s.quantity || 0), 1)) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                {branchSales.filter(s => s.type === 'unit').length === 0 && (
+                  <p className="text-xs text-center text-muted-foreground py-2">Tayyor mahsulotlar sotilmagan</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </Card>
+
         {/* Unified History List */}
         <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
           <h3 className="mb-4 text-lg font-bold dark:text-white tracking-tight">

@@ -216,20 +216,20 @@ export function Hisob() {
       <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
 
         {/* Total Profit Card */}
-        <Card className="p-6 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-700 dark:to-blue-800 border-0 shadow-lg shadow-blue-500/20">
+        <Card className="p-6 bg-gradient-to-br from-indigo-500 to-indigo-600 dark:from-indigo-700 dark:to-indigo-800 border-0 shadow-lg shadow-indigo-500/20">
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center space-x-2 mb-2">
-                <TrendingUp className="h-5 w-5 text-white" />
-                <span className="text-sm font-medium text-blue-100">
-                  Jami sof foyda
+                <TrendingUp className="h-5 w-5 text-indigo-100" />
+                <span className="text-sm font-medium text-indigo-100">
+                  Mening sof foydam (Admin)
                 </span>
               </div>
               <div className="text-3xl font-bold text-white">
-                {formatCurrency(totalDirectorProfit)}
+                {formatCurrency(filteredSales.reduce((sum, s) => sum + (s.admin_profit || 0), 0))}
               </div>
-              <div className="text-sm text-blue-100 mt-1">
-                {filteredSales.length} ta savdodan
+              <div className="text-sm text-indigo-100 mt-1">
+                {filteredSales.length} ta savdodan olingan ulush
               </div>
             </div>
             <div className="bg-white/20 rounded-full p-3">
