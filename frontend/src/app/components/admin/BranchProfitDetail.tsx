@@ -322,7 +322,7 @@ export function BranchProfitDetail() {
                       <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border/50">
                         <div className="space-y-1">
                           <div className="text-xs text-muted-foreground">
-                            Завод нархи
+                            Zavod narxi
                           </div>
                           <div className="text-sm font-medium text-card-foreground">
                             {formatCurrency(pp.product.buyPrice)}
@@ -330,7 +330,7 @@ export function BranchProfitDetail() {
                         </div>
                         <div className="space-y-1 text-right">
                           <div className="text-xs text-muted-foreground">
-                            Касса нархи
+                            Kassa narxi
                           </div>
                           <div className="text-sm font-medium text-card-foreground">
                             {formatCurrency(pp.product.type === "unit" ? pp.product.sellPrice : (pp.product.sellPricePerMeter || 0))}
@@ -338,7 +338,7 @@ export function BranchProfitDetail() {
                         </div>
                         <div className="space-y-1">
                           <div className="text-xs text-muted-foreground">
-                            Сотилган нархи (о'рт)
+                            Sotilgan narxi (o'rt)
                           </div>
                           <div className="text-sm font-medium text-blue-600 dark:text-blue-400">
                             {formatCurrency(pp.totalAmount / (pp.totalArea || pp.totalQuantity || 1))}
