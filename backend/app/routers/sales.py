@@ -63,19 +63,28 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
                 product.deleted_at = datetime.now(timezone.utc)
                 product.deleted_by = current_user.id
     
+    from ..models.collection import Collection
+    collection = db.query(Collection).filter(Collection.name == product.collection).first() if product.collection else None
+
     # Profit calculation:
-    # Admin Profit = (Product.sell_price - Product.buy_price) * Quantity
-    # Seller Profit = Sale.amount - (Product.sell_price * Quantity)
-    # Total Profit = Sale.amount - (Product.buy_price * Quantity)
+    # Admin Profit = (Base Sell Price - Product.buy_price) * Metric (qty or area)
+    # Seller Profit = Sale.amount - (Base Sell Price * Metric)
+    # Total Profit = Sale.amount - (Product.buy_price * Metric)
     
     qty = float(sale.quantity)
+    area = float(sale.area) if sale.area else None
+    metric = area if area else qty
+
     base_sell_price = float(product.sell_price)
-    buy_price = float(product.buy_price)
-    sale_amount = float(sale.amount or (base_sell_price * qty))
+    if sale.is_nasiya and collection and collection.price_nasiya_per_sqm:
+        base_sell_price = float(collection.price_nasiya_per_sqm)
     
-    admin_profit = (base_sell_price - buy_price) * qty
-    seller_profit = sale_amount - (base_sell_price * qty)
-    total_profit = sale_amount - (buy_price * qty)
+    buy_price = float(product.buy_price)
+    sale_amount = float(sale.amount or (base_sell_price * metric))
+    
+    admin_profit = (base_sell_price - buy_price) * metric
+    seller_profit = sale_amount - (base_sell_price * metric)
+    total_profit = sale_amount - (buy_price * metric)
 
     new_sale = Sale(
         product_id=sale.product_id,

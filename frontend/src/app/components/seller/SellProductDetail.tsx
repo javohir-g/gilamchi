@@ -22,6 +22,23 @@ export function SellProductDetail() {
     product?.type === 'unit' ? product.sellPrice : product?.sellPricePerMeter || 0
   );
   const [paymentType, setPaymentType] = useState<PaymentType>('cash');
+  const [isNasiya, setIsNasiya] = useState(false);
+  const { collections } = useApp();
+
+  // Update price when Nasiya toggle or product changes
+  useEffect(() => {
+    if (!product) return;
+
+    if (isNasiya && product.collection) {
+      const coll = collections.find(c => c.name === product.collection);
+      if (coll?.price_nasiya_per_sqm) {
+        setSellingPrice(coll.price_nasiya_per_sqm);
+        return;
+      }
+    }
+
+    setSellingPrice(isUnit ? product.sellPrice : product?.sellPricePerMeter || 0);
+  }, [isNasiya, product, collections, isUnit]);
 
   if (!product) {
     return <div>Mahsulot topilmadi</div>;
@@ -49,7 +66,17 @@ export function SellProductDetail() {
     }
 
     const totalAmount = calculateTotal();
-    const standardPrice = isUnit ? product.sellPrice : (product.sellPricePerMeter || 0);
+
+    let standardPrice = isUnit ? product.sellPrice : (product.sellPricePerMeter || 0);
+
+    const { collections } = useApp();
+    if (isNasiya && product.collection) {
+      const coll = collections.find(c => c.name === product.collection);
+      if (coll?.price_nasiya_per_sqm) {
+        standardPrice = coll.price_nasiya_per_sqm;
+      }
+    }
+
     const standardTotal = saleQuantity * standardPrice;
     const extraProfit = totalAmount - standardTotal;
 
@@ -63,11 +90,12 @@ export function SellProductDetail() {
       branchId: product.branchId,
       sellerId: user.id,
       date: new Date().toISOString(),
-      profit: extraProfit > 0 ? extraProfit : 0,
+      profit: extraProfit, // Allow negative profit (discount)
       type: product.type,
       width: product.type === 'meter' ? product.width : undefined,
       length: product.type === 'meter' ? saleQuantity : undefined,
       area: (product.type === 'meter' && product.width) ? (product.width * saleQuantity) : undefined,
+      isNasiya: isNasiya,
     });
 
     toast.success('Mahsulot sotildi!');
@@ -110,6 +138,28 @@ export function SellProductDetail() {
           <div className="p-4">
             <h2 className="mb-1 text-xl">{product.name}</h2>
             <p className="text-sm text-gray-500">{product.category}</p>
+
+            {/* Price Type Toggle */}
+            <div className="flex p-1 bg-gray-100 rounded-xl mt-4">
+              <button
+                onClick={() => setIsNasiya(false)}
+                className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${!isNasiya
+                  ? "bg-white shadow-sm text-blue-600"
+                  : "text-gray-500 hover:text-gray-700"
+                  }`}
+              >
+                Oddiy
+              </button>
+              <button
+                onClick={() => setIsNasiya(true)}
+                className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${isNasiya
+                  ? "bg-white shadow-sm text-orange-600"
+                  : "text-gray-500 hover:text-gray-700"
+                  }`}
+              >
+                Nasiya
+              </button>
+            </div>
           </div>
         </Card>
 

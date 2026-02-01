@@ -26,6 +26,7 @@ class Debt(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     
     payment_deadline: Mapped[date_type] = mapped_column(Date) # Changed from DateTime to Date
     status: Mapped[DebtStatus] = mapped_column(SQLEnum(DebtStatus), default=DebtStatus.PENDING, index=True)
+    order_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
 
     # Relationships
     branch = relationship("Branch", back_populates="debts")

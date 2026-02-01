@@ -14,7 +14,7 @@ import { toast } from "sonner";
 
 export function Checkout() {
   const navigate = useNavigate();
-  const { basket, completeOrder } = useApp();
+  const { basket, completeOrder, collections } = useApp();
 
   // Redirect if basket is empty
   useEffect(() => {
@@ -23,13 +23,22 @@ export function Checkout() {
     }
   }, [basket.length, navigate]);
 
-  const calculatedTotal = basket.reduce(
-    (sum, item) => sum + item.total,
-    0,
-  );
-
   const [cashAmount, setCashAmount] = useState("0");
   const [cardAmount, setCardAmount] = useState("0");
+  const [isNasiya, setIsNasiya] = useState(false);
+
+  const calculatedTotal = basket.reduce(
+    (sum, item) => {
+      if (!isNasiya) return sum + item.total;
+
+      const collection = collections.find(c => c.name === item.collection);
+      if (!collection || !collection.price_nasiya_per_sqm) return sum + item.total;
+
+      if (item.area) return sum + (collection.price_nasiya_per_sqm * item.area);
+      return sum + (collection.price_nasiya_per_sqm * item.quantity);
+    },
+    0,
+  );
 
   // Helper function to format number with thousand separators
   const formatNumber = (value: string): string => {
@@ -91,7 +100,7 @@ export function Checkout() {
       });
     }
 
-    completeOrder(payments, total);
+    completeOrder(payments, total, isNasiya);
     toast.success("Buyurtma muvaffaqiyatli yakunlandi!");
     navigate("/seller/home");
   };
@@ -121,10 +130,32 @@ export function Checkout() {
       <div className="p-6 space-y-6">
         <Card className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 dark:border-blue-800 border-2 border-blue-100">
           <div className="space-y-5">
+            {/* Price Type Toggle */}
+            <div className="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl mb-4">
+              <button
+                onClick={() => setIsNasiya(false)}
+                className={`flex-1 py-3 text-sm font-medium rounded-lg transition-all ${!isNasiya
+                  ? "bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400"
+                  : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                  }`}
+              >
+                Oddiy
+              </button>
+              <button
+                onClick={() => setIsNasiya(true)}
+                className={`flex-1 py-3 text-sm font-medium rounded-lg transition-all ${isNasiya
+                  ? "bg-white dark:bg-gray-700 shadow-sm text-orange-600 dark:text-orange-400"
+                  : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                  }`}
+              >
+                Nasiya
+              </button>
+            </div>
+
             {/* Calculated Total */}
             <div>
               <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Hisoblangan narx (bazadan)
+                {isNasiya ? "Hisoblangan narx (Nasiya)" : "Hisoblangan narx (Oddiy)"}
               </Label>
               <div className="text-xl font-semibold text-gray-700 dark:text-gray-300 mt-1">
                 {formatCurrency(calculatedTotal)}
@@ -197,7 +228,7 @@ export function Checkout() {
                   }`}
               >
                 <div className="text-sm mb-1">
-                  {profit > 0 ? "🎉 Foyda" : "⚠️ Zarar"}
+                  {profit > 0 ? "🎉 Foyda (markup)" : "⚠️ Zarar (discount)"}
                 </div>
                 <div className="text-2xl font-bold mb-3">
                   {profit > 0 ? "+" : ""}
@@ -215,6 +246,7 @@ export function Checkout() {
                           totalAmount: calculatedTotal,
                           paidAmount: sellerTotal,
                           remainingAmount: Math.abs(profit),
+                          isNasiya: isNasiya // Pass the mode
                         },
                       });
                     }}

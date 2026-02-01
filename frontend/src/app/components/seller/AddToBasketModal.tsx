@@ -137,6 +137,7 @@ export function AddToBasketModal({
       pricePerUnit: sellingPrice,
       total: calculateTotal(),
       photo: product.photo,
+      collection: product.collection || "",
       size: selectedSize || undefined,
       // Carpet-specific or Size-specific fields
       ...((isCarpetOrMetraj || selectedSize) && {

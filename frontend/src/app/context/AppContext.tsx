@@ -19,7 +19,7 @@ import {
 
 export type UserRole = "admin" | "seller";
 export type ProductType = "unit" | "meter";
-export type PaymentType = "cash" | "card" | "transfer";
+export type PaymentType = "cash" | "card" | "transfer" | "debt";
 export type Category =
   | "Gilamlar"
   | "Metrajlar"
@@ -81,6 +81,7 @@ export interface Sale {
   width?: number;
   length?: number;
   area?: number;
+  isNasiya?: boolean;
 }
 
 export interface Collection {
@@ -90,6 +91,7 @@ export interface Collection {
   price_per_sqm?: number;
   buy_price_per_sqm?: number;
   price_usd_per_sqm?: number;
+  price_nasiya_per_sqm?: number;
 }
 
 export interface BasketItem {
@@ -107,6 +109,7 @@ export interface BasketItem {
   width?: string; // e.g., "3"
   height?: string; // e.g., "4"
   area?: number; // Calculated area in m² (width × height)
+  collection: string;
 }
 
 export interface Payment {
@@ -162,6 +165,7 @@ export interface Debt {
   status: "pending" | "paid" | "overdue"; // Payment status
   orderItems?: BasketItem[]; // Optional: store the actual items they bought
   paymentHistory: DebtPayment[]; // History of all payments made
+  orderId?: string; // Link to the order
 }
 
 export interface Branch {
@@ -654,22 +658,33 @@ export function AppProvider({
   const completeOrder = async (
     payments: Payment[],
     sellerEnteredTotal: number,
-  ) => {
-    if (!user) return;
+    isNasiya: boolean = false
+  ): Promise<string> => {
+    if (!user) return "";
 
     const orderId = `o${Date.now()}`;
     const calculatedTotal = basket.reduce(
-      (sum, item) => sum + item.total,
+      (sum, item) => {
+        if (!isNasiya) return sum + item.total;
+
+        const collection = collections.find(c => c.name === item.collection);
+        if (!collection || !collection.price_nasiya_per_sqm) return sum + item.total;
+
+        if (item.area) return sum + (collection.price_nasiya_per_sqm * item.area);
+        return sum + (collection.price_nasiya_per_sqm * item.quantity);
+      },
       0,
     );
 
     // Calculate total profit: seller entered total - database calculated total
+    // Note: calculatedTotal here is the BASE price (either Oddiy or Nasiya)
     const totalProfit = sellerEnteredTotal - calculatedTotal;
 
     // Determine payment distribution
     let remainingCash = payments.find(p => p.type === "cash")?.amount || 0;
     let remainingCard = payments.find(p => p.type === "card")?.amount || 0;
     let remainingTransfer = payments.find(p => p.type === "transfer")?.amount || 0;
+    let remainingDebt = payments.find(p => p.type === "debt")?.amount || 0;
 
     const salesPromises = basket.map((item, index) => {
       const product = products.find(
@@ -677,34 +692,49 @@ export function AppProvider({
       );
       if (!product) return Promise.resolve();
 
-      // Calculate this item's proportion of total calculated price
-      const itemProportion = item.total / calculatedTotal;
+      // Calculate base price for this item (either normal sell price or nasiya price)
+      let itemBaseTotal = item.total;
+      if (isNasiya) {
+        const collection = collections.find(c => c.name === item.collection);
+        if (collection && collection.price_nasiya_per_sqm) {
+          if (item.area) itemBaseTotal = collection.price_nasiya_per_sqm * item.area;
+          else itemBaseTotal = collection.price_nasiya_per_sqm * item.quantity;
+        }
+      }
 
-      // Distribute profit proportionally
+      // Calculate this item's proportion of total calculated price
+      const itemProportion = itemBaseTotal / calculatedTotal;
+
+      // Distribute seller markup proportionally
       const itemProfit = totalProfit * itemProportion;
 
-      // Calculate this item's total with profit
-      const itemTotalWithProfit = item.total + itemProfit;
+      // Calculate this item's total with markup
+      const itemTotalWithMarkup = itemBaseTotal + itemProfit;
 
       // Determine payment type for this sale based on remaining amounts
-      let paymentType: "cash" | "card" | "transfer" = "cash";
+      let paymentType: PaymentType = "cash";
 
-      if (remainingCash >= itemTotalWithProfit) {
+      if (remainingCash >= itemTotalWithMarkup) {
         paymentType = "cash";
-        remainingCash -= itemTotalWithProfit;
+        remainingCash -= itemTotalWithMarkup;
       } else if (remainingCash > 0) {
-        // Use remaining cash first, then card
         paymentType = "cash";
         remainingCash = 0;
-      } else if (remainingCard >= itemTotalWithProfit) {
+      } else if (remainingCard >= itemTotalWithMarkup) {
         paymentType = "card";
-        remainingCard -= itemTotalWithProfit;
+        remainingCard -= itemTotalWithMarkup;
       } else if (remainingCard > 0) {
         paymentType = "card";
         remainingCard = 0;
-      } else {
+      } else if (remainingTransfer >= itemTotalWithMarkup) {
         paymentType = "transfer";
-        remainingTransfer -= itemTotalWithProfit;
+        remainingTransfer -= itemTotalWithMarkup;
+      } else if (remainingTransfer > 0) {
+        paymentType = "transfer";
+        remainingTransfer = 0;
+      } else {
+        paymentType = "debt";
+        remainingDebt -= itemTotalWithMarkup;
       }
 
       // Map dimensions and area
@@ -712,22 +742,19 @@ export function AppProvider({
       let length = item.height ? parseFloat(item.height) : (item.type === 'meter' ? item.quantity : undefined);
       let area = item.area;
 
-      // For meter products, if width is not in item but in product, use it
       if (item.type === 'meter' && !width && product.width) {
         width = product.width;
       }
 
-      // If area is missing but we have width and length, calculate it
       if (!area && width && length) {
         area = width * length;
       }
 
-      const sale: Sale = {
-        id: `s${Date.now()}-${index}`, // ID might be ignored by backend or useful for consistent ID before DB
+      const sale: any = {
         productId: item.productId,
         productName: item.productName,
         quantity: item.quantity,
-        amount: item.total + itemProfit, // Item's share of seller entered total
+        amount: itemTotalWithMarkup,
         paymentType: paymentType,
         branchId: user.branchId || "",
         sellerId: user.id,
@@ -738,6 +765,7 @@ export function AppProvider({
         width,
         length,
         area,
+        isNasiya: isNasiya
       };
 
       return addSale(sale);
@@ -745,6 +773,7 @@ export function AppProvider({
 
     await Promise.all(salesPromises);
     clearBasket();
+    return orderId;
   };
 
   const switchToBranchAccount = (branchId: string) => {

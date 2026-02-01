@@ -143,7 +143,8 @@ const fromSale = (data: any): any => ({
   seller_profit: data.seller_profit,
   width: data.width,
   length: data.length,
-  area: data.area
+  area: data.area,
+  isNasiya: data.is_nasiya
 });
 
 const toSale = (data: any): any => ({
@@ -155,6 +156,7 @@ const toSale = (data: any): any => ({
   seller_id: data.sellerId,
   order_id: data.orderId,
   size: data.size,
+  is_nasiya: data.isNasiya,
   // Backend calculates profit, checks stock etc.
 });
 
@@ -164,7 +166,8 @@ const fromCollection = (data: any): any => ({
   icon: data.icon,
   price_per_sqm: data.price_per_sqm,
   buy_price_per_sqm: data.buy_price_per_sqm,
-  price_usd_per_sqm: data.price_usd_per_sqm
+  price_usd_per_sqm: data.price_usd_per_sqm,
+  price_nasiya_per_sqm: data.price_nasiya_per_sqm
 });
 
 const fromStaff = (data: any): any => ({
@@ -179,7 +182,8 @@ const toCollection = (data: any): any => ({
   icon: data.icon,
   price_per_sqm: data.price_per_sqm,
   buy_price_per_sqm: data.buy_price_per_sqm,
-  price_usd_per_sqm: data.price_usd_per_sqm
+  price_usd_per_sqm: data.price_usd_per_sqm,
+  price_nasiya_per_sqm: data.price_nasiya_per_sqm
 });
 
 const fromDebt = (data: any): any => ({
@@ -212,7 +216,8 @@ const toDebt = (data: any): any => ({
   total_amount: data.totalAmount,
   payment_deadline: data.paymentDeadline, // expected ISO string
   branch_id: data.branchId,
-  seller_id: data.sellerId
+  seller_id: data.sellerId,
+  order_id: data.orderId
 });
 
 // --- Services ---

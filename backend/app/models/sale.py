@@ -9,6 +9,7 @@ class PaymentType(str, enum.Enum):
     CASH = "cash"
     CARD = "card"
     TRANSFER = "transfer"
+    DEBT = "debt"
 
 class Sale(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     __tablename__ = "sales"
@@ -32,6 +33,7 @@ class Sale(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     
     date: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True)
     order_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
+    is_nasiya: Mapped[bool] = mapped_column(default=False)
 
     # Relationships
     product = relationship("Product") # back_populates="sales" if defined there

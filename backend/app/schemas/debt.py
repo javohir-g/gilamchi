@@ -28,6 +28,7 @@ class DebtBase(BaseModel):
     remaining_amount: float
     payment_deadline: date
     status: DebtStatus = DebtStatus.PENDING
+    order_id: Optional[str] = None
 
 class DebtCreate(BaseModel):
     debtor_name: str
@@ -37,6 +38,7 @@ class DebtCreate(BaseModel):
     paid_amount: float = 0
     payment_deadline: date
     branch_id: Optional[UUID4] = None
+    order_id: Optional[str] = None
 
 class DebtResponse(DebtBase):
     id: UUID4

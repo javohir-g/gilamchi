@@ -14,6 +14,7 @@ class SaleBase(BaseModel):
     profit: float = 0
     admin_profit: float = 0
     seller_profit: float = 0
+    is_nasiya: bool = False
     width: Optional[float] = None
     length: Optional[float] = None
     area: Optional[float] = None
@@ -28,6 +29,7 @@ class SaleCreate(BaseModel):
     length: Optional[float] = None
     area: Optional[float] = None
     size: Optional[str] = None
+    is_nasiya: bool = False
 
 class SaleResponse(SaleBase):
     id: UUID4

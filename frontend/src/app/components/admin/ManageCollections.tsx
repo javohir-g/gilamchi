@@ -40,6 +40,7 @@ export function ManageCollections() {
   const [editCollectionName, setEditCollectionName] = useState("");
   const [collectionPrice, setCollectionPrice] = useState<string>("");
   const [collectionBuyPrice, setCollectionBuyPrice] = useState<string>("");
+  const [collectionNasiyaPrice, setCollectionNasiyaPrice] = useState<string>("");
 
   // Collection Icons Map
   const collectionIcons: Record<string, string> = {
@@ -77,13 +78,15 @@ export function ManageCollections() {
     await addCollection({
       name: newCollectionName,
       price_per_sqm: collectionPrice ? parseFloat(collectionPrice) : undefined,
-      buy_price_per_sqm: collectionBuyPrice ? parseFloat(collectionBuyPrice) : undefined
+      buy_price_per_sqm: collectionBuyPrice ? parseFloat(collectionBuyPrice) : undefined,
+      price_nasiya_per_sqm: collectionNasiyaPrice ? parseFloat(collectionNasiyaPrice) : undefined
     });
 
     toast.success("Kolleksiya qo'shildi!");
     setNewCollectionName("");
     setCollectionPrice("");
     setCollectionBuyPrice("");
+    setCollectionNasiyaPrice("");
     setAddDialogOpen(false);
   };
 
@@ -96,7 +99,8 @@ export function ManageCollections() {
     await updateCollection(selectedCollectionId, {
       name: editCollectionName,
       price_per_sqm: collectionPrice ? parseFloat(collectionPrice) : undefined,
-      buy_price_per_sqm: collectionBuyPrice ? parseFloat(collectionBuyPrice) : undefined
+      buy_price_per_sqm: collectionBuyPrice ? parseFloat(collectionBuyPrice) : undefined,
+      price_nasiya_per_sqm: collectionNasiyaPrice ? parseFloat(collectionNasiyaPrice) : undefined
     });
 
     toast.success("Kolleksiya yangilandi!");
@@ -105,6 +109,7 @@ export function ManageCollections() {
     setEditCollectionName("");
     setCollectionPrice("");
     setCollectionBuyPrice("");
+    setCollectionNasiyaPrice("");
   };
 
   const handleDeleteCollection = async () => {
@@ -121,6 +126,7 @@ export function ManageCollections() {
     setEditCollectionName(collection.name);
     setCollectionPrice(collection.price_per_sqm?.toString() || "");
     setCollectionBuyPrice(collection.buy_price_per_sqm?.toString() || "");
+    setCollectionNasiyaPrice(collection.price_nasiya_per_sqm?.toString() || "");
     setEditDialogOpen(true);
   };
 
@@ -183,7 +189,7 @@ export function ManageCollections() {
                         {collection.name}
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        {count} ta mahsulot • {collection.price_per_sqm || 0} $/m²
+                        {count} ta mahsulot • {collection.price_per_sqm || 0} $/m² <span className="text-orange-600 dark:text-orange-400 font-medium ml-1">({collection.price_nasiya_per_sqm || 0} nasiya)</span>
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -260,6 +266,19 @@ export function ManageCollections() {
                 className="h-12"
               />
             </div>
+            <div>
+              <Label htmlFor="collection-nasiya-price" className="mb-2 block">
+                Nasiya narxi ($/m²)
+              </Label>
+              <Input
+                id="collection-nasiya-price"
+                type="number"
+                value={collectionNasiyaPrice}
+                onChange={(e) => setCollectionNasiyaPrice(e.target.value)}
+                placeholder="Masalan: 18"
+                className="h-12 border-orange-200 focus:border-orange-500"
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button
@@ -322,6 +341,19 @@ export function ManageCollections() {
                 onChange={(e) => setCollectionPrice(e.target.value)}
                 placeholder="Masalan: 15"
                 className="h-12"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-collection-nasiya-price" className="mb-2 block">
+                Nasiya narxi ($/m²)
+              </Label>
+              <Input
+                id="edit-collection-nasiya-price"
+                type="number"
+                value={collectionNasiyaPrice}
+                onChange={(e) => setCollectionNasiyaPrice(e.target.value)}
+                placeholder="Masalan: 18"
+                className="h-12 border-orange-200 focus:border-orange-500"
               />
             </div>
           </div>
