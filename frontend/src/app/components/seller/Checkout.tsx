@@ -139,7 +139,7 @@ export function Checkout() {
                   : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
                   }`}
               >
-                Oddiy
+                Savdo
               </button>
               <button
                 onClick={() => setIsNasiya(true)}
@@ -155,7 +155,7 @@ export function Checkout() {
             {/* Calculated Total */}
             <div>
               <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {isNasiya ? "Hisoblangan narx (Nasiya)" : "Hisoblangan narx (Oddiy)"}
+                {isNasiya ? "Hisoblangan narx (Nasiya)" : "Hisoblangan narx (Savdo)"}
               </Label>
               <div className="text-xl font-semibold text-gray-700 dark:text-gray-300 mt-1">
                 {formatCurrency(calculatedTotal)}

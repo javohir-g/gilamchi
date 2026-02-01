@@ -148,7 +148,7 @@ export function SellProductDetail() {
                   : "text-gray-500 hover:text-gray-700"
                   }`}
               >
-                Oddiy
+                Savdo
               </button>
               <button
                 onClick={() => setIsNasiya(true)}
