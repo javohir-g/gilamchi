@@ -25,8 +25,20 @@ export function Checkout() {
 
   const [cashAmount, setCashAmount] = useState("0");
   const [cardAmount, setCardAmount] = useState("0");
+  const [isNasiya, setIsNasiya] = useState(false);
 
-  const calculatedTotal = basket.reduce((sum, item) => sum + item.total, 0);
+  const calculatedTotal = basket.reduce(
+    (sum, item) => {
+      if (!isNasiya) return sum + item.total;
+
+      const collection = collections.find(c => c.name === item.collection);
+      if (!collection || !collection.price_nasiya_per_sqm) return sum + item.total;
+
+      if (item.area) return sum + (collection.price_nasiya_per_sqm * item.area);
+      return sum + (collection.price_nasiya_per_sqm * item.quantity);
+    },
+    0,
+  );
 
   // Helper function to format number with thousand separators
   const formatNumber = (value: string): string => {
@@ -70,6 +82,21 @@ export function Checkout() {
       return;
     }
 
+    // If Nasiya mode, redirect to debt creation
+    if (isNasiya) {
+      navigate("/seller/create-debt", {
+        state: {
+          basketItems: basket,
+          totalAmount: calculatedTotal,
+          paidAmount: total,
+          remainingAmount: calculatedTotal - total,
+          isNasiya: true
+        },
+      });
+      return;
+    }
+
+    // Regular sale (Savdo)
     const payments: Payment[] = [];
 
     // Add cash payment if amount > 0
@@ -121,25 +148,20 @@ export function Checkout() {
             {/* Price Type Toggle */}
             <div className="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl mb-4">
               <button
-                onClick={() => {/* Already in Savdo mode, do nothing */ }}
-                className="flex-1 py-3 text-sm font-medium rounded-lg transition-all bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400"
+                onClick={() => setIsNasiya(false)}
+                className={`flex-1 py-3 text-sm font-medium rounded-lg transition-all ${!isNasiya
+                  ? "bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400"
+                  : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                  }`}
               >
                 Savdo
               </button>
               <button
-                onClick={() => {
-                  // Navigate to debt creation with basket data
-                  navigate("/seller/create-debt", {
-                    state: {
-                      basketItems: basket,
-                      totalAmount: calculatedTotal,
-                      paidAmount: 0,
-                      remainingAmount: calculatedTotal,
-                      isNasiya: true
-                    },
-                  });
-                }}
-                className="flex-1 py-3 text-sm font-medium rounded-lg transition-all bg-white dark:bg-gray-700 shadow-sm text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-gray-600"
+                onClick={() => setIsNasiya(true)}
+                className={`flex-1 py-3 text-sm font-medium rounded-lg transition-all ${isNasiya
+                  ? "bg-white dark:bg-gray-700 shadow-sm text-orange-600 dark:text-orange-400"
+                  : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                  }`}
               >
                 Nasiya
               </button>
@@ -148,7 +170,7 @@ export function Checkout() {
             {/* Calculated Total */}
             <div>
               <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Hisoblangan narx (Savdo)
+                {isNasiya ? "Hisoblangan narx (Nasiya)" : "Hisoblangan narx (Savdo)"}
               </Label>
               <div className="text-xl font-semibold text-gray-700 dark:text-gray-300 mt-1">
                 {formatCurrency(calculatedTotal)}
