@@ -61,6 +61,14 @@ export function SellerHome() {
     0,
   );
 
+  const cashSalesToday = todaySales
+    .filter(s => s.paymentType === 'cash')
+    .reduce((sum, s) => sum + s.amount, 0);
+
+  const cardAndTransferSalesToday = todaySales
+    .filter(s => s.paymentType === 'card' || s.paymentType === 'transfer')
+    .reduce((sum, s) => sum + s.amount, 0);
+
   // Calculate today's branch expenses
   const todayBranchExpenses = useApp().expenses
     .filter(e =>
@@ -150,29 +158,47 @@ export function SellerHome() {
 
       <div className="px-3 md:px-6 space-y-4 max-w-4xl mx-auto">
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* Total Sales */}
-          <Card className="p-4 bg-gradient-to-br from-blue-600 to-blue-700 dark:from-blue-800 dark:to-blue-900 border-0 shadow-lg shadow-blue-500/20 relative overflow-hidden group">
-            <div className="absolute -right-2 -top-2 opacity-10 group-hover:scale-110 transition-transform">
-              <DollarSign className="h-16 w-16 text-white" />
+        <div className="space-y-4">
+          {/* Main Kassa Card */}
+          <Card className="relative overflow-hidden border-0 bg-card shadow-xl p-5 group flex flex-col gap-5">
+            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:scale-110 transition-transform">
+              <DollarSign className="h-20 w-20 text-blue-500" />
             </div>
-            <div className="relative z-10">
-              <div className="flex items-center space-x-1.5 mb-2">
-                <TrendingUp className="h-4 w-4 text-blue-100" />
-                <span className="text-[10px] md:text-xs font-bold text-blue-100/80 uppercase tracking-tight">
-                  Kassa (Bugun)
-                </span>
+
+            <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+              KASSA (BUGUN)
+            </h3>
+
+            <div className="grid grid-cols-2 gap-6 relative z-10">
+              <div className="space-y-1">
+                <div className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Naqd</div>
+                <div className="text-xl font-black text-foreground tracking-tight">
+                  {formatCurrency(cashSalesToday * exchangeRate)}
+                </div>
+                <div className="flex items-center gap-1 opacity-50">
+                  <div className="h-1 w-1 rounded-full bg-blue-500"></div>
+                  <span className="text-[8px] italic font-medium">Sotuv + Qarz</span>
+                </div>
               </div>
-              <div className="text-xl md:text-2xl font-black text-white tracking-tight">
+
+              <div className="space-y-1 border-l border-border pl-6">
+                <div className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Karta / O'tkazma</div>
+                <div className="text-xl font-black text-blue-600 dark:text-blue-400 tracking-tight">
+                  {formatCurrency(cardAndTransferSalesToday * exchangeRate)}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-2 pt-4 border-t border-border/50 flex justify-between items-center group-hover:border-blue-500/20 transition-colors">
+              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-wider">Jami tushum:</span>
+              <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">
                 {formatCurrency(totalSalesToday * exchangeRate)}
-              </div>
-              <div className="text-[10px] text-blue-100/60 mt-1 font-medium italic">
-                {todaySales.length} ta savdo
-              </div>
+              </span>
             </div>
           </Card>
 
-          {/* Branch Profit */}
+          {/* Branch Profit Row */}
           {(() => {
             const totalBranchProfit = todaySales.reduce(
               (sum, sale) => sum + (sale.seller_profit || 0),
@@ -181,24 +207,17 @@ export function SellerHome() {
             return (
               <Dialog>
                 <DialogTrigger asChild>
-                  <Card className={`p-4 bg-gradient-to-br from-emerald-600 to-emerald-700 dark:from-emerald-800 dark:to-emerald-900 border-0 shadow-lg shadow-emerald-500/20 relative overflow-hidden group cursor-pointer hover:opacity-95 transition-all active:scale-[0.98] ${totalBranchProfit <= 0 ? 'opacity-50 grayscale' : ''}`}>
-                    <div className="absolute -right-2 -top-2 opacity-10 group-hover:scale-110 transition-transform">
-                      <HandCoins className="h-16 w-16 text-white" />
-                    </div>
-                    <div className="relative z-10">
-                      <div className="flex items-center space-x-1.5 mb-2">
-                        <HandCoins className="h-4 w-4 text-emerald-100" />
-                        <span className="text-[10px] md:text-xs font-bold text-emerald-100/80 uppercase tracking-tight">
-                          Filial foydasi
-                        </span>
+                  <Card className={`p-4 bg-card border border-border shadow-sm flex items-center justify-between cursor-pointer hover:bg-secondary/20 transition-all active:scale-[0.99] ${totalBranchProfit <= 0 ? 'opacity-50' : ''}`}>
+                    <div className="flex items-center gap-3">
+                      <div className="bg-emerald-500/10 p-2 rounded-xl">
+                        <HandCoins className="h-5 w-5 text-emerald-600" />
                       </div>
-                      <div className="text-xl md:text-2xl font-black text-white tracking-tight">
-                        {formatCurrency(totalBranchProfit * exchangeRate)}
-                      </div>
-                      <div className="text-[10px] text-emerald-100/60 mt-1 font-medium italic">
-                        Sof foyda
+                      <div>
+                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">Filial foydasi</div>
+                        <div className="text-base font-black text-foreground">{formatCurrency(totalBranchProfit * exchangeRate)}</div>
                       </div>
                     </div>
+                    <div className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-1 rounded-lg">Sof foyda</div>
                   </Card>
                 </DialogTrigger>
                 <DialogContent>
