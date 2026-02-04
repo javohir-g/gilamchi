@@ -168,43 +168,45 @@ export function BranchDetail() {
         </div>
       </div>
 
-      <div className="p-4 space-y-6">
+      <div className="p-4 space-y-3">
 
         {/* Kassa Card (Only for Today) */}
         {dateFilter === "today" && (
-          <Card className="relative overflow-hidden border-0 bg-white dark:bg-gray-800 shadow-xl p-5 group flex flex-col gap-5">
-            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:scale-110 transition-transform">
-              <DollarSign className="h-20 w-20 text-blue-500" />
+          <Card className="relative overflow-hidden border-0 bg-white dark:bg-gray-800 shadow-lg p-3.5 group flex flex-col gap-3">
+            <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:scale-110 transition-transform">
+              <DollarSign className="h-14 w-14 text-blue-500" />
             </div>
 
-            <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <h3 className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-1.5 opacity-70">
+              <div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />
               KASSA (BUGUN)
             </h3>
 
-            <div className="flex flex-col gap-4 relative z-10">
-              <div className="space-y-1 pb-4 border-b border-border/50">
-                <div className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Naqd</div>
-                <div className="text-xl font-black text-foreground tracking-tight">
-                  {formatCurrency((cashSales + totalDebtPaymentsInPeriod) * exchangeRate, "UZS")}
+            <div className="flex flex-col gap-2 relative z-10">
+              <div className="flex items-center justify-between pb-2 border-b border-border/40">
+                <div className="space-y-0.5">
+                  <div className="text-[8px] text-muted-foreground font-black uppercase tracking-tight">Naqd</div>
+                  <div className="text-lg font-black text-foreground tracking-tighter">
+                    {formatCurrency((cashSales + totalDebtPaymentsInPeriod) * exchangeRate, "UZS")}
+                  </div>
                 </div>
-                <div className="flex items-center gap-1 opacity-50">
-                  <div className="h-1 w-1 rounded-full bg-blue-500" />
-                  <span className="text-[8px] italic font-medium">Sotuv + Qarz</span>
+                <div className="flex items-center gap-1 opacity-40 self-end mb-0.5">
+                  <div className="h-0.5 w-0.5 rounded-full bg-blue-500" />
+                  <span className="text-[7px] italic font-bold">Sotuv + Qarz</span>
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <div className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Karta / O'tkazma</div>
-                <div className="text-xl font-black text-blue-600 dark:text-blue-400 tracking-tight">
+              <div className="space-y-0.5">
+                <div className="text-[8px] text-muted-foreground font-black uppercase tracking-tight">Karta / O'tkazma</div>
+                <div className="text-lg font-black text-blue-600 dark:text-blue-400 tracking-tighter">
                   {formatCurrency(cardTransferSales * exchangeRate, "UZS")}
                 </div>
               </div>
             </div>
 
-            <div className="mt-2 pt-4 border-t border-border/50 flex justify-between items-center group-hover:border-blue-500/20 transition-colors">
-              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-wider">Jami tushum:</span>
-              <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">
+            <div className="mt-1 pt-2.5 border-t border-border/40 flex justify-between items-center bg-secondary/5 -mx-3.5 -mb-3.5 px-3.5 py-2">
+              <span className="text-[8px] font-black text-muted-foreground uppercase opacity-60">Jami:</span>
+              <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
                 {formatCurrency((cashSales + totalDebtPaymentsInPeriod + cardTransferSales) * exchangeRate, "UZS")}
               </span>
             </div>
@@ -212,7 +214,7 @@ export function BranchDetail() {
         )}
 
         {/* Stats Grid 2x2 */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-2">
           <StatsDrillDownDialog
             title="Mening foydam (Admin)"
             trigger={
@@ -290,7 +292,7 @@ export function BranchDetail() {
             MAHSULOTLAR STATISTIKASI
           </h3>
 
-          <div className="space-y-6">
+          <div className="space-y-3">
             {/* Metrajli (By Area) */}
             <div>
               <div className="flex items-center justify-between mb-3 px-1">
@@ -383,7 +385,7 @@ export function BranchDetail() {
               Hali harakatlar yo'q
             </p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-2">
               {unifiedHistory.map((item) => (
                 <div
                   key={item.id}

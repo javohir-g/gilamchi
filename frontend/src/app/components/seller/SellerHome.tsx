@@ -142,7 +142,7 @@ export function SellerHome() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="bg-card border-b border-border px-4 py-3 mb-2">
+      <div className="bg-card border-b border-border px-4 py-3 mb-1">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <div>
             <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5 opacity-70">
@@ -156,43 +156,45 @@ export function SellerHome() {
         </div>
       </div>
 
-      <div className="px-3 md:px-6 space-y-4 max-w-4xl mx-auto">
+      <div className="px-3 md:px-6 space-y-2 max-w-4xl mx-auto">
         {/* Stats Grid */}
         <div className="space-y-4">
           {/* Main Kassa Card */}
-          <Card className="relative overflow-hidden border-0 bg-card shadow-xl p-5 group flex flex-col gap-5">
-            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:scale-110 transition-transform">
-              <DollarSign className="h-20 w-20 text-blue-500" />
+          <Card className="relative overflow-hidden border-0 bg-card shadow-lg p-3.5 group flex flex-col gap-3">
+            <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:scale-110 transition-transform">
+              <DollarSign className="h-14 w-14 text-blue-500" />
             </div>
 
-            <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+            <h3 className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-1.5 opacity-70">
+              <div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse"></div>
               KASSA (BUGUN)
             </h3>
 
-            <div className="flex flex-col gap-4 relative z-10">
-              <div className="space-y-1 pb-4 border-b border-border/50">
-                <div className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Naqd</div>
-                <div className="text-xl font-black text-foreground tracking-tight">
-                  {formatCurrency(cashSalesToday * exchangeRate)}
+            <div className="flex flex-col gap-2 relative z-10">
+              <div className="flex items-center justify-between pb-2 border-b border-border/40">
+                <div className="space-y-0.5">
+                  <div className="text-[8px] text-muted-foreground font-black uppercase tracking-tight">Naqd</div>
+                  <div className="text-lg font-black text-foreground tracking-tighter">
+                    {formatCurrency(cashSalesToday * exchangeRate)}
+                  </div>
                 </div>
-                <div className="flex items-center gap-1 opacity-50">
-                  <div className="h-1 w-1 rounded-full bg-blue-500"></div>
-                  <span className="text-[8px] italic font-medium">Sotuv + Qarz</span>
+                <div className="flex items-center gap-1 opacity-40 self-end mb-0.5">
+                  <div className="h-0.5 w-0.5 rounded-full bg-blue-500"></div>
+                  <span className="text-[7px] italic font-bold">Sotuv + Qarz</span>
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <div className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Karta / O'tkazma</div>
-                <div className="text-xl font-black text-blue-600 dark:text-blue-400 tracking-tight">
+              <div className="space-y-0.5">
+                <div className="text-[8px] text-muted-foreground font-black uppercase tracking-tight">Karta / O'tkazma</div>
+                <div className="text-lg font-black text-blue-600 dark:text-blue-400 tracking-tighter">
                   {formatCurrency(cardAndTransferSalesToday * exchangeRate)}
                 </div>
               </div>
             </div>
 
-            <div className="mt-2 pt-4 border-t border-border/50 flex justify-between items-center group-hover:border-blue-500/20 transition-colors">
-              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-wider">Jami tushum:</span>
-              <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">
+            <div className="mt-1 pt-2.5 border-t border-border/40 flex justify-between items-center bg-secondary/5 -mx-3.5 -mb-3.5 px-3.5 py-2">
+              <span className="text-[8px] font-black text-muted-foreground uppercase opacity-60">Jami:</span>
+              <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
                 {formatCurrency(totalSalesToday * exchangeRate)}
               </span>
             </div>
@@ -243,7 +245,7 @@ export function SellerHome() {
             BUYURTMALAR (BUGUN)
           </h3>
 
-          <div className="space-y-4">
+          <div className="space-y-2">
             {orders.length === 0 ? (
               <Card className="p-12 text-center text-muted-foreground bg-card rounded-2xl border border-border">
                 Bugun hali savdo yo'q

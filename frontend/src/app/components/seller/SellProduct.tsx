@@ -306,24 +306,24 @@ export function SellProduct() {
         )}
 
         {/* Search Bar - Always visible */}
-        <div className="space-y-3 px-4 pb-4">
+        <div className="space-y-1.5 px-4 pb-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Mahsulot nomi yoki kodi..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-12 pl-10 pr-4 bg-input-background border-border"
+              className="h-11 pl-10 pr-4 bg-input-background border-border"
             />
           </div>
 
           {/* Camera Search Button */}
           <button
             onClick={() => setCameraSearchOpen(true)}
-            className="w-full h-12 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg flex items-center justify-center gap-2 transition-colors active:scale-98"
+            className="w-full h-11 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg flex items-center justify-center gap-2 transition-colors active:scale-98"
           >
             <Camera className="h-5 w-5" />
-            <span>Rasm orqali qidirish</span>
+            <span className="text-sm">Rasm orqali qidirish</span>
           </button>
         </div>
       </div>
@@ -353,13 +353,13 @@ export function SellProduct() {
       </div>
 
       {/* Product List View */}
-      <div className="p-4 space-y-3">
+      <div className="p-4 space-y-1.5">
         {filteredProducts.length === 0 ? (
           <div className="py-12 text-center text-muted-foreground">
             <p>Mahsulot topilmadi</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2">
             {filteredProducts.map((product) => (
               <Card
                 key={product.id}
@@ -372,7 +372,7 @@ export function SellProduct() {
                     className="w-full aspect-[4/5] object-cover cursor-pointer hover:opacity-90 transition-opacity"
                     onClick={(e) => handleOpenBasketModal(e, product)}
                   />
-                  <div className="p-3 space-y-2">
+                  <div className="p-2.5 space-y-1.5">
                     <div className="space-y-1">
                       <h3 className="text-sm font-medium text-card-foreground line-clamp-2">
                         {product.code}
