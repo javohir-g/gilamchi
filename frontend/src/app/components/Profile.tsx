@@ -28,6 +28,7 @@ import {
 } from "./ui/dialog";
 
 import { BranchManagementDialog } from "./admin/BranchManagementDialog";
+import { ExchangeRateDialog } from "./admin/ExchangeRateDialog";
 
 export function Profile() {
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ export function Profile() {
 
   const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
   const [isBranchManagerOpen, setIsBranchManagerOpen] = useState(false);
-  const [newExchangeRate, setNewExchangeRate] = useState(exchangeRate.toString());
+  const [isExchangeRateOpen, setIsExchangeRateOpen] = useState(false);
   const [isUpdatingRate, setIsUpdatingRate] = useState(false);
 
   // Show account switcher only if user is admin or viewing as seller from admin
@@ -82,23 +83,7 @@ export function Profile() {
     setIsAccountSwitcherOpen(false);
   };
 
-  const handleUpdateRate = async () => {
-    const rate = parseFloat(newExchangeRate);
-    if (!rate || rate <= 0) {
-      toast.error("Haqiqiy kursni kiriting!");
-      return;
-    }
-
-    setIsUpdatingRate(true);
-    try {
-      await updateExchangeRate(rate);
-      toast.success("Valyuta kursi yangilandi!");
-    } catch (e) {
-      toast.error("O'zgartirishda xatolik yuz berdi");
-    } finally {
-      setIsUpdatingRate(false);
-    }
-  };
+  // handleUpdateRate logic moved to ExchangeRateDialog
 
   // Get current account display name
   const getCurrentAccountName = () => {
@@ -268,58 +253,31 @@ export function Profile() {
               </button>
 
               <button
-                onClick={() => navigate("/admin/manage-staff")}
+                onClick={() => navigate("/admin/manage-staff-members")}
                 className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-accent border-b dark:border-gray-700"
               >
                 <div className="flex items-center space-x-3">
                   <Users className="h-5 w-5 text-muted-foreground" />
                   <span className="text-card-foreground">
-                    Xodimlar (Sotuvchilar)
-                  </span>
-                </div>
-              </button>
-
-              <button
-                onClick={() => navigate("/admin/manage-staff-members")}
-                className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-accent"
-              >
-                <div className="flex items-center space-x-3">
-                  <Users className="h-5 w-5 text-blue-600" />
-                  <span className="text-card-foreground font-medium">
                     Xodimlar ro'yxati
                   </span>
                 </div>
               </button>
 
-              {/* Exchange Rate Setting */}
-              <div className="p-4 border-b dark:border-gray-700 bg-blue-50/50 dark:bg-blue-900/10">
-                <div className="flex items-center gap-3 mb-3">
-                  <TrendingUp className="h-5 w-5 text-blue-600" />
-                  <span className="text-sm font-bold text-card-foreground uppercase tracking-tight">
+              <button
+                onClick={() => setIsExchangeRateOpen(true)}
+                className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-accent"
+              >
+                <div className="flex items-center space-x-3">
+                  <TrendingUp className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-card-foreground">
                     Valyuta kursi
                   </span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">$1 = </span>
-                    <input
-                      type="number"
-                      value={newExchangeRate}
-                      onChange={(e) => setNewExchangeRate(e.target.value)}
-                      className="w-full bg-background border border-border rounded-lg pl-10 pr-12 py-2 focus:ring-2 focus:ring-blue-500 outline-none font-bold"
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">sum</span>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={handleUpdateRate}
-                    disabled={isUpdatingRate || parseFloat(newExchangeRate) === exchangeRate}
-                    className="bg-blue-600 hover:bg-blue-700 h-10 px-4"
-                  >
-                    {isUpdatingRate ? "..." : "Saqlash"}
-                  </Button>
-                </div>
-              </div>
+                <Badge variant="outline" className="font-bold text-blue-600 border-blue-200">
+                  $1 = {exchangeRate} sum
+                </Badge>
+              </button>
             </>
           )}
 
@@ -368,6 +326,11 @@ export function Profile() {
       <BranchManagementDialog
         isOpen={isBranchManagerOpen}
         onClose={() => setIsBranchManagerOpen(false)}
+      />
+
+      <ExchangeRateDialog
+        isOpen={isExchangeRateOpen}
+        onClose={() => setIsExchangeRateOpen(false)}
       />
 
       <BottomNav />

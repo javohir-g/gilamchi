@@ -19,7 +19,6 @@ import { Hisob } from './components/admin/Hisob';
 import { BranchDetail } from './components/admin/BranchDetail';
 import { BranchProfitDetail } from './components/admin/BranchProfitDetail';
 import { CashClosure } from './components/admin/CashClosure';
-import { ManageStaff } from './components/admin/ManageStaff';
 import { ManageStaffMembers } from './components/admin/ManageStaffMembers';
 import { ManageCollections } from './components/admin/ManageCollections';
 import { ManageSizes } from './components/admin/ManageSizes';
@@ -216,14 +215,6 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRole="admin">
               <CashClosure />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/manage-staff"
-          element={
-            <ProtectedRoute allowedRole="admin">
-              <ManageStaff />
             </ProtectedRoute>
           }
         />
