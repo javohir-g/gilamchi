@@ -4,14 +4,6 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { BasketItem, Product, useApp } from "../../context/AppContext";
-
-interface EditBasketItemModalProps {
-  item: BasketItem;
-  product: Product;
-  onUpdate: (item: BasketItem) => void;
-  onClose: () => void;
-}
-
 import {
   Select,
   SelectContent,
@@ -19,6 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+
+interface EditBasketItemModalProps {
+  item: BasketItem;
+  product: Product;
+  onUpdate: (item: BasketItem) => void;
+  onClose: () => void;
+}
 
 export function EditBasketItemModal({
   item,
@@ -167,7 +166,7 @@ export function EditBasketItemModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+    <div className="fixed inset-0 z-40 flex items-end sm:items-center justify-center">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50"
