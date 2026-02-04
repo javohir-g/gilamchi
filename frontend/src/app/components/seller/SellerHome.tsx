@@ -170,8 +170,8 @@ export function SellerHome() {
               KASSA (BUGUN)
             </h3>
 
-            <div className="grid grid-cols-2 gap-6 relative z-10">
-              <div className="space-y-1">
+            <div className="flex flex-col gap-4 relative z-10">
+              <div className="space-y-1 pb-4 border-b border-border/50">
                 <div className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Naqd</div>
                 <div className="text-xl font-black text-foreground tracking-tight">
                   {formatCurrency(cashSalesToday * exchangeRate)}
@@ -182,7 +182,7 @@ export function SellerHome() {
                 </div>
               </div>
 
-              <div className="space-y-1 border-l border-border pl-6">
+              <div className="space-y-1">
                 <div className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Karta / O'tkazma</div>
                 <div className="text-xl font-black text-blue-600 dark:text-blue-400 tracking-tight">
                   {formatCurrency(cardAndTransferSalesToday * exchangeRate)}
