@@ -162,6 +162,46 @@ export function BranchDetail() {
 
       <div className="p-4 space-y-6">
 
+        {/* Kassa Plaque (Only for Today) */}
+        {dateFilter === "today" && (
+          <Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-xl overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-3 opacity-10">
+              <DollarSign className="h-20 w-20 text-gray-400" />
+            </div>
+
+            <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              KASSA (BUGUN)
+            </h3>
+
+            <div className="grid grid-cols-2 gap-8 relative z-10">
+              <div className="space-y-1">
+                <div className="text-[10px] text-gray-400 dark:text-gray-500 font-medium uppercase">Naqd</div>
+                <div className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+                  {formatCurrency(cashSales + totalDebtPaymentsInPeriod)}
+                </div>
+                <div className="flex items-center gap-1.5 pt-1">
+                  <div className="h-1 w-1 rounded-full bg-gray-300" />
+                  <span className="text-[9px] text-gray-400 italic">Sotuv + Qarz</span>
+                </div>
+              </div>
+
+              <div className="space-y-1 border-l dark:border-gray-700 pl-8">
+                <div className="text-[10px] text-gray-400 dark:text-gray-500 font-medium uppercase">Karta / O'tkazma</div>
+                <div className="text-2xl font-black text-blue-600 dark:text-blue-400 tracking-tight">
+                  {formatCurrency(cardTransferSales)}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 pt-4 border-t dark:border-gray-700/50 flex justify-between items-center">
+              <span className="text-[10px] font-bold text-gray-400 uppercase">Jami tushum:</span>
+              <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">
+                {formatCurrency(cashSales + totalDebtPaymentsInPeriod + cardTransferSales)}
+              </span>
+            </div>
+          </Card>
+        )}
 
         {/* Stats Grid 2x2 */}
         <div className="grid grid-cols-2 gap-4">

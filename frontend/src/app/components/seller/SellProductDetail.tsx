@@ -228,15 +228,27 @@ export function SellProductDetail() {
         </Card>
 
         {/* Size Selection */}
-        {product.availableSizes && product.availableSizes.length > 0 && (
+        {(isCarpetOrMetraj || (product.availableSizes && product.availableSizes.length > 0)) && (
           <Card className="p-6 space-y-3">
             <Label className="text-lg">O'lchamni tanlang</Label>
-            <Select value={selectedSize} onValueChange={setSelectedSize}>
+            <Select
+              value={selectedSize}
+              onValueChange={(val) => {
+                setSelectedSize(val);
+                if (val !== "other") {
+                  // Effect handles width/height/area
+                } else {
+                  setWidth("");
+                  setHeight("");
+                  setArea(0);
+                }
+              }}
+            >
               <SelectTrigger className="h-14 text-xl">
                 <SelectValue placeholder="O'lchamni tanlang" />
               </SelectTrigger>
               <SelectContent>
-                {product.availableSizes.map((s) => {
+                {product.availableSizes?.map((s) => {
                   const sizeName = typeof s === 'string' ? s : s.size;
                   const sizeQty = typeof s === 'string' ? product.quantity : s.quantity;
                   return (
@@ -245,9 +257,12 @@ export function SellProductDetail() {
                     </SelectItem>
                   );
                 })}
+                {isCarpetOrMetraj && (
+                  <SelectItem value="other">Boshqa olcham</SelectItem>
+                )}
               </SelectContent>
             </Select>
-            {area > 0 && (
+            {area > 0 && selectedSize !== "other" && (
               <div className="text-sm text-gray-500">
                 Maydon: {area.toFixed(2)} m²
               </div>
@@ -255,10 +270,10 @@ export function SellProductDetail() {
           </Card>
         )}
 
-        {/* Manual Size Input for Carpet/Metraj if no size selected */}
-        {isCarpetOrMetraj && !selectedSize && (
+        {/* Manual Size Input for Carpet/Metraj if "Boshqa olcham" selected or no sizes available */}
+        {isCarpetOrMetraj && (selectedSize === "other" || !product.availableSizes || product.availableSizes.length === 0) && (
           <Card className="p-6">
-            <Label className="mb-4 block text-lg">
+            <Label data-slot="label" className="items-center gap-2 font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 mb-3 block text-lg dark:text-white">
               O'lchamni kiriting
             </Label>
             <div className="flex items-center space-x-4">

@@ -205,15 +205,29 @@ export function AddToBasketModal({
             </div>
           </div>
 
-          {product.availableSizes && product.availableSizes.length > 0 && (
+          {/* Size Selection */}
+          {(isCarpetOrMetraj || (product.availableSizes && product.availableSizes.length > 0)) && (
             <div className="space-y-3">
               <Label className="text-lg dark:text-white">O'lchamni tanlang</Label>
-              <Select value={selectedSize} onValueChange={setSelectedSize}>
+              <Select
+                value={selectedSize}
+                onValueChange={(val) => {
+                  setSelectedSize(val);
+                  if (val !== "other") {
+                    // When a preset size is selected, width and height are updated by the effect
+                  } else {
+                    // When "other" is selected, clear width/height for manual input
+                    setWidth("");
+                    setHeight("");
+                    setArea(0);
+                  }
+                }}
+              >
                 <SelectTrigger className="h-12 text-lg dark:bg-gray-700 dark:text-white">
                   <SelectValue placeholder="O'lchamni tanlang" />
                 </SelectTrigger>
                 <SelectContent>
-                  {product.availableSizes.map((s) => {
+                  {product.availableSizes?.map((s) => {
                     const sizeName = typeof s === 'string' ? s : s.size;
                     const sizeQty = typeof s === 'string' ? product.quantity : s.quantity;
                     return (
@@ -222,6 +236,9 @@ export function AddToBasketModal({
                       </SelectItem>
                     );
                   })}
+                  {isCarpetOrMetraj && (
+                    <SelectItem value="other">Boshqa olcham</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
               {area > 0 && (
@@ -232,10 +249,10 @@ export function AddToBasketModal({
             </div>
           )}
 
-          {/* Carpet Size Selection */}
-          {isCarpetOrMetraj && (
+          {/* Carpet Size Selection - Only shown if "Boshqa olcham" is selected or no sizes available */}
+          {isCarpetOrMetraj && (selectedSize === "other" || !product.availableSizes || product.availableSizes.length === 0) && (
             <div>
-              <Label className="mb-3 block text-lg dark:text-white">
+              <Label data-slot="label" className="items-center gap-2 font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 mb-3 block text-lg dark:text-white">
                 O'lchamni kiriting
               </Label>
               <div className="flex items-center space-x-4">
