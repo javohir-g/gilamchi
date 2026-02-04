@@ -16,7 +16,11 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
         raise HTTPException(status_code=404, detail="Product not found")
 
     # Stock Validation & Deduction
+    import sys
+    print(f"DEBUG: Processing sale for product {product.id} (Type: {product.type})", file=sys.stderr)
+    
     if product.type == ProductType.UNIT:
+        print(f"DEBUG: Current quantity: {product.quantity}, Sale quantity: {sale.quantity}", file=sys.stderr)
         if product.quantity < sale.quantity:
              raise HTTPException(status_code=400, detail=f"Insufficient stock (requested {sale.quantity}, available {product.quantity})")
         
@@ -25,17 +29,15 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
             sizes = list(product.available_sizes) if product.available_sizes else []
             found = False
             for s in sizes:
-                # Handle both old string format and new dict format for safety
                 if isinstance(s, dict) and s.get("size") == sale.size:
                     size_qty = int(s.get("quantity", 0))
                     if size_qty < sale.quantity:
                         raise HTTPException(status_code=400, detail=f"Insufficient stock for size {sale.size}")
                     s["quantity"] = size_qty - int(sale.quantity)
+                    print(f"DEBUG: Size {sale.size} updated: {size_qty} -> {s['quantity']}", file=sys.stderr)
                     found = True
                     break
                 elif isinstance(s, str) and s == sale.size:
-                    # If it's the old string format, we can't easily track individual quantity here
-                    # But we'll still decrement total quantity below
                     found = True
                     break
             
@@ -45,27 +47,32 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
                 flag_modified(product, "available_sizes")
 
         product.quantity = int(product.quantity) - int(sale.quantity)
+        print(f"DEBUG: New quantity: {product.quantity}", file=sys.stderr)
         
-        # Auto-delete product if quantity reaches 0
         if product.quantity <= 0:
             from datetime import datetime, timezone
             product.deleted_at = datetime.now(timezone.utc)
             product.deleted_by = current_user.id
+            print(f"DEBUG: Product {product.id} marked as deleted", file=sys.stderr)
             
     elif product.type == ProductType.METER:
-        # Fallback to total_length if remaining_length is not yet set (initial sale)
         available = float(product.remaining_length if product.remaining_length is not None else (product.total_length or 0))
+        print(f"DEBUG: Current remaining_length (available): {available}, Sale length: {sale.quantity}", file=sys.stderr)
         
         if available < float(sale.quantity):
              raise HTTPException(status_code=400, detail=f"Insufficient stock (requested {sale.quantity}m, available {available}m)")
         
         product.remaining_length = available - float(sale.quantity)
+        print(f"DEBUG: New remaining_length: {product.remaining_length}", file=sys.stderr)
             
-        # Auto-delete product if remaining length reaches 0
         if product.remaining_length <= 0:
             from datetime import datetime, timezone
             product.deleted_at = datetime.now(timezone.utc)
             product.deleted_by = current_user.id
+            print(f"DEBUG: Product {product.id} marked as deleted", file=sys.stderr)
+    
+    # Explicitly add product back to session to ensure it's marked for update
+    db.add(product)
     
     from ..models.collection import Collection
     collection = db.query(Collection).filter(Collection.name == product.collection).first() if product.collection else None
