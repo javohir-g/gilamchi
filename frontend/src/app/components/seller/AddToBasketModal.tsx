@@ -120,11 +120,11 @@ export function AddToBasketModal({
   };
 
   const handleAdd = () => {
-    const qty = isCarpet
-      ? quantity
-      : isMetraj
-        ? parseFloat(meters)
-        : getQuantityValue();
+    const qty = isMetraj
+      ? parseFloat(height)
+      : isUnit
+        ? quantity
+        : parseFloat(meters);
 
     if (qty <= 0 || (!isCarpetOrMetraj && qty > maxQuantity)) {
       return;

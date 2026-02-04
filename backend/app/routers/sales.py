@@ -15,10 +15,10 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    # Stock Validation
+    # Stock Validation & Deduction
     if product.type == ProductType.UNIT:
         if product.quantity < sale.quantity:
-             raise HTTPException(status_code=400, detail="Insufficient stock (quantity)")
+             raise HTTPException(status_code=400, detail=f"Insufficient stock (requested {sale.quantity}, available {product.quantity})")
         
         # Per-size stock handling
         if sale.size and product.available_sizes:
@@ -27,9 +27,10 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
             for s in sizes:
                 # Handle both old string format and new dict format for safety
                 if isinstance(s, dict) and s.get("size") == sale.size:
-                    if s.get("quantity", 0) < sale.quantity:
+                    size_qty = int(s.get("quantity", 0))
+                    if size_qty < sale.quantity:
                         raise HTTPException(status_code=400, detail=f"Insufficient stock for size {sale.size}")
-                    s["quantity"] = int(s["quantity"]) - int(sale.quantity)
+                    s["quantity"] = size_qty - int(sale.quantity)
                     found = True
                     break
                 elif isinstance(s, str) and s == sale.size:
@@ -43,25 +44,28 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
                 product.available_sizes = sizes
                 flag_modified(product, "available_sizes")
 
-        product.quantity -= int(sale.quantity)
+        product.quantity = int(product.quantity) - int(sale.quantity)
         
         # Auto-delete product if quantity reaches 0
         if product.quantity <= 0:
             from datetime import datetime, timezone
             product.deleted_at = datetime.now(timezone.utc)
             product.deleted_by = current_user.id
-    elif product.type == ProductType.METER:
-        # Assuming remaining_length is tracked
-        if product.remaining_length and product.remaining_length < sale.quantity:
-             raise HTTPException(status_code=400, detail="Insufficient stock (length)")
-        if product.remaining_length:
-            product.remaining_length = float(product.remaining_length or 0) - float(sale.quantity)
             
-            # Auto-delete product if remaining length reaches 0
-            if product.remaining_length <= 0:
-                from datetime import datetime, timezone
-                product.deleted_at = datetime.now(timezone.utc)
-                product.deleted_by = current_user.id
+    elif product.type == ProductType.METER:
+        # Fallback to total_length if remaining_length is not yet set (initial sale)
+        available = float(product.remaining_length if product.remaining_length is not None else (product.total_length or 0))
+        
+        if available < float(sale.quantity):
+             raise HTTPException(status_code=400, detail=f"Insufficient stock (requested {sale.quantity}m, available {available}m)")
+        
+        product.remaining_length = available - float(sale.quantity)
+            
+        # Auto-delete product if remaining length reaches 0
+        if product.remaining_length <= 0:
+            from datetime import datetime, timezone
+            product.deleted_at = datetime.now(timezone.utc)
+            product.deleted_by = current_user.id
     
     from ..models.collection import Collection
     collection = db.query(Collection).filter(Collection.name == product.collection).first() if product.collection else None
