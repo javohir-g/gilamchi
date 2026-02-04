@@ -16,7 +16,7 @@ import { Badge } from "../ui/badge";
 
 export function Debts() {
   const navigate = useNavigate();
-  const { debts, user } = useApp();
+  const { debts, user, exchangeRate } = useApp();
   const [searchQuery, setSearchQuery] = useState("");
 
   // Filter debts by branch and search query
@@ -55,7 +55,15 @@ export function Debts() {
     return new Date(d.paymentDeadline) < new Date();
   });
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: "USD" | "UZS" = "UZS") => {
+    if (currency === "UZS") {
+      return new Intl.NumberFormat("uz-UZ", {
+        style: "currency",
+        currency: "UZS",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount);
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -141,7 +149,7 @@ export function Debts() {
               {pendingDebts.length}
             </div>
             <div className="text-xs text-orange-600 dark:text-orange-500 mt-1">
-              {formatCurrency(totalPending)}
+              {formatCurrency(totalPending * exchangeRate)}
             </div>
           </Card>
 
@@ -154,7 +162,7 @@ export function Debts() {
               {paidDebts.length}
             </div>
             <div className="text-xs text-green-600 dark:text-green-500 mt-1">
-              {formatCurrency(totalPaid)}
+              {formatCurrency(totalPaid * exchangeRate)}
             </div>
           </Card>
         </div>
@@ -231,7 +239,7 @@ export function Debts() {
                           </h3>
                           <p className="text-lg font-medium text-gray-900 dark:text-white break-words">
                             {formatCurrency(
-                              debt.remainingAmount,
+                              debt.remainingAmount * exchangeRate,
                             )}
                           </p>
                         </div>

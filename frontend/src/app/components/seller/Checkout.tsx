@@ -14,7 +14,7 @@ import { toast } from "sonner";
 
 export function Checkout() {
   const navigate = useNavigate();
-  const { basket, completeOrder, collections } = useApp();
+  const { basket, completeOrder, collections, exchangeRate } = useApp();
 
   // Redirect if basket is empty
   useEffect(() => {
@@ -63,7 +63,15 @@ export function Checkout() {
     parseFormattedNumber(cashAmount) +
     parseFormattedNumber(cardAmount);
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: "USD" | "UZS" = "UZS") => {
+    if (currency === "UZS") {
+      return new Intl.NumberFormat("uz-UZ", {
+        style: "currency",
+        currency: "UZS",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount);
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -88,9 +96,10 @@ export function Checkout() {
         state: {
           basketItems: basket,
           totalAmount: calculatedTotal,
-          paidAmount: total,
-          remainingAmount: Math.max(0, calculatedTotal - total),
-          isNasiya: true
+          paidAmount: total / exchangeRate,
+          remainingAmount: Math.max(0, calculatedTotal - (total / exchangeRate)),
+          isNasiya: true,
+          exchangeRate: exchangeRate
         },
       });
       return;
@@ -103,7 +112,7 @@ export function Checkout() {
     if (cash > 0) {
       payments.push({
         type: "cash",
-        amount: cash,
+        amount: cash / exchangeRate,
       });
     }
 
@@ -111,17 +120,17 @@ export function Checkout() {
     if (card > 0) {
       payments.push({
         type: "card",
-        amount: card,
+        amount: card / exchangeRate,
       });
     }
 
-    completeOrder(payments, total, false); // false = Sotish (regular sale)
+    completeOrder(payments, total / exchangeRate, false); // false = Sotish (regular sale)
     toast.success("Buyurtma muvaffaqiyatli yakunlandi!");
     navigate("/seller/home");
   };
 
   const isValid = sellerTotal > 0;
-  const profit = sellerTotal - calculatedTotal;
+  const profit = (sellerTotal / exchangeRate) - calculatedTotal;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-32">
@@ -173,7 +182,7 @@ export function Checkout() {
                 {isNasiya ? "Nasiya narxi" : "Kassa narxi"}
               </Label>
               <div className="text-xl font-semibold text-gray-700 dark:text-gray-300 mt-1">
-                {formatCurrency(calculatedTotal)}
+                {formatCurrency(calculatedTotal * exchangeRate)}
               </div>
             </div>
 
@@ -195,7 +204,7 @@ export function Checkout() {
                     min="0"
                   />
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                    Qolgan qarz: {formatCurrency(Math.max(0, calculatedTotal - parseFormattedNumber(cashAmount)))}
+                    Qolgan qarz: {formatCurrency(Math.max(0, (calculatedTotal * exchangeRate) - parseFormattedNumber(cashAmount)))}
                   </p>
                 </>
               ) : (
@@ -271,7 +280,7 @@ export function Checkout() {
                 </div>
                 <div className="text-2xl font-bold mb-3">
                   {profit > 0 ? "+" : ""}
-                  {formatCurrency(profit)}
+                  {formatCurrency(profit * exchangeRate)}
                 </div>
               </motion.div>
             )}

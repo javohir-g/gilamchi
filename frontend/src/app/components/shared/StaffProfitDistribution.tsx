@@ -1,6 +1,6 @@
 
 import { Card } from "../ui/card";
-import { StaffMember, Expense } from "../../context/AppContext";
+import { StaffMember, Expense, useApp } from "../../context/AppContext";
 
 interface StaffProfitDistributionProps {
     staffMembers: StaffMember[];
@@ -19,6 +19,7 @@ export function StaffProfitDistribution({
     branchExpenses,
     className
 }: StaffProfitDistributionProps) {
+    const { exchangeRate } = useApp();
     const activeStaff = staffMembers.filter(s => s.branchId === branchId && s.isActive);
 
     if (activeStaff.length === 0) return null;
@@ -26,7 +27,15 @@ export function StaffProfitDistribution({
     const distributableProfit = totalSellerProfit - totalBranchExpenses;
     const sharePerPerson = distributableProfit / activeStaff.length;
 
-    const formatCurrency = (amount: number) => {
+    const formatCurrency = (amount: number, currency: "USD" | "UZS" = "UZS") => {
+        if (currency === "UZS") {
+            return new Intl.NumberFormat("uz-UZ", {
+                style: "currency",
+                currency: "UZS",
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+            }).format(amount);
+        }
         return new Intl.NumberFormat("en-US", {
             style: "currency",
             currency: "USD",

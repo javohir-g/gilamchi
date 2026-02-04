@@ -3,7 +3,7 @@ import { X, Plus, Minus } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { BasketItem, Product } from "../../context/AppContext";
+import { BasketItem, Product, useApp } from "../../context/AppContext";
 
 interface EditBasketItemModalProps {
   item: BasketItem;
@@ -18,6 +18,7 @@ export function EditBasketItemModal({
   onUpdate,
   onClose,
 }: EditBasketItemModalProps) {
+  const { exchangeRate } = useApp();
   const isUnit = product.type === "unit";
   const isCarpet =
     product.category === "Gilamlar" &&
@@ -42,7 +43,7 @@ export function EditBasketItemModal({
   const [width, setWidth] = useState(item.width || "");
   const [height, setHeight] = useState(item.height || "");
   const [area, setArea] = useState(item.area || 0);
-  const [sellingPrice, setSellingPrice] = useState(item.pricePerUnit);
+  const [sellingPrice, setSellingPrice] = useState(item.pricePerUnit * exchangeRate);
 
   // Initialize quantity for carpets and units
   useEffect(() => {
@@ -106,8 +107,8 @@ export function EditBasketItemModal({
     const updatedItem: BasketItem = {
       ...item,
       quantity: qty,
-      pricePerUnit: sellingPrice,
-      total: calculateTotal(),
+      pricePerUnit: sellingPrice / exchangeRate,
+      total: calculateTotal() / exchangeRate,
       // Carpet-specific fields
       ...(isCarpetOrMetraj && {
         width,
@@ -120,7 +121,15 @@ export function EditBasketItemModal({
     onClose();
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: "USD" | "UZS" = "UZS") => {
+    if (currency === "UZS") {
+      return new Intl.NumberFormat("uz-UZ", {
+        style: "currency",
+        currency: "UZS",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount);
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",

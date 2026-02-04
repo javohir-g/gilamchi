@@ -9,6 +9,7 @@ import {
   FileText,
   ChevronDown,
   Check,
+  TrendingUp,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "./ui/card";
@@ -16,7 +17,8 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { useApp } from "../context/AppContext";
 import { BottomNav } from "./shared/BottomNav";
-import { useState } from "react";
+import { toast } from "sonner";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -39,12 +41,16 @@ export function Profile() {
     switchBackToAdmin,
     isAdminViewingAsSeller,
     originalAdminUser,
+    exchangeRate,
+    updateExchangeRate,
   } = useApp();
 
   const userBranch = branches.find((b) => b.id === user?.branchId);
 
   const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
   const [isBranchManagerOpen, setIsBranchManagerOpen] = useState(false);
+  const [newExchangeRate, setNewExchangeRate] = useState(exchangeRate.toString());
+  const [isUpdatingRate, setIsUpdatingRate] = useState(false);
 
   // Show account switcher only if user is admin or viewing as seller from admin
   const canSwitchAccounts = originalAdminUser || user?.role === "admin";
@@ -74,6 +80,24 @@ export function Profile() {
       handleSwitchToBranch(accountType);
     }
     setIsAccountSwitcherOpen(false);
+  };
+
+  const handleUpdateRate = async () => {
+    const rate = parseFloat(newExchangeRate);
+    if (!rate || rate <= 0) {
+      toast.error("Haqiqiy kursni kiriting!");
+      return;
+    }
+
+    setIsUpdatingRate(true);
+    try {
+      await updateExchangeRate(rate);
+      toast.success("Valyuta kursi yangilandi!");
+    } catch (e) {
+      toast.error("O'zgartirishda xatolik yuz berdi");
+    } finally {
+      setIsUpdatingRate(false);
+    }
   };
 
   // Get current account display name
@@ -266,6 +290,36 @@ export function Profile() {
                   </span>
                 </div>
               </button>
+
+              {/* Exchange Rate Setting */}
+              <div className="p-4 border-b dark:border-gray-700 bg-blue-50/50 dark:bg-blue-900/10">
+                <div className="flex items-center gap-3 mb-3">
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                  <span className="text-sm font-bold text-card-foreground uppercase tracking-tight">
+                    Valyuta kursi
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">$1 = </span>
+                    <input
+                      type="number"
+                      value={newExchangeRate}
+                      onChange={(e) => setNewExchangeRate(e.target.value)}
+                      className="w-full bg-background border border-border rounded-lg pl-10 pr-12 py-2 focus:ring-2 focus:ring-blue-500 outline-none font-bold"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">sum</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={handleUpdateRate}
+                    disabled={isUpdatingRate || parseFloat(newExchangeRate) === exchangeRate}
+                    className="bg-blue-600 hover:bg-blue-700 h-10 px-4"
+                  >
+                    {isUpdatingRate ? "..." : "Saqlash"}
+                  </Button>
+                </div>
+              </div>
             </>
           )}
 

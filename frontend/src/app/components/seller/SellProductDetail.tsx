@@ -20,7 +20,7 @@ import {
 export function SellProductDetail() {
   const { productId } = useParams();
   const navigate = useNavigate();
-  const { products, user, addSale } = useApp();
+  const { products, user, addSale, exchangeRate } = useApp();
 
   const product = products.find((p) => p.id === productId);
 
@@ -33,7 +33,9 @@ export function SellProductDetail() {
   const [meters, setMeters] = useState('1');
   const [paymentType, setPaymentType] = useState<PaymentType>('cash');
   const [sellingPrice, setSellingPrice] = useState(
-    isUnit ? product?.sellPrice || 0 : product?.sellPricePerMeter || 0
+    isUnit
+      ? (product?.sellPrice ? product.sellPrice * exchangeRate : 0)
+      : (product?.sellPricePerMeter ? product.sellPricePerMeter * exchangeRate : 0)
   );
 
   const [selectedSize, setSelectedSize] = useState<string>("");
@@ -49,13 +51,16 @@ export function SellProductDetail() {
     if (isNasiya && product.collection) {
       const coll = collections.find(c => c.name === product.collection);
       if (coll?.price_nasiya_per_sqm) {
-        setSellingPrice(coll.price_nasiya_per_sqm);
+        setSellingPrice(coll.price_nasiya_per_sqm * exchangeRate);
         return;
       }
     }
 
-    setSellingPrice(isUnit ? product.sellPrice : product?.sellPricePerMeter || 0);
-  }, [isNasiya, product, collections, isUnit]);
+    setSellingPrice(isUnit
+      ? (product.sellPrice * exchangeRate)
+      : (product.sellPricePerMeter ? product.sellPricePerMeter * exchangeRate : 0)
+    );
+  }, [isNasiya, product, collections, isUnit, exchangeRate]);
 
   // Parse width and height from selectedSize
   useEffect(() => {
@@ -141,14 +146,16 @@ export function SellProductDetail() {
       ? area * standardPrice * saleQuantity
       : saleQuantity * standardPrice;
 
-    const extraProfit = totalAmount - standardTotal;
+    // Convert totalAmount (entered in Som) to USD for profit calculation
+    const totalAmountUSD = totalAmount / exchangeRate;
+    const extraProfit = totalAmountUSD - standardTotal;
 
     addSale({
       id: `s${Date.now()}`,
       productId: product.id,
       productName: product.code || "Unknown",
       quantity: saleQuantity,
-      amount: totalAmount,
+      amount: totalAmountUSD,
       paymentType,
       branchId: product.branchId,
       sellerId: user.id,
@@ -160,13 +167,22 @@ export function SellProductDetail() {
       area: area > 0 ? area : ((product.type === 'meter' && product.width) ? (product.width * saleQuantity) : undefined),
       size: selectedSize || undefined,
       isNasiya: isNasiya,
+      exchange_rate: exchangeRate,
     });
 
     toast.success('Mahsulot sotildi!');
     navigate('/seller/home');
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: "USD" | "UZS" = "UZS") => {
+    if (currency === "UZS") {
+      return new Intl.NumberFormat("uz-UZ", {
+        style: "currency",
+        currency: "UZS",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount);
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",

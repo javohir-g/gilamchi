@@ -17,11 +17,19 @@ import { toast } from "sonner";
 
 export function Basket() {
   const navigate = useNavigate();
-  const { basket, removeFromBasket, updateBasketItem, updateBasketItemFull, products } =
+  const { basket, removeFromBasket, updateBasketItem, updateBasketItemFull, products, exchangeRate } =
     useApp();
   const [editingItem, setEditingItem] = useState<BasketItem | null>(null);
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: "USD" | "UZS" = "UZS") => {
+    if (currency === "UZS") {
+      return new Intl.NumberFormat("uz-UZ", {
+        style: "currency",
+        currency: "UZS",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount);
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -175,11 +183,11 @@ export function Basket() {
 
                     <div className="flex justify-between items-end pt-2 border-t dark:border-gray-700">
                       <div className="text-xs text-gray-500 dark:text-gray-400">
-                        {formatCurrency(item.pricePerUnit)}
+                        {formatCurrency(item.pricePerUnit * exchangeRate)}
                         {item.type === "meter" ? " / m²" : " / dona"}
                       </div>
                       <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                        {formatCurrency(item.total)}
+                        {formatCurrency(item.total * exchangeRate)}
                       </div>
                     </div>
                   </div>

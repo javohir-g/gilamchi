@@ -34,7 +34,7 @@ interface Order {
 
 export function SellerHome() {
   const navigate = useNavigate();
-  const { user, sales, branches, isAdminViewingAsSeller } = useApp();
+  const { user, sales, branches, isAdminViewingAsSeller, exchangeRate } = useApp();
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
 
   const userBranch = branches.find((b) => b.id === user?.branchId);
@@ -102,7 +102,15 @@ export function SellerHome() {
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: "USD" | "UZS" = "UZS") => {
+    if (currency === "UZS") {
+      return new Intl.NumberFormat("uz-UZ", {
+        style: "currency",
+        currency: "UZS",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount);
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -154,7 +162,7 @@ export function SellerHome() {
                   </span>
                 </div>
                 <div className="text-3xl font-bold text-white">
-                  {formatCurrency(totalSalesToday)}
+                  {formatCurrency(totalSalesToday * exchangeRate)}
                 </div>
                 <div className="text-sm text-blue-100 mt-1">
                   {todaySales.length} ta savdodan
@@ -186,7 +194,7 @@ export function SellerHome() {
                           </span>
                         </div>
                         <div className="text-3xl font-bold text-white">
-                          {formatCurrency(totalBranchProfit)}
+                          {formatCurrency(totalBranchProfit * exchangeRate)}
                         </div>
                       </div>
                       <div className="bg-white/20 rounded-full p-3">
@@ -202,8 +210,8 @@ export function SellerHome() {
                   <StaffProfitDistribution
                     staffMembers={useApp().staffMembers}
                     branchId={userBranch?.id || ""}
-                    totalSellerProfit={totalBranchProfit}
-                    totalBranchExpenses={todayBranchExpenses}
+                    totalSellerProfit={totalBranchProfit * exchangeRate}
+                    totalBranchExpenses={todayBranchExpenses * exchangeRate}
                     branchExpenses={useApp().expenses.filter(e => e.branchId === userBranch?.id && isToday(e.date))}
                   />
                 </DialogContent>
@@ -284,7 +292,7 @@ export function SellerHome() {
                         </div>
                         <div className="flex flex-col items-end gap-1">
                           <div className="text-xl font-bold text-foreground">
-                            {formatCurrency(order.totalAmount)}
+                            {formatCurrency(order.totalAmount * exchangeRate)}
                           </div>
                           {(() => {
                             const branchProfit = order.sales.reduce(
@@ -303,7 +311,7 @@ export function SellerHome() {
                                   }}
                                 >
                                   {branchProfit > 0 ? "+" : ""}
-                                  {formatCurrency(branchProfit)}
+                                  {formatCurrency(branchProfit * exchangeRate)}
                                 </Badge>
                               );
                             }
@@ -334,7 +342,7 @@ export function SellerHome() {
                               </div>
                               <div className="text-right">
                                 <div className="text-foreground font-bold">
-                                  {formatCurrency(sale.amount)}
+                                  {formatCurrency(sale.amount * exchangeRate)}
                                 </div>
                                 {sale.seller_profit && sale.seller_profit !== 0 && (
                                   <div
@@ -344,7 +352,7 @@ export function SellerHome() {
                                     }}
                                   >
                                     {sale.seller_profit > 0 ? "+" : ""}
-                                    {formatCurrency(sale.seller_profit)}
+                                    {formatCurrency(sale.seller_profit * exchangeRate)}
                                   </div>
                                 )}
                               </div>

@@ -1,7 +1,8 @@
 import axios, { AxiosError } from 'axios';
 
 // Get API URL from env or default to localhost
-let envApiUrl = import.meta.env.VITE_API_URL;
+const apiEnv = (import.meta as any).env;
+let envApiUrl = apiEnv?.VITE_API_URL;
 
 if (envApiUrl && !envApiUrl.startsWith('http')) {
   // If it's a Render internal host (no dots), it won't resolve in the browser.
@@ -14,7 +15,8 @@ if (envApiUrl && !envApiUrl.startsWith('http')) {
 
 // 1. If no env, use localhost (dev) or relative path (prod)
 // 2. If env exists, ensure it ends with /api/ (case insensitive and handle trailing slashes)
-let API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api/' : 'http://localhost:8000/api/');
+const apiProd = (import.meta as any).env?.PROD;
+let API_URL = envApiUrl || (apiProd ? '/api/' : 'http://localhost:8000/api/');
 
 if (envApiUrl) {
   let base = envApiUrl.trim();
@@ -418,6 +420,17 @@ export const staffService = {
   },
   delete: async (id: string) => {
     await api.delete(`staff/${id}`);
+  }
+};
+
+export const settingsService = {
+  get: async () => {
+    const response = await api.get('settings/');
+    return response.data;
+  },
+  update: async (data: { exchange_rate: number }) => {
+    const response = await api.patch('settings/', data);
+    return response.data;
   }
 };
 

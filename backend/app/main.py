@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import get_settings
-from .routers import auth, branches, users, products, sales, debts, expenses, collections, staff
+from .routers import auth, branches, users, products, sales, debts, expenses, collections, staff, settings as settings_router
 from .database import engine, Base
 
 settings = get_settings()
@@ -64,6 +64,7 @@ app.include_router(debts.router, prefix="/api/debts", tags=["debts"])
 app.include_router(expenses.router, prefix="/api/expenses", tags=["expenses"])
 app.include_router(collections.router, prefix="/api/collections", tags=["collections"])
 app.include_router(staff.router, prefix="/api/staff", tags=["staff"])
+app.include_router(settings_router.router, prefix="/api/settings", tags=["settings"])
 
 @app.get("/")
 def read_root():

@@ -8,7 +8,7 @@ import {
 } from "../ui/dialog";
 import { Badge } from "../ui/badge";
 import { Package, DollarSign } from "lucide-react";
-import { Sale, Expense, StaffMember } from "../../context/AppContext";
+import { Sale, Expense, StaffMember, useApp } from "../../context/AppContext";
 
 type DrillDownItem = (Sale | Expense) & { type: "sale" | "expense" };
 
@@ -25,8 +25,17 @@ export function StatsDrillDownDialog({
     trigger,
     staffMembers = []
 }: StatsDrillDownDialogProps) {
+    const { exchangeRate } = useApp();
 
-    const formatCurrency = (amount: number) => {
+    const formatCurrency = (amount: number, currency: "USD" | "UZS" = "USD") => {
+        if (currency === "UZS") {
+            return new Intl.NumberFormat("uz-UZ", {
+                style: "currency",
+                currency: "UZS",
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+            }).format(amount);
+        }
         return new Intl.NumberFormat("en-US", {
             style: "currency",
             currency: "USD",
@@ -57,15 +66,15 @@ export function StatsDrillDownDialog({
                             <div
                                 key={item.id}
                                 className={`flex items-start justify-between rounded-xl border p-3 ${item.type === "sale"
-                                        ? "bg-white dark:bg-gray-800/50 border-gray-100 dark:border-gray-700"
-                                        : "bg-orange-50/30 dark:bg-orange-950/20 border-orange-100 dark:border-orange-900/50"
+                                    ? "bg-white dark:bg-gray-800/50 border-gray-100 dark:border-gray-700"
+                                    : "bg-orange-50/30 dark:bg-orange-950/20 border-orange-100 dark:border-orange-900/50"
                                     }`}
                             >
                                 <div className="flex-1">
                                     <div className="flex items-center space-x-2">
                                         <div className={`p-2 rounded-lg ${item.type === "sale"
-                                                ? "bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400"
-                                                : "bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400"
+                                            ? "bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400"
+                                            : "bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400"
                                             }`}>
                                             {item.type === "sale" ? <Package className="h-4 w-4" /> : <DollarSign className="h-4 w-4" />}
                                         </div>
@@ -89,12 +98,12 @@ export function StatsDrillDownDialog({
                                             <div className="flex items-center space-x-3 text-[10px]">
                                                 {(item as any).admin_profit !== undefined && (
                                                     <span className="text-indigo-600 dark:text-indigo-400 font-bold">
-                                                        MEN: {formatCurrency((item as any).admin_profit || 0)}
+                                                        MEN: {formatCurrency((item as any).admin_profit || 0, "USD")}
                                                     </span>
                                                 )}
                                                 {(item as any).seller_profit !== undefined && (
                                                     <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                                                        FILIAL: {formatCurrency((item as any).seller_profit || 0)}
+                                                        FILIAL: {formatCurrency(((item as any).seller_profit || 0) * exchangeRate, "UZS")}
                                                     </span>
                                                 )}
                                             </div>
@@ -118,7 +127,7 @@ export function StatsDrillDownDialog({
                                 <div className="text-right ml-2">
                                     <div className={`text-base font-black ${item.type === "sale" ? "text-blue-600 dark:text-blue-400" : "text-orange-600 dark:text-orange-400"
                                         }`}>
-                                        {item.type === "sale" ? "+" : "-"}{formatCurrency(item.amount)}
+                                        {item.type === "sale" ? "+" : "-"}{formatCurrency(item.amount * (item.type === "sale" ? exchangeRate : 1), item.type === "sale" ? "UZS" : "USD")}
                                     </div>
                                 </div>
                             </div>

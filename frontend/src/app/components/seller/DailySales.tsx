@@ -23,7 +23,7 @@ interface Order {
 
 export function DailySales() {
   const navigate = useNavigate();
-  const { user, sales, isAdminViewingAsSeller } = useApp();
+  const { user, sales, isAdminViewingAsSeller, exchangeRate } = useApp();
   const [expandedOrders, setExpandedOrders] = useState<
     Set<string>
   >(new Set());
@@ -111,7 +111,15 @@ export function DailySales() {
     .filter((s) => s.paymentType === "transfer")
     .reduce((sum, s) => sum + s.amount, 0);
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: "USD" | "UZS" = "UZS") => {
+    if (currency === "UZS") {
+      return new Intl.NumberFormat("uz-UZ", {
+        style: "currency",
+        currency: "UZS",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount);
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -160,7 +168,7 @@ export function DailySales() {
                   Jami summa
                 </div>
                 <div className="text-3xl text-blue-900 dark:text-blue-100">
-                  {formatCurrency(totalAmount)}
+                  {formatCurrency(totalAmount * exchangeRate)}
                 </div>
                 <div className="mt-1 text-sm text-blue-700 dark:text-blue-300">
                   {orders.length} ta buyurtma
@@ -180,7 +188,7 @@ export function DailySales() {
                     Filial foydasi
                   </div>
                   <div className="text-3xl text-emerald-900 dark:text-emerald-100">
-                    {formatCurrency(totalBranchProfit)}
+                    {formatCurrency(totalBranchProfit * exchangeRate)}
                   </div>
                 </div>
                 <div className="rounded-full bg-emerald-200 dark:bg-emerald-800 p-4">
@@ -285,7 +293,7 @@ export function DailySales() {
                         </div>
                         <div className="text-right">
                           <div className="text-lg text-blue-600 dark:text-blue-400">
-                            {formatCurrency(order.totalAmount)}
+                            {formatCurrency(order.totalAmount * exchangeRate)}
                           </div>
                           {(() => {
                             const branchProfit = order.sales.reduce(
@@ -295,7 +303,7 @@ export function DailySales() {
                             if (branchProfit > 0) {
                               return (
                                 <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                                  +{formatCurrency(branchProfit)}
+                                  +{formatCurrency(branchProfit * exchangeRate)}
                                 </div>
                               );
                             }
@@ -326,11 +334,11 @@ export function DailySales() {
                               </div>
                               <div className="text-right">
                                 <div className="text-blue-600 dark:text-blue-400">
-                                  {formatCurrency(sale.amount)}
+                                  {formatCurrency(sale.amount * exchangeRate)}
                                 </div>
                                 {sale.seller_profit && sale.seller_profit > 0 && (
                                   <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                                    +{formatCurrency(sale.seller_profit)}
+                                    +{formatCurrency(sale.seller_profit * exchangeRate)}
                                   </div>
                                 )}
                               </div>

@@ -34,6 +34,7 @@ class Sale(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     date: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True)
     order_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
     is_nasiya: Mapped[bool] = mapped_column(default=False)
+    exchange_rate: Mapped[float] = mapped_column(DECIMAL(15, 2), default=12200.0)
 
     # Relationships
     product = relationship("Product") # back_populates="sales" if defined there

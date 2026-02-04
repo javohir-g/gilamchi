@@ -14,7 +14,8 @@ import {
   debtService,
   expenseService,
   collectionService,
-  staffService
+  staffService,
+  settingsService
 } from "../../services/api";
 
 export type UserRole = "admin" | "seller";
@@ -248,6 +249,8 @@ interface AppContextType {
   isLoading: boolean;
   addBranch: (name: string) => Promise<void>;
   deleteBranch: (id: string) => Promise<void>;
+  exchangeRate: number;
+  updateExchangeRate: (rate: number) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(
@@ -270,6 +273,7 @@ export function AppProvider({
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [staff, setStaff] = useState<User[]>([]);
+  const [exchangeRate, setExchangeRate] = useState<number>(12200);
   const [isLoading, setIsLoading] = useState(true);
   const [theme, setTheme] = useState<Theme>(() => {
     const saved = localStorage.getItem("theme");
@@ -311,7 +315,8 @@ export function AppProvider({
         fetchSafe(() => debtService.getAll(), setDebts),
         fetchSafe(() => expenseService.getAll(), setExpenses),
         fetchSafe(() => collectionService.getAll(), setCollections),
-        fetchSafe(() => staffService.getAll(), setStaffMembers)
+        fetchSafe(() => staffService.getAll(), setStaffMembers),
+        fetchSafe(() => settingsService.get(), (data) => setExchangeRate(data.exchange_rate))
       ]);
     } catch (error) {
       console.error("Failed to fetch data", error);
@@ -600,6 +605,16 @@ export function AppProvider({
     }
   };
 
+  const updateExchangeRate = async (rate: number) => {
+    try {
+      await settingsService.update({ exchange_rate: rate });
+      setExchangeRate(rate);
+    } catch (error) {
+      console.error("Failed to update exchange rate", error);
+      throw error;
+    }
+  };
+
   const updateStaffPermission = (
     userId: string,
     canAddProducts: boolean,
@@ -849,6 +864,8 @@ export function AppProvider({
         addStaffMember,
         updateStaffMember,
         deleteStaffMember,
+        exchangeRate,
+        updateExchangeRate,
       }}
     >
       {children}

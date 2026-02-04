@@ -18,7 +18,7 @@ export function BranchDetail() {
   const { branchId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { branches, sales, products, expenses, debts, staffMembers } = useApp();
+  const { branches, sales, products, expenses, debts, staffMembers, exchangeRate } = useApp();
 
   const branch = branches.find((b) => b.id === branchId);
 
@@ -73,7 +73,15 @@ export function BranchDetail() {
     { name: "Karta/O'tkazma", value: cardTransferSales, color: "#3b82f6" },
   ];
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: "USD" | "UZS" = "USD") => {
+    if (currency === "UZS") {
+      return new Intl.NumberFormat("uz-UZ", {
+        style: "currency",
+        currency: "UZS",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount);
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -178,7 +186,7 @@ export function BranchDetail() {
               <div className="space-y-1">
                 <div className="text-[10px] text-gray-400 dark:text-gray-500 font-medium uppercase">Naqd</div>
                 <div className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
-                  {formatCurrency(cashSales + totalDebtPaymentsInPeriod)}
+                  {formatCurrency((cashSales + totalDebtPaymentsInPeriod) * exchangeRate, "UZS")}
                 </div>
                 <div className="flex items-center gap-1.5 pt-1">
                   <div className="h-1 w-1 rounded-full bg-gray-300" />
@@ -189,7 +197,7 @@ export function BranchDetail() {
               <div className="space-y-1 border-l dark:border-gray-700 pl-8">
                 <div className="text-[10px] text-gray-400 dark:text-gray-500 font-medium uppercase">Karta / O'tkazma</div>
                 <div className="text-2xl font-black text-blue-600 dark:text-blue-400 tracking-tight">
-                  {formatCurrency(cardTransferSales)}
+                  {formatCurrency(cardTransferSales * exchangeRate, "UZS")}
                 </div>
               </div>
             </div>
@@ -197,7 +205,7 @@ export function BranchDetail() {
             <div className="mt-6 pt-4 border-t dark:border-gray-700/50 flex justify-between items-center">
               <span className="text-[10px] font-bold text-gray-400 uppercase">Jami tushum:</span>
               <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">
-                {formatCurrency(cashSales + totalDebtPaymentsInPeriod + cardTransferSales)}
+                {formatCurrency((cashSales + totalDebtPaymentsInPeriod + cardTransferSales) * exchangeRate, "UZS")}
               </span>
             </div>
           </Card>
@@ -228,7 +236,7 @@ export function BranchDetail() {
                   Filial foydasi
                 </div>
                 <div className="text-xl font-bold text-white">
-                  {formatCurrency(totalSellerProfit)}
+                  {formatCurrency(totalSellerProfit * exchangeRate, "UZS")}
                 </div>
               </Card>
             }
@@ -243,7 +251,7 @@ export function BranchDetail() {
                   Filial xarajatlari
                 </div>
                 <div className="text-xl font-bold text-white">
-                  {formatCurrency(totalBranchExpenses)}
+                  {formatCurrency(totalBranchExpenses * exchangeRate, "UZS")}
                 </div>
               </Card>
             }
@@ -258,7 +266,7 @@ export function BranchDetail() {
                   Sotuvchilar xarajati
                 </div>
                 <div className="text-xl font-bold text-white">
-                  {formatCurrency(totalStaffExpenses)}
+                  {formatCurrency(totalStaffExpenses * exchangeRate, "UZS")}
                 </div>
               </Card>
             }
@@ -270,8 +278,8 @@ export function BranchDetail() {
         <StaffProfitDistribution
           staffMembers={staffMembers}
           branchId={branchId || ""}
-          totalSellerProfit={totalSellerProfit}
-          totalBranchExpenses={totalBranchExpenses}
+          totalSellerProfit={totalSellerProfit * exchangeRate}
+          totalBranchExpenses={totalBranchExpenses * exchangeRate}
           branchExpenses={branchExpenses}
         />
 
@@ -413,10 +421,10 @@ export function BranchDetail() {
                         </div>
                         <div className="flex items-center space-x-3 text-[10px]">
                           <span className="text-indigo-600 dark:text-indigo-400 font-bold">
-                            MEN: {formatCurrency((item as any).admin_profit || 0)}
+                            MEN: {formatCurrency((item as any).admin_profit || 0, "USD")}
                           </span>
                           <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                            FILIAL: {formatCurrency((item as any).seller_profit || 0)}
+                            FILIAL: {formatCurrency(((item as any).seller_profit || 0) * exchangeRate, "UZS")}
                           </span>
                         </div>
                       </div>
@@ -438,7 +446,7 @@ export function BranchDetail() {
                   <div className="text-right ml-4">
                     <div className={`text-lg font-black ${item.entryType === "sale" ? "text-blue-600 dark:text-blue-400" : "text-orange-600 dark:text-orange-400"
                       }`}>
-                      {item.entryType === "sale" ? "+" : "-"}{formatCurrency(item.amount)}
+                      {item.entryType === "sale" ? "+" : "-"}{formatCurrency(item.amount * (item.entryType === "sale" ? exchangeRate : 1), item.entryType === "sale" ? "UZS" : "USD")}
                     </div>
                   </div>
                 </div>

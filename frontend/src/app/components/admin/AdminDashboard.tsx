@@ -30,7 +30,7 @@ export function AdminDashboard() {
   const [isSalesDetailExpanded, setIsSalesDetailExpanded] =
     useState(false);
   const navigate = useNavigate();
-  const { sales, branches, debts } = useApp();
+  const { sales, branches, debts, exchangeRate } = useApp();
 
   // Helper to filter sales by period
   const getFilteredSales = () => {
@@ -151,7 +151,15 @@ export function AdminDashboard() {
     0,
   );
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: "USD" | "UZS" = "USD") => {
+    if (currency === "UZS") {
+      return new Intl.NumberFormat("uz-UZ", {
+        style: "currency",
+        currency: "UZS",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount);
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -230,7 +238,7 @@ export function AdminDashboard() {
                   </span>
                 </div>
                 <div className="text-xl md:text-3xl font-bold text-white tracking-tight">
-                  {formatCurrency(totalSales)}
+                  {formatCurrency(totalSales, "USD")}
                 </div>
               </div>
               <div className="mt-2 text-[10px] md:text-xs text-blue-100/60 font-medium uppercase tracking-wider">
@@ -253,7 +261,7 @@ export function AdminDashboard() {
                   </span>
                 </div>
                 <div className="text-xl md:text-3xl font-bold text-white tracking-tight">
-                  {formatCurrency(totalAdminProfit)}
+                  {formatCurrency(totalAdminProfit, "USD")}
                 </div>
               </div>
               <div className="mt-2 text-[10px] md:text-xs text-indigo-100/60 font-medium uppercase tracking-wider">
@@ -276,7 +284,7 @@ export function AdminDashboard() {
                   </span>
                 </div>
                 <div className="text-xl md:text-3xl font-bold text-white tracking-tight">
-                  {formatCurrency(totalSellerProfit)}
+                  {formatCurrency(totalSellerProfit * exchangeRate, "UZS")}
                 </div>
               </div>
               <div className="mt-2 text-[10px] md:text-xs text-emerald-100/60 font-medium uppercase tracking-wider">
@@ -302,7 +310,7 @@ export function AdminDashboard() {
                   </span>
                 </div>
                 <div className="text-xl md:text-3xl font-bold text-white tracking-tight">
-                  {formatCurrency(totalDebtAmount)}
+                  {formatCurrency(totalDebtAmount * exchangeRate, "UZS")}
                 </div>
               </div>
               <div className="mt-2 flex items-center justify-between">
@@ -356,7 +364,7 @@ export function AdminDashboard() {
                   <div className="flex items-center space-x-3">
                     <div className="text-right">
                       <div className="font-bold text-lg text-card-foreground">
-                        {formatCurrency(branch.todaySales)}
+                        {formatCurrency(branch.todaySales * exchangeRate, "UZS")}
                       </div>
                       <div className="flex flex-col items-end gap-1 mt-1">
                         {branch.adminProfit > 0 && (
@@ -369,7 +377,7 @@ export function AdminDashboard() {
                               backgroundColor: "#6366f110",
                             }}
                           >
-                            Sklad: +{formatCurrency(branch.adminProfit)}
+                            Sklad: +{formatCurrency(branch.adminProfit, "USD")}
                           </Badge>
                         )}
                         {branch.profit > 0 && (
@@ -382,7 +390,7 @@ export function AdminDashboard() {
                               backgroundColor: "#22c55e10",
                             }}
                           >
-                            Filial: +{formatCurrency(branch.profit)}
+                            Filial: +{formatCurrency(branch.profit * exchangeRate, "UZS")}
                           </Badge>
                         )}
                       </div>

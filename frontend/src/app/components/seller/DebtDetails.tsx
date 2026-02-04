@@ -29,7 +29,7 @@ import {
 export function DebtDetails() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { debts, makeDebtPayment, user } = useApp();
+  const { debts, makeDebtPayment, user, exchangeRate } = useApp();
 
   const debt = debts.find((d) => d.id === id);
 
@@ -52,7 +52,15 @@ export function DebtDetails() {
     return null;
   }
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: "USD" | "UZS" = "UZS") => {
+    if (currency === "UZS") {
+      return new Intl.NumberFormat("uz-UZ", {
+        style: "currency",
+        currency: "UZS",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount);
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -93,7 +101,9 @@ export function DebtDetails() {
       return;
     }
 
-    if (amount > debt.remainingAmount) {
+    const amountUSD = amount / exchangeRate;
+
+    if (amountUSD > debt.remainingAmount) {
       toast.error(
         "To'lov summasi qarz summasidan oshmasligi kerak!",
       );
@@ -104,11 +114,12 @@ export function DebtDetails() {
 
     const payment: DebtPayment = {
       id: `dp${Date.now()}`,
-      amount: amount,
+      amount: amountUSD,
       date: new Date().toISOString(),
       sellerId: user.id,
       sellerName: user.name,
       note: paymentNote.trim() || undefined,
+      exchange_rate: exchangeRate,
     };
 
     makeDebtPayment(debt.id, payment);
@@ -190,7 +201,7 @@ export function DebtDetails() {
                 Jami summa
               </p>
               <p className="font-semibold dark:text-white">
-                {formatCurrency(debt.totalAmount)}
+                {formatCurrency(debt.totalAmount * exchangeRate)}
               </p>
             </div>
             <div>
@@ -198,7 +209,7 @@ export function DebtDetails() {
                 To'langan
               </p>
               <p className="font-semibold text-green-600 dark:text-green-400">
-                {formatCurrency(debt.paidAmount)}
+                {formatCurrency(debt.paidAmount * exchangeRate)}
               </p>
             </div>
             <div>
@@ -206,7 +217,7 @@ export function DebtDetails() {
                 Qolgan qarz
               </p>
               <p className="text-xl font-bold text-red-600 dark:text-red-400">
-                {formatCurrency(debt.remainingAmount)}
+                {formatCurrency(debt.remainingAmount * exchangeRate)}
               </p>
             </div>
           </div>
@@ -248,7 +259,7 @@ export function DebtDetails() {
                       </p>
                     )}
                     <p className="text-sm font-semibold text-gray-600 dark:text-gray-300">
-                      {formatCurrency(item.total)}
+                      {formatCurrency(item.total * exchangeRate)}
                     </p>
                   </div>
                 </div>
@@ -337,7 +348,7 @@ export function DebtDetails() {
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-bold text-green-700 dark:text-green-400">
-                      +{formatCurrency(payment.amount)}
+                      +{formatCurrency(payment.amount * exchangeRate)}
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                       {formatDate(payment.date)}
@@ -409,14 +420,14 @@ export function DebtDetails() {
                       <span className="text-gray-500 dark:text-gray-400">
                         Jami:{" "}
                         {formatCurrency(
-                          historyDebt.totalAmount,
+                          historyDebt.totalAmount * exchangeRate,
                         )}
                       </span>
                       {historyDebt.status !== "paid" && (
                         <span className="font-semibold text-red-600 dark:text-red-400">
                           Qarz:{" "}
                           {formatCurrency(
-                            historyDebt.remainingAmount,
+                            historyDebt.remainingAmount * exchangeRate,
                           )}
                         </span>
                       )}
@@ -464,7 +475,7 @@ export function DebtDetails() {
                 Qolgan qarz
               </p>
               <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                {formatCurrency(debt.remainingAmount)}
+                {formatCurrency(debt.remainingAmount * exchangeRate)}
               </p>
             </div>
 
@@ -486,7 +497,7 @@ export function DebtDetails() {
                 autoFocus
               />
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Maksimal: {formatCurrency(debt.remainingAmount)}
+                Maksimal: {formatCurrency(debt.remainingAmount * exchangeRate)}
               </p>
             </div>
 

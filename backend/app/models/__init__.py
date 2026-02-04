@@ -8,3 +8,4 @@ from .expense import Expense
 from .collection import Collection, Size
 from .audit import AuditLog, AuditAction
 from .staff import Staff
+from .settings import Settings

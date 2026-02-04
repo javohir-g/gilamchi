@@ -25,7 +25,7 @@ import { BottomNav } from "../shared/BottomNav";
 
 export function AdminDebts() {
   const navigate = useNavigate();
-  const { debts, branches } = useApp();
+  const { debts, branches, exchangeRate } = useApp();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterBranch, setFilterBranch] = useState("all");
 
@@ -59,7 +59,15 @@ export function AdminDebts() {
     return new Date(d.paymentDeadline) < new Date();
   });
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: "USD" | "UZS" = "UZS") => {
+    if (currency === "UZS") {
+      return new Intl.NumberFormat("uz-UZ", {
+        style: "currency",
+        currency: "UZS",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount);
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -167,7 +175,7 @@ export function AdminDebts() {
               {pendingDebts.length}
             </div>
             <div className="text-xs text-orange-600 dark:text-orange-500 mt-1">
-              {formatCurrency(totalPending)}
+              {formatCurrency(totalPending * exchangeRate)}
             </div>
           </Card>
 
@@ -180,7 +188,7 @@ export function AdminDebts() {
               {paidDebts.length}
             </div>
             <div className="text-xs text-green-600 dark:text-green-500 mt-1">
-              {formatCurrency(totalPaid)}
+              {formatCurrency(totalPaid * exchangeRate)}
             </div>
           </Card>
 
@@ -194,7 +202,7 @@ export function AdminDebts() {
                 {overdueDebts.length}
               </div>
               <div className="text-sm text-red-600 dark:text-red-500">
-                {formatCurrency(totalOverdue)}
+                {formatCurrency(totalOverdue * exchangeRate)}
               </div>
             </div>
           </Card>
@@ -271,7 +279,7 @@ export function AdminDebts() {
                           </h3>
                           <p className="text-lg font-medium text-card-foreground break-words">
                             {formatCurrency(
-                              debt.remainingAmount,
+                              debt.remainingAmount * exchangeRate,
                             )}
                           </p>
                         </div>

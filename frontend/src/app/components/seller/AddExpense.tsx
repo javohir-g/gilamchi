@@ -18,6 +18,7 @@ export function AddExpense() {
     addExpense,
     updateExpense,
     deleteExpense,
+    exchangeRate,
   } = useApp();
 
   const [description, setDescription] = useState("");
@@ -57,11 +58,13 @@ export function AddExpense() {
         const updatedExpense = {
           id: editingId,
           description,
-          amount: parseFloat(amount),
+          amount: parseFloat(amount) / exchangeRate,
           category,
           staffId: category === "staff" ? staffId : undefined,
           branchId: user?.branchId || "",
           sellerId: user?.id || "",
+          exchange_rate: exchangeRate,
+          is_usd: false,
           date:
             expenses.find((e) => e.id === editingId)?.date ||
             new Date().toISOString(),
@@ -74,11 +77,13 @@ export function AddExpense() {
         const newExpense = {
           id: `e${Date.now()}`,
           description,
-          amount: parseFloat(amount),
+          amount: parseFloat(amount) / exchangeRate,
           category,
           staffId: category === "staff" ? staffId : undefined,
           branchId: user?.branchId || "",
           sellerId: user?.id || "",
+          exchange_rate: exchangeRate,
+          is_usd: false,
           date: new Date().toISOString(),
         };
         await addExpense(newExpense);
@@ -94,7 +99,7 @@ export function AddExpense() {
 
   const handleEdit = (expense: any) => {
     setDescription(expense.description);
-    setAmount(expense.amount.toString());
+    setAmount((expense.amount * exchangeRate).toString());
     setCategory(expense.category || "branch");
     setStaffId(expense.staffId || "");
     setEditingId(expense.id);
@@ -125,7 +130,15 @@ export function AddExpense() {
     setEditingId(null);
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: "USD" | "UZS" = "UZS") => {
+    if (currency === "UZS") {
+      return new Intl.NumberFormat("uz-UZ", {
+        style: "currency",
+        currency: "UZS",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount);
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -274,7 +287,7 @@ export function AddExpense() {
                       {expense.description}
                     </p>
                     <p className="text-sm text-orange-600 dark:text-orange-400">
-                      {formatCurrency(expense.amount)}
+                      {formatCurrency(expense.amount * exchangeRate)}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       {expense.category === "staff" ? `Sotuvchi (${staffMembers.find(s => s.id === expense.staffId)?.name || 'Noma\'lum'})` : "Filial"} • {new Date(
