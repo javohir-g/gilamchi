@@ -184,7 +184,7 @@ export function AddToBasketModal({
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-t-3xl sm:rounded-3xl shadow-xl max-h-[95vh] overflow-y-auto">
+      <div className="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-3xl shadow-xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
           <h2 className="text-xl dark:text-white">
