@@ -170,38 +170,35 @@ export function BranchDetail() {
 
       <div className="p-4 space-y-3">
 
-        {/* Kassa Plaque (Only for Today) - Ultra Compact */}
+        {/* Kassa Plaque (Only for Today) - Refined Compact Layout */}
         {dateFilter === "today" && (
           <Card className="p-4 bg-white dark:bg-gray-800 border-0 shadow-lg relative overflow-hidden">
             <div className="absolute top-0 right-0 p-2 opacity-10">
-              < DollarSign className="h-10 w-10 text-gray-400" />
+              <DollarSign className="h-10 w-10 text-gray-400" />
             </div>
 
-            <div className="flex items-center justify-between mb-3 relative z-10">
-              <h3 className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+            <div className="relative z-10 mb-4">
+              <div className="flex items-center gap-1.5 mb-1">
                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                KASSA (BUGUN)
-              </h3>
-              <div className="flex flex-col items-end">
-                <span className="text-[9px] text-gray-400 uppercase font-bold leading-none mb-0.5 text-right">Jami:</span>
-                <span className="text-lg font-black text-emerald-600 dark:text-emerald-400 leading-none">
-                  {formatCurrency((cashSales + totalDebtPaymentsInPeriod + cardTransferSales) * exchangeRate, "UZS")}
-                </span>
+                <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">KASSA</span>
+              </div>
+              <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 leading-none">
+                {formatCurrency((cashSales + totalDebtPaymentsInPeriod + cardTransferSales) * exchangeRate, "UZS")}
               </div>
             </div>
 
-            <div className="flex divide-x divide-gray-100 dark:divide-gray-700 relative z-10">
-              <div className="flex-1 pr-4">
-                <div className="text-[9px] text-gray-400 dark:text-gray-500 font-medium uppercase mb-0.5">Naqd</div>
-                <div className="text-base font-bold text-gray-900 dark:text-white leading-none">
+            <div className="grid grid-cols-2 gap-4 relative z-10 pt-3 border-t border-gray-100 dark:border-gray-700">
+              <div>
+                <div className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">Naqd</div>
+                <div className="text-sm font-bold text-gray-900 dark:text-white leading-none">
                   {formatCurrency((cashSales + totalDebtPaymentsInPeriod) * exchangeRate, "UZS")}
                 </div>
-                <div className="text-[8px] text-gray-400 italic mt-1 leading-none">Sotuv + Qarz</div>
+                <div className="text-[8px] text-gray-400 italic mt-1.5 leading-none">Sotuv + Qarz</div>
               </div>
 
-              <div className="flex-1 pl-4">
-                <div className="text-[9px] text-gray-400 dark:text-gray-500 font-medium uppercase mb-0.5">Karta / O'tkazma</div>
-                <div className="text-base font-bold text-blue-600 dark:text-blue-400 leading-none">
+              <div>
+                <div className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">Karta / O'tkazma</div>
+                <div className="text-sm font-bold text-blue-600 dark:text-blue-400 leading-none">
                   {formatCurrency(cardTransferSales * exchangeRate, "UZS")}
                 </div>
               </div>
