@@ -172,7 +172,7 @@ export function AdminDashboard() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Filter Section */}
-      <div className="bg-card border-b border-border px-4 py-4 sticky top-0 z-10 shadow-sm">
+      <div className="bg-card border-b border-border px-4 py-4 sticky top-0 z-10 shadow-sm mb-3">
         <div className="max-w-7xl mx-auto">
           <div className="flex gap-2 w-full overflow-x-auto pb-2 md:pb-0 no-scrollbar">
             <button
@@ -221,7 +221,7 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+      <div className="p-4 md:p-6 space-y-3 max-w-7xl mx-auto">
         {/* Stats Grid - 2x2 Layout */}
         <div className="grid grid-cols-2 gap-2 md:gap-3">
           {/* Total Sales */}

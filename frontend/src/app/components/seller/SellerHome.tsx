@@ -61,6 +61,24 @@ export function SellerHome() {
     0,
   );
 
+  // Kassa calculations (consistent with BranchDetail)
+  const cashSalesToday = todaySales
+    .filter(s => s.paymentType === 'cash')
+    .reduce((sum, s) => sum + s.amount, 0);
+
+  const cardTransferSalesToday = todaySales
+    .filter(s => s.paymentType === 'card' || s.paymentType === 'transfer')
+    .reduce((sum, s) => sum + s.amount, 0);
+
+  const debtPaymentsToday = sales
+    .filter(s => {
+      const isOurBranch = isAdminViewingAsSeller
+        ? String(s.branchId).toLowerCase() === String(user?.branchId).toLowerCase()
+        : true;
+      return isOurBranch && (s as any).type === 'debt_payment' && isToday(s.date);
+    })
+    .reduce((sum, s) => sum + s.amount, 0);
+
   // Calculate today's branch expenses
   const todayBranchExpenses = useApp().expenses
     .filter(e =>
@@ -134,7 +152,7 @@ export function SellerHome() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="bg-card border-b border-border px-6 py-4 mb-6">
+      <div className="bg-card border-b border-border px-6 py-4 mb-3">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <div>
             <div className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-1">
@@ -148,77 +166,83 @@ export function SellerHome() {
         </div>
       </div>
 
-      <div className="px-4 md:px-6 space-y-6 max-w-4xl mx-auto">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          {/* Total Sales */}
-          <Card className="p-6 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-700 dark:to-blue-800 border-0 shadow-lg shadow-blue-500/20">
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-center space-x-2 mb-2">
-                  <TrendingUp className="h-5 w-5 text-white" />
-                  <span className="text-sm font-medium text-blue-100">
-                    Bugungi savdo
-                  </span>
-                </div>
-                <div className="text-3xl font-bold text-white">
-                  {formatCurrency(totalSalesToday * exchangeRate)}
-                </div>
-                <div className="text-sm text-blue-100 mt-1">
-                  {todaySales.length} ta savdodan
-                </div>
+      <div className="px-4 md:px-6 space-y-3 max-w-4xl mx-auto">
+        {/* Kassa Card (Ultra Compact) */}
+        <Card className="p-4 bg-white dark:bg-gray-800 border-0 shadow-lg relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-2 opacity-10">
+            <DollarSign className="h-10 w-10 text-gray-400" />
+          </div>
+
+          <div className="flex items-center justify-between mb-3 relative z-10">
+            <h3 className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              KASSA (BUGUN)
+            </h3>
+            <div className="flex flex-col items-end">
+              <span className="text-[9px] text-gray-400 uppercase font-bold leading-none mb-0.5 text-right">Jami:</span>
+              <span className="text-lg font-black text-emerald-600 dark:text-emerald-400 leading-none">
+                {formatCurrency((cashSalesToday + debtPaymentsToday + cardTransferSalesToday) * exchangeRate, "UZS")}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex divide-x divide-gray-100 dark:divide-gray-700 relative z-10">
+            <div className="flex-1 pr-4">
+              <div className="text-[9px] text-gray-400 dark:text-gray-500 font-medium uppercase mb-0.5">Naqd</div>
+              <div className="text-base font-bold text-gray-900 dark:text-white leading-none">
+                {formatCurrency((cashSalesToday + debtPaymentsToday) * exchangeRate, "UZS")}
               </div>
-              <div className="bg-white/20 rounded-full p-3">
-                <DollarSign className="h-6 w-6 text-white" />
+              <div className="text-[8px] text-gray-400 italic mt-1 leading-none">Sotuv + Qarz</div>
+            </div>
+
+            <div className="flex-1 pl-4">
+              <div className="text-[9px] text-gray-400 dark:text-gray-500 font-medium uppercase mb-0.5">Karta / O'tkazma</div>
+              <div className="text-base font-bold text-blue-600 dark:text-blue-400 leading-none">
+                {formatCurrency(cardTransferSalesToday * exchangeRate, "UZS")}
               </div>
             </div>
-          </Card>
+          </div>
+        </Card>
 
-          {/* Branch Profit */}
-          {(() => {
-            const totalBranchProfit = todaySales.reduce(
-              (sum, sale) => sum + (sale.seller_profit || 0),
-              0,
-            );
-            if (totalBranchProfit <= 0) return null;
-            return (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Card className="p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 dark:from-emerald-700 dark:to-emerald-800 border-0 shadow-lg shadow-emerald-500/20 cursor-pointer hover:opacity-90 transition-opacity">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="flex items-center space-x-2 mb-2">
-                          <HandCoins className="h-5 w-5 text-white" />
-                          <span className="text-sm text-emerald-100">
-                            Filial foydasi
-                          </span>
-                        </div>
-                        <div className="text-3xl font-bold text-white">
-                          {formatCurrency(totalBranchProfit * exchangeRate)}
-                        </div>
-                      </div>
-                      <div className="bg-white/20 rounded-full p-3">
-                        <DollarSign className="h-6 w-6 text-white" />
-                      </div>
+        {/* Branch Profit Card */}
+        {(() => {
+          const totalBranchProfit = todaySales.reduce(
+            (sum, sale) => sum + (sale.seller_profit || 0),
+            0,
+          );
+          if (totalBranchProfit <= 0) return null;
+          return (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Card className="p-3 bg-gradient-to-br from-emerald-500 to-emerald-600 dark:from-emerald-700 dark:to-emerald-800 border-0 shadow-md cursor-pointer hover:opacity-90 transition-opacity">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <HandCoins className="h-4 w-4 text-emerald-100" />
+                      <span className="text-xs font-bold text-emerald-100 uppercase tracking-wider">
+                        Filial foydasi
+                      </span>
                     </div>
-                  </Card>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Foyda taqsimoti</DialogTitle>
-                  </DialogHeader>
-                  <StaffProfitDistribution
-                    staffMembers={useApp().staffMembers}
-                    branchId={userBranch?.id || ""}
-                    totalSellerProfit={totalBranchProfit * exchangeRate}
-                    totalBranchExpenses={todayBranchExpenses * exchangeRate}
-                    branchExpenses={useApp().expenses.filter(e => e.branchId === userBranch?.id && isToday(e.date))}
-                  />
-                </DialogContent>
-              </Dialog>
-            );
-          })()}
-        </div>
+                    <div className="text-lg font-black text-white">
+                      {formatCurrency(totalBranchProfit * exchangeRate)}
+                    </div>
+                  </div>
+                </Card>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Foyda taqsimoti</DialogTitle>
+                </DialogHeader>
+                <StaffProfitDistribution
+                  staffMembers={useApp().staffMembers}
+                  branchId={userBranch?.id || ""}
+                  totalSellerProfit={totalBranchProfit * exchangeRate}
+                  totalBranchExpenses={todayBranchExpenses * exchangeRate}
+                  branchExpenses={useApp().expenses.filter(e => e.branchId === userBranch?.id && isToday(e.date))}
+                />
+              </DialogContent>
+            </Dialog>
+          );
+        })()}
 
         {/* Recent Sales List */}
         <div>
@@ -226,7 +250,7 @@ export function SellerHome() {
             Barcha buyurtmalar
           </h3>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {orders.length === 0 ? (
               <Card className="p-12 text-center text-muted-foreground bg-card rounded-2xl border border-border">
                 Bugun hali savdo yo'q

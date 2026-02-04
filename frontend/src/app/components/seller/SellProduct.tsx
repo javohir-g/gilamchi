@@ -442,7 +442,7 @@ export function SellProduct() {
             </Button>
           </div>
 
-          <div className="w-full max-w-sm space-y-6 text-center">
+          <div className="w-full max-w-sm space-y-3 text-center">
             <div className="space-y-2">
               <h2 className="text-2xl font-bold text-white">Rasm orqali qidirish</h2>
               <p className="text-gray-400">Mahsulotni topish uchun rasmga oling yoki yuklang</p>
