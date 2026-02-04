@@ -6,6 +6,7 @@ from ..models.debt import DebtStatus
 class PaymentBase(BaseModel):
     amount: float
     note: Optional[str] = None
+    exchange_rate: Optional[float] = 12200.0
 
 class PaymentCreate(PaymentBase):
     pass
@@ -39,6 +40,7 @@ class DebtCreate(BaseModel):
     payment_deadline: date
     branch_id: Optional[UUID4] = None
     order_id: Optional[str] = None
+    exchange_rate: Optional[float] = 12200.0
 
 class DebtResponse(DebtBase):
     id: UUID4

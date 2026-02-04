@@ -27,6 +27,7 @@ class Debt(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     payment_deadline: Mapped[date_type] = mapped_column(Date) # Changed from DateTime to Date
     status: Mapped[DebtStatus] = mapped_column(SQLEnum(DebtStatus), default=DebtStatus.PENDING, index=True)
     order_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
+    exchange_rate: Mapped[float] = mapped_column(DECIMAL(15, 2), default=12200.0)
 
     # Relationships
     branch = relationship("Branch", back_populates="debts")
@@ -42,6 +43,7 @@ class Payment(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     payment_date: Mapped[date_type] = mapped_column(DateTime, default=lambda: datetime.utcnow())
     
     recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"))
+    exchange_rate: Mapped[float] = mapped_column(DECIMAL(15, 2), default=12200.0)
     
     # Relationships
     debt = relationship("Debt", back_populates="payments")

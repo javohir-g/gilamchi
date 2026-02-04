@@ -25,7 +25,8 @@ def create_debt(debt: DebtCreate, db: Session = Depends(get_db), current_user = 
             paid_amount=debt.paid_amount,
             remaining_amount=remaining,
             payment_deadline=debt.payment_deadline,
-            status="pending" if remaining > 0 else "paid"
+            status="pending" if remaining > 0 else "paid",
+            exchange_rate=debt.exchange_rate or 12200.0
         )
         
         db.add(new_debt)
@@ -61,7 +62,8 @@ def create_payment(debt_id: str, payment: PaymentCreate, db: Session = Depends(g
         debt_id=debt.id,
         amount=payment.amount,
         note=payment.note,
-        recorded_by=current_user.id
+        recorded_by=current_user.id,
+        exchange_rate=payment.exchange_rate or 12200.0
     )
     
     # Update Debt
