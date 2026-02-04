@@ -713,8 +713,14 @@ export function AppProvider({
       if (isNasiya) {
         const collection = collections.find(c => c.name === item.collection);
         if (collection && collection.price_nasiya_per_sqm) {
-          if (item.area) itemBaseTotal = collection.price_nasiya_per_sqm * item.area;
-          else itemBaseTotal = collection.price_nasiya_per_sqm * item.quantity;
+          if (item.area) {
+            // For unit products (carpets), total area = unit area * quantity
+            // For meter products, item.area is already the total area of the cut
+            const totalArea = item.type === 'unit' ? item.area * item.quantity : item.area;
+            itemBaseTotal = collection.price_nasiya_per_sqm * totalArea;
+          } else {
+            itemBaseTotal = collection.price_nasiya_per_sqm * item.quantity;
+          }
         }
       }
 
@@ -755,15 +761,22 @@ export function AppProvider({
 
       // Map dimensions and area
       let width = item.width ? parseFloat(item.width) : undefined;
-      let length = item.height ? parseFloat(item.height) : (item.type === 'meter' ? item.quantity : undefined);
-      let area = item.area;
+      let height_val = item.height ? parseFloat(item.height) : (item.type === 'meter' ? item.quantity : undefined);
+
+      // Crucial: area sent to backend should be TOTAL area for profit calculation context
+      // For unit products: total area = area of one piece * quantity
+      // For meter products: item.area is already the total area of the cut
+      let total_area = item.area;
+      if (item.area && item.type === 'unit') {
+        total_area = item.area * item.quantity;
+      }
 
       if (item.type === 'meter' && !width && product.width) {
         width = product.width;
       }
 
-      if (!area && width && length) {
-        area = width * length;
+      if (!total_area && width && height_val) {
+        total_area = width * height_val * (item.type === 'unit' ? item.quantity : 1);
       }
 
       const sale: any = {
@@ -779,8 +792,8 @@ export function AppProvider({
         profit: itemProfit,
         type: item.type,
         width,
-        length,
-        area,
+        length: height_val,
+        area: total_area,
         isNasiya: isNasiya,
         size: item.size
       };

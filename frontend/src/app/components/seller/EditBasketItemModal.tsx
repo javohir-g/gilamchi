@@ -27,22 +27,23 @@ export function EditBasketItemModal({
 }: EditBasketItemModalProps) {
   const { exchangeRate } = useApp();
   const isUnit = product.type === "unit";
-  const isCarpet =
-    product.category === "Gilamlar" &&
-    product.pricePerSquareMeter !== undefined;
-  const isMetraj =
-    product.category === "Metrajlar" &&
-    product.pricePerSquareMeter !== undefined;
+  const isCarpet = product.category === "Gilamlar";
+  const isMetraj = product.category === "Metrajlar";
   const isCarpetOrMetraj = isCarpet || isMetraj;
+
+  const [selectedSize, setSelectedSize] = useState<string>(item.size || "");
+  const [selectedSizeObj, setSelectedSizeObj] = useState<any>(null);
+
+  // Max quantity calculation (considering size if selected)
   const maxQuantity = isUnit
-    ? product.quantity || 0
+    ? (selectedSizeObj ? selectedSizeObj.quantity : (product.quantity || 0))
     : product.remainingLength || 0;
 
   // Initialize with existing values
-  const [quantity, setQuantity] = useState(isCarpet ? item.quantity : 1);
+  const [quantity, setQuantity] = useState(item.quantity);
   const [meters, setMeters] = useState(
-    isMetraj && item.area && item.quantity
-      ? (item.quantity / item.area).toFixed(1) // Extract meters from quantity
+    isMetraj
+      ? item.quantity.toString()
       : !isUnit && !isCarpetOrMetraj
         ? item.quantity.toString()
         : "1"
@@ -51,7 +52,6 @@ export function EditBasketItemModal({
   const [height, setHeight] = useState(item.height || "");
   const [area, setArea] = useState(item.area || 0);
   const [sellingPrice, setSellingPrice] = useState(item.pricePerUnit * exchangeRate);
-  const [selectedSize, setSelectedSize] = useState<string>(item.size || "");
 
   // Initialize quantity for carpets and units
   useEffect(() => {
@@ -82,16 +82,30 @@ export function EditBasketItemModal({
     }
   }, [isMetraj, product.width, width]);
 
-  // Parse width and height from selectedSize
+  // Parse width and height from selectedSize and update size object
   useEffect(() => {
-    if (selectedSize && selectedSize !== "other") {
-      const parts = selectedSize.split(/×|x/);
-      if (parts.length === 2) {
-        setWidth(parts[0].trim());
-        setHeight(parts[1].trim());
+    if (selectedSize) {
+      if (selectedSize !== "other") {
+        const parts = selectedSize.split(/×|x/);
+        if (parts.length === 2) {
+          setWidth(parts[0].trim());
+          setHeight(parts[1].trim());
+        }
       }
+
+      // Update selectedSizeObj for correct maxQuantity
+      if (product.availableSizes) {
+        const found = product.availableSizes.find(s =>
+          (typeof s === 'string' ? s : s.size) === selectedSize
+        );
+        setSelectedSizeObj(typeof found === 'string' ? { size: found, quantity: product.quantity } : found);
+      } else {
+        setSelectedSizeObj(null);
+      }
+    } else {
+      setSelectedSizeObj(null);
     }
-  }, [selectedSize]);
+  }, [selectedSize, product.availableSizes, product.quantity]);
 
   const getQuantityValue = () => {
     if (isCarpet) {
@@ -122,7 +136,7 @@ export function EditBasketItemModal({
         ? quantity
         : parseFloat(meters);
 
-    if (qty <= 0 || (!isCarpetOrMetraj && qty > maxQuantity)) {
+    if (qty <= 0 || qty > maxQuantity) {
       return;
     }
 

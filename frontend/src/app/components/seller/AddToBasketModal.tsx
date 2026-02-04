@@ -126,7 +126,7 @@ export function AddToBasketModal({
         ? quantity
         : parseFloat(meters);
 
-    if (qty <= 0 || (!isCarpetOrMetraj && qty > maxQuantity)) {
+    if (qty <= 0 || qty > maxQuantity) {
       return;
     }
 
