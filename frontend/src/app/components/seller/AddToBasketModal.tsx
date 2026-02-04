@@ -23,7 +23,7 @@ export function AddToBasketModal({
   onAdd,
   onClose,
 }: AddToBasketModalProps) {
-  const { collections } = useApp();
+  const { collections, exchangeRate } = useApp();
   const isUnit = product.type === "unit";
   const isCarpet = product.category === "Gilamlar";
   const isMetraj = product.category === "Metrajlar";
@@ -70,6 +70,13 @@ export function AddToBasketModal({
       }
     }
   }, [width, height, isCarpetOrMetraj, selectedSize]);
+
+  // Automate width for Metrajlar
+  useEffect(() => {
+    if (isMetraj && product.width && !width) {
+      setWidth(product.width.toString());
+    }
+  }, [isMetraj, product.width, width]);
 
   // Parse width and height from selectedSize
   useEffect(() => {
@@ -151,7 +158,15 @@ export function AddToBasketModal({
     onClose();
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: "USD" | "UZS" = "UZS") => {
+    if (currency === "UZS") {
+      return new Intl.NumberFormat("uz-UZ", {
+        style: "currency",
+        currency: "UZS",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount);
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -236,9 +251,7 @@ export function AddToBasketModal({
                       </SelectItem>
                     );
                   })}
-                  {isCarpetOrMetraj && (
-                    <SelectItem value="other">Boshqa olcham</SelectItem>
-                  )}
+                  <SelectItem value="other">Boshqa olcham</SelectItem>
                 </SelectContent>
               </Select>
               {area > 0 && (
@@ -251,32 +264,39 @@ export function AddToBasketModal({
 
           {/* Carpet Size Selection - Only shown if "Boshqa olcham" is selected or no sizes available */}
           {isCarpetOrMetraj && (selectedSize === "other" || !product.availableSizes || product.availableSizes.length === 0) && (
-            <div>
-              <Label data-slot="label" className="items-center gap-2 font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 mb-3 block text-lg dark:text-white">
-                O'lchamni kiriting
+            <div className="space-y-3">
+              <Label className="block text-lg dark:text-white">
+                O'lchamni kiriting {isMetraj && `(Eni: ${product.width}m)`}
               </Label>
               <div className="flex items-center space-x-4">
-                <Input
-                  type="number"
-                  value={width}
-                  onChange={(e) => setWidth(e.target.value)}
-                  className="h-12 text-center text-xl dark:bg-gray-700 dark:text-white"
-                  min="0.1"
-                  step="0.1"
-                  placeholder="Eni"
-                />
-                <Input
-                  type="number"
-                  value={height}
-                  onChange={(e) => setHeight(e.target.value)}
-                  className="h-12 text-center text-xl dark:bg-gray-700 dark:text-white"
-                  min="0.1"
-                  step="0.1"
-                  placeholder="Bo'yi"
-                />
+                <div className="flex-1">
+                  <Label className="text-xs text-gray-400 mb-1 block">Eni (m)</Label>
+                  <Input
+                    type="number"
+                    value={width}
+                    onChange={(e) => setWidth(e.target.value)}
+                    className="h-12 text-center text-xl dark:bg-gray-700 dark:text-white"
+                    min="0.1"
+                    step="0.1"
+                    placeholder="Eni"
+                    readOnly={isMetraj && !!product.width}
+                  />
+                </div>
+                <div className="flex-1">
+                  <Label className="text-xs text-gray-400 mb-1 block">Bo'yi (m)</Label>
+                  <Input
+                    type="number"
+                    value={height}
+                    onChange={(e) => setHeight(e.target.value)}
+                    className="h-12 text-center text-xl dark:bg-gray-700 dark:text-white"
+                    min="0.1"
+                    step="0.1"
+                    placeholder="Bo'yi"
+                  />
+                </div>
               </div>
               {area > 0 && (
-                <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+                <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 font-medium">
                   Maydon: {area.toFixed(2)} m²
                 </div>
               )}
@@ -347,10 +367,10 @@ export function AddToBasketModal({
               </Label>
               <Input
                 type="number"
-                value={sellingPrice}
+                value={sellingPrice * exchangeRate}
                 onChange={(e) =>
                   setSellingPrice(
-                    parseFloat(e.target.value) || 0,
+                    (parseFloat(e.target.value) || 0) / exchangeRate,
                   )
                 }
                 className="h-12 text-xl dark:bg-gray-700 dark:text-white"

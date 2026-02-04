@@ -93,6 +93,13 @@ export function SellProductDetail() {
     }
   }, [width, height]);
 
+  // Automate width for Metrajlar
+  useEffect(() => {
+    if (product?.category === "Metrajlar" && product.width && !width) {
+      setWidth(product.width.toString());
+    }
+  }, [product, width]);
+
   if (!product) {
     return <div>Mahsulot topilmadi</div>;
   }
@@ -106,9 +113,9 @@ export function SellProductDetail() {
     : product.remainingLength || 0;
 
   const calculateTotal = () => {
-    if (isCarpet) {
-      // For carpets: total = area × price per m² × number of carpets
-      return area > 0 ? area * sellingPrice * quantity : quantity * sellingPrice;
+    if (isCarpetOrMetraj && area > 0) {
+      // For carpets and metraj: total = area × price per m² × number of carpets/multiplier
+      return area * sellingPrice * (isUnit ? quantity : parseFloat(meters));
     }
     if (isUnit) {
       return quantity * sellingPrice;
@@ -273,9 +280,7 @@ export function SellProductDetail() {
                     </SelectItem>
                   );
                 })}
-                {isCarpetOrMetraj && (
-                  <SelectItem value="other">Boshqa olcham</SelectItem>
-                )}
+                <SelectItem value="other">Boshqa olcham</SelectItem>
               </SelectContent>
             </Select>
             {area > 0 && selectedSize !== "other" && (
@@ -289,31 +294,38 @@ export function SellProductDetail() {
         {/* Manual Size Input for Carpet/Metraj if "Boshqa olcham" selected or no sizes available */}
         {isCarpetOrMetraj && (selectedSize === "other" || !product.availableSizes || product.availableSizes.length === 0) && (
           <Card className="p-6">
-            <Label data-slot="label" className="items-center gap-2 font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 mb-3 block text-lg dark:text-white">
-              O'lchamni kiriting
+            <Label className="mb-3 block text-lg">
+              O'lchamni kiriting {isMetraj && `(Eni: ${product.width}m)`}
             </Label>
             <div className="flex items-center space-x-4">
-              <Input
-                type="number"
-                value={width}
-                onChange={(e) => setWidth(e.target.value)}
-                className="h-14 text-center text-2xl"
-                min="0.1"
-                step="0.1"
-                placeholder="Eni"
-              />
-              <Input
-                type="number"
-                value={height}
-                onChange={(e) => setHeight(e.target.value)}
-                className="h-14 text-center text-2xl"
-                min="0.1"
-                step="0.1"
-                placeholder="Bo'yi"
-              />
+              <div className="flex-1">
+                <Label className="text-xs text-gray-400 mb-1 block">Eni (m)</Label>
+                <Input
+                  type="number"
+                  value={width}
+                  onChange={(e) => setWidth(e.target.value)}
+                  className="h-14 text-center text-2xl"
+                  min="0.1"
+                  step="0.1"
+                  placeholder="Eni"
+                  readOnly={isMetraj && !!product.width}
+                />
+              </div>
+              <div className="flex-1">
+                <Label className="text-xs text-gray-400 mb-1 block">Bo'yi (m)</Label>
+                <Input
+                  type="number"
+                  value={height}
+                  onChange={(e) => setHeight(e.target.value)}
+                  className="h-14 text-center text-2xl"
+                  min="0.1"
+                  step="0.1"
+                  placeholder="Bo'yi"
+                />
+              </div>
             </div>
             {area > 0 && (
-              <div className="mt-3 text-sm text-gray-500">
+              <div className="mt-3 text-sm text-gray-500 font-medium">
                 Maydon: {area.toFixed(2)} m²
               </div>
             )}

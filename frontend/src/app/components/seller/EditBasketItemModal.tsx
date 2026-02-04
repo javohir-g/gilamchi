@@ -12,6 +12,14 @@ interface EditBasketItemModalProps {
   onClose: () => void;
 }
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+
 export function EditBasketItemModal({
   item,
   product,
@@ -44,6 +52,7 @@ export function EditBasketItemModal({
   const [height, setHeight] = useState(item.height || "");
   const [area, setArea] = useState(item.area || 0);
   const [sellingPrice, setSellingPrice] = useState(item.pricePerUnit * exchangeRate);
+  const [selectedSize, setSelectedSize] = useState<string>(item.size || "");
 
   // Initialize quantity for carpets and units
   useEffect(() => {
@@ -66,6 +75,24 @@ export function EditBasketItemModal({
       }
     }
   }, [width, height, isCarpetOrMetraj]);
+
+  // Automate width for Metrajlar
+  useEffect(() => {
+    if (isMetraj && product.width && !width) {
+      setWidth(product.width.toString());
+    }
+  }, [isMetraj, product.width, width]);
+
+  // Parse width and height from selectedSize
+  useEffect(() => {
+    if (selectedSize && selectedSize !== "other") {
+      const parts = selectedSize.split(/×|x/);
+      if (parts.length === 2) {
+        setWidth(parts[0].trim());
+        setHeight(parts[1].trim());
+      }
+    }
+  }, [selectedSize]);
 
   const getQuantityValue = () => {
     if (isCarpet) {
@@ -109,6 +136,7 @@ export function EditBasketItemModal({
       quantity: qty,
       pricePerUnit: sellingPrice / exchangeRate,
       total: calculateTotal() / exchangeRate,
+      size: selectedSize || undefined,
       // Carpet-specific fields
       ...(isCarpetOrMetraj && {
         width,
@@ -183,34 +211,75 @@ export function EditBasketItemModal({
             </div>
           </div>
 
-          {/* Carpet Size Selection */}
-          {isCarpetOrMetraj && (
-            <div>
-              <Label className="mb-3 block text-lg dark:text-white">
-                O'lchamni kiriting
+          {/* Size Selection */}
+          {(isCarpetOrMetraj || (product.availableSizes && product.availableSizes.length > 0)) && (
+            <div className="space-y-3">
+              <Label className="text-lg dark:text-white">O'lchamni tanlang</Label>
+              <Select
+                value={selectedSize}
+                onValueChange={(val) => {
+                  setSelectedSize(val);
+                  if (val === "other") {
+                    setWidth("");
+                    setHeight("");
+                    setArea(0);
+                  }
+                }}
+              >
+                <SelectTrigger className="h-12 text-lg dark:bg-gray-700 dark:text-white">
+                  <SelectValue placeholder="O'lchamni tanlang" />
+                </SelectTrigger>
+                <SelectContent>
+                  {product.availableSizes?.map((s: any) => {
+                    const sizeName = typeof s === 'string' ? s : s.size;
+                    const sizeQty = typeof s === 'string' ? product.quantity : s.quantity;
+                    return (
+                      <SelectItem key={sizeName} value={sizeName}>
+                        {sizeName} ({sizeQty} dona)
+                      </SelectItem>
+                    );
+                  })}
+                  <SelectItem value="other">Boshqa olcham</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Carpet/Metraj Dimensions - Only shown if "Boshqa olcham" or no sizes */}
+          {isCarpetOrMetraj && (selectedSize === "other" || !product.availableSizes || product.availableSizes.length === 0) && (
+            <div className="space-y-3">
+              <Label className="block text-lg dark:text-white">
+                O'lchamni kiriting {isMetraj && `(Eni: ${product.width}m)`}
               </Label>
               <div className="flex items-center space-x-4">
-                <Input
-                  type="number"
-                  value={width}
-                  onChange={(e) => setWidth(e.target.value)}
-                  className="h-12 text-center text-xl dark:bg-gray-700 dark:text-white"
-                  min="0.1"
-                  step="0.1"
-                  placeholder="Eni"
-                />
-                <Input
-                  type="number"
-                  value={height}
-                  onChange={(e) => setHeight(e.target.value)}
-                  className="h-12 text-center text-xl dark:bg-gray-700 dark:text-white"
-                  min="0.1"
-                  step="0.1"
-                  placeholder="Bo'yi"
-                />
+                <div className="flex-1">
+                  <Label className="text-xs text-gray-400 mb-1 block">Eni (m)</Label>
+                  <Input
+                    type="number"
+                    value={width}
+                    onChange={(e) => setWidth(e.target.value)}
+                    className="h-12 text-center text-xl dark:bg-gray-700 dark:text-white"
+                    min="0.1"
+                    step="0.1"
+                    placeholder="Eni"
+                    readOnly={isMetraj && !!product.width}
+                  />
+                </div>
+                <div className="flex-1">
+                  <Label className="text-xs text-gray-400 mb-1 block">Bo'yi (m)</Label>
+                  <Input
+                    type="number"
+                    value={height}
+                    onChange={(e) => setHeight(e.target.value)}
+                    className="h-12 text-center text-xl dark:bg-gray-700 dark:text-white"
+                    min="0.1"
+                    step="0.1"
+                    placeholder="Bo'yi"
+                  />
+                </div>
               </div>
               {area > 0 && (
-                <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+                <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 font-medium">
                   Maydon: {area.toFixed(2)} m²
                 </div>
               )}

@@ -83,6 +83,7 @@ export interface Sale {
   length?: number;
   area?: number;
   isNasiya?: boolean;
+  exchange_rate?: number;
 }
 
 export interface Collection {
