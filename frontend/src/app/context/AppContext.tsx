@@ -781,7 +781,8 @@ export function AppProvider({
         width,
         length,
         area,
-        isNasiya: isNasiya
+        isNasiya: isNasiya,
+        size: item.size
       };
 
       return addSale(sale);
