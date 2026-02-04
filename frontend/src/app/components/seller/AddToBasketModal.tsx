@@ -205,8 +205,7 @@ export function AddToBasketModal({
             </div>
           </div>
 
-          {/* Size Selection for Unit Products */}
-          {isUnit && product.availableSizes && product.availableSizes.length > 0 && (
+          {product.availableSizes && product.availableSizes.length > 0 && (
             <div className="space-y-3">
               <Label className="text-lg dark:text-white">O'lchamni tanlang</Label>
               <Select value={selectedSize} onValueChange={setSelectedSize}>
