@@ -221,9 +221,9 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      <div className="p-4 md:p-6 space-y-3 max-w-7xl mx-auto">
+      <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
         {/* Stats Grid - 2x2 Layout */}
-        <div className="grid grid-cols-2 gap-2 md:gap-2">
+        <div className="grid grid-cols-2 gap-2 md:gap-3">
           {/* Total Sales */}
           <Card className="p-4 md:p-6 bg-gradient-to-br from-blue-600 to-blue-700 dark:from-blue-800 dark:to-blue-900 border-0 shadow-lg shadow-blue-500/20 relative overflow-hidden group">
             <div className="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform">
@@ -332,7 +332,7 @@ export function AdminDashboard() {
           <h3 className="text-sm font-bold text-muted-foreground mb-4 px-1 tracking-wider">
             FILIALLAR BO'YICHA
           </h3>
-          <div className="space-y-2">
+          <div className="space-y-4">
             {branchData.map((branch, index) => (
               <Card
                 key={branch.id}
