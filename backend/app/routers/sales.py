@@ -42,7 +42,7 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
                     break
             
             if found:
-                from sqlalchemy.attributes import flag_modified
+                from sqlalchemy.orm.attributes import flag_modified
                 product.available_sizes = sizes
                 flag_modified(product, "available_sizes")
 
