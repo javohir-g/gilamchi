@@ -134,42 +134,40 @@ export function SellerHome() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="bg-card border-b border-border px-6 py-4 mb-6">
+      <div className="bg-card border-b border-border px-4 py-3 mb-2">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <div>
-            <div className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-1">
+            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5 opacity-70">
               {userBranch?.name || "Filial nomi"}
             </div>
-            <h1 className="text-2xl font-bold text-foreground">{user?.name}</h1>
+            <h1 className="text-xl font-bold text-foreground">{user?.name}</h1>
           </div>
-          <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 border-0 px-3 py-1 font-semibold">
+          <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 border-0 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-tight">
             Sotuvchi
           </Badge>
         </div>
       </div>
 
-      <div className="px-4 md:px-6 space-y-6 max-w-4xl mx-auto">
+      <div className="px-3 md:px-6 space-y-4 max-w-4xl mx-auto">
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 gap-3">
           {/* Total Sales */}
-          <Card className="p-6 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-700 dark:to-blue-800 border-0 shadow-lg shadow-blue-500/20">
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-center space-x-2 mb-2">
-                  <TrendingUp className="h-5 w-5 text-white" />
-                  <span className="text-sm font-medium text-blue-100">
-                    Bugungi savdo
-                  </span>
-                </div>
-                <div className="text-3xl font-bold text-white">
-                  {formatCurrency(totalSalesToday * exchangeRate)}
-                </div>
-                <div className="text-sm text-blue-100 mt-1">
-                  {todaySales.length} ta savdodan
-                </div>
+          <Card className="p-4 bg-gradient-to-br from-blue-600 to-blue-700 dark:from-blue-800 dark:to-blue-900 border-0 shadow-lg shadow-blue-500/20 relative overflow-hidden group">
+            <div className="absolute -right-2 -top-2 opacity-10 group-hover:scale-110 transition-transform">
+              <DollarSign className="h-16 w-16 text-white" />
+            </div>
+            <div className="relative z-10">
+              <div className="flex items-center space-x-1.5 mb-2">
+                <TrendingUp className="h-4 w-4 text-blue-100" />
+                <span className="text-[10px] md:text-xs font-bold text-blue-100/80 uppercase tracking-tight">
+                  Kassa (Bugun)
+                </span>
               </div>
-              <div className="bg-white/20 rounded-full p-3">
-                <DollarSign className="h-6 w-6 text-white" />
+              <div className="text-xl md:text-2xl font-black text-white tracking-tight">
+                {formatCurrency(totalSalesToday * exchangeRate)}
+              </div>
+              <div className="text-[10px] text-blue-100/60 mt-1 font-medium italic">
+                {todaySales.length} ta savdo
               </div>
             </div>
           </Card>
@@ -180,25 +178,25 @@ export function SellerHome() {
               (sum, sale) => sum + (sale.seller_profit || 0),
               0,
             );
-            if (totalBranchProfit <= 0) return null;
             return (
               <Dialog>
                 <DialogTrigger asChild>
-                  <Card className="p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 dark:from-emerald-700 dark:to-emerald-800 border-0 shadow-lg shadow-emerald-500/20 cursor-pointer hover:opacity-90 transition-opacity">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="flex items-center space-x-2 mb-2">
-                          <HandCoins className="h-5 w-5 text-white" />
-                          <span className="text-sm text-emerald-100">
-                            Filial foydasi
-                          </span>
-                        </div>
-                        <div className="text-3xl font-bold text-white">
-                          {formatCurrency(totalBranchProfit * exchangeRate)}
-                        </div>
+                  <Card className={`p-4 bg-gradient-to-br from-emerald-600 to-emerald-700 dark:from-emerald-800 dark:to-emerald-900 border-0 shadow-lg shadow-emerald-500/20 relative overflow-hidden group cursor-pointer hover:opacity-95 transition-all active:scale-[0.98] ${totalBranchProfit <= 0 ? 'opacity-50 grayscale' : ''}`}>
+                    <div className="absolute -right-2 -top-2 opacity-10 group-hover:scale-110 transition-transform">
+                      <HandCoins className="h-16 w-16 text-white" />
+                    </div>
+                    <div className="relative z-10">
+                      <div className="flex items-center space-x-1.5 mb-2">
+                        <HandCoins className="h-4 w-4 text-emerald-100" />
+                        <span className="text-[10px] md:text-xs font-bold text-emerald-100/80 uppercase tracking-tight">
+                          Filial foydasi
+                        </span>
                       </div>
-                      <div className="bg-white/20 rounded-full p-3">
-                        <DollarSign className="h-6 w-6 text-white" />
+                      <div className="text-xl md:text-2xl font-black text-white tracking-tight">
+                        {formatCurrency(totalBranchProfit * exchangeRate)}
+                      </div>
+                      <div className="text-[10px] text-emerald-100/60 mt-1 font-medium italic">
+                        Sof foyda
                       </div>
                     </div>
                   </Card>
@@ -222,8 +220,8 @@ export function SellerHome() {
 
         {/* Recent Sales List */}
         <div>
-          <h3 className="text-sm font-bold text-muted-foreground mb-4 px-1 tracking-wider uppercase">
-            Barcha buyurtmalar
+          <h3 className="text-[10px] font-black text-muted-foreground mb-3 px-1 tracking-[0.2em] uppercase opacity-50">
+            BUYURTMALAR (BUGUN)
           </h3>
 
           <div className="space-y-4">
