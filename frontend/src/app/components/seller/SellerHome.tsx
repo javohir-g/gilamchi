@@ -91,6 +91,16 @@ export function SellerHome() {
   // Get all operations (Orders + Debt Payments)
   const operations: any[] = [];
 
+  // Group sales by orderId for operations
+  const orderMap = new Map<string, Sale[]>();
+  todaySales.forEach((sale: Sale) => {
+    const orderId = sale.orderId || sale.id;
+    if (!orderMap.has(orderId)) {
+      orderMap.set(orderId, []);
+    }
+    orderMap.get(orderId)!.push(sale);
+  });
+
   // Add grouped orders
   orderMap.forEach((orderSales, orderId) => {
     const totalAmount = orderSales.reduce((sum, s) => sum + s.amount, 0);
@@ -319,8 +329,8 @@ export function SellerHome() {
                   <Card
                     key={order.id}
                     className={`p-0 border border-border overflow-hidden hover:shadow-md transition-shadow rounded-2xl ${order.isNasiya
-                        ? "bg-yellow-50/50 dark:bg-yellow-900/10 border-yellow-200/50 dark:border-yellow-900/30"
-                        : "bg-card"
+                      ? "bg-yellow-50/50 dark:bg-yellow-900/10 border-yellow-200/50 dark:border-yellow-900/30"
+                      : "bg-card"
                       }`}
                   >
                     {/* Order Header */}
