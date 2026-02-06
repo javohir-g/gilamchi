@@ -249,37 +249,60 @@ async def search_products_by_image(
             print("WARNING: No products with CLIP embeddings found!", file=sys.stderr)
             return []
         
-        # 1. Извлекаем все эмбеддинги в одну матрицу (N x 512)
-        # 2. Вычисляем похожесть всех товаров сразу через матричное умножение (Dot Product)
-        # Это в десятки раз быстрее, чем цикл в Python
+        # 1. Извлекаем все эмбеддинги товаров и образцов
+        # 2. Вычисляем похожесть всех сразу через матричное умножение
         
         try:
-            # Превращаем список байтов из БД в одну большую матрицу NumPy
+            from ..models.product_sample import ProductSample
+            
+            # Подготавливаем данные для матричного поиска
+            # Каждая строка: (product_object, image_embedding_bytes)
+            search_items = []
+            
+            # Основные фото товаров
+            for p in products:
+                search_items.append((p, p.image_embedding))
+                
+            # Дополнительные образцы (samples)
+            samples = db.query(ProductSample).filter(
+                ProductSample.product_id.in_([p.id for p in products])
+            ).all()
+            
+            # Создаем карту samples для быстрого поиска продукта
+            product_map = {p.id: p for p in products}
+            for s in samples:
+                search_items.append((product_map[s.product_id], s.embedding))
+            
+            if not search_items:
+                return []
+
+            # Извлекаем эмбеддинги в одну матрицу
             product_embeddings = np.array([
-                np.frombuffer(p.image_embedding, dtype=np.float32) for p in products
+                np.frombuffer(item[1], dtype=np.float32) for item in search_items
             ])
             
-            # На случай если в БД есть старые (ненормированные) векторы, 
-            # нормализуем их для корректного косинусного сходства через Dot Product
+            # Нормализация
             norms = np.linalg.norm(product_embeddings, axis=1, keepdims=True)
-            # Избегаем деления на ноль
             norms[norms == 0] = 1.0
             product_embeddings = product_embeddings / norms
             
-            # Матричное умножение (N x 512) @ (512,) = (N,)
-            # Результат - массив значений похожести для всех товаров
+            # Матричное умножение
             similarities = product_embeddings @ query_embedding
             
-            # Собираем подходящие результаты
-            matches = []
+            # Собираем результаты, группируя по продукту (берем максимальную похожесть)
+            product_best_matches = {} # product_id -> max_similarity
+            
             for i, similarity in enumerate(similarities):
                 if similarity >= threshold:
-                    matches.append({
-                        "product": products[i],
-                        "similarity": float(similarity)
-                    })
+                    p = search_items[i][0]
+                    if p.id not in product_best_matches or similarity > product_best_matches[p.id]:
+                        product_best_matches[p.id] = {
+                            "product": p,
+                            "similarity": float(similarity)
+                        }
             
-            print(f"Vectorized search finished. Matches: {len(matches)}", file=sys.stderr)
+            matches = list(product_best_matches.values())
+            print(f"Vectorized search (including {len(samples)} samples) finished. Matches: {len(matches)}", file=sys.stderr)
             
         except Exception as e:
             print(f"Error in vectorized search: {e}", file=sys.stderr)
@@ -331,6 +354,65 @@ async def search_products_by_image(
         import traceback
         traceback.print_exc(file=sys.stderr)
         raise HTTPException(status_code=500, detail="Ошибка при поиске по изображению")
+
+@router.post("/{product_id}/samples")
+async def add_product_sample(
+    product_id: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    """
+    Добавляет новый образец изображения (embedding) для товара.
+    Используется для активного обучения сканера на реальных фото.
+    """
+    from ..utils.image_embedding import extract_image_embedding, compute_similarity
+    from ..models.product_sample import ProductSample
+    import numpy as np
+    import sys
+
+    try:
+        product = db.query(Product).filter(Product.id == product_id, Product.deleted_at == None).first()
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+
+        contents = await file.read()
+        new_embedding = extract_image_embedding(contents)
+        
+        if new_embedding is None:
+            raise HTTPException(status_code=400, detail="Не удалось обработать изображение")
+
+        # 1. Проверка на качество (должно быть похоже на оригинал хотя бы на 60%)
+        if product.image_embedding:
+            master_emb = np.frombuffer(product.image_embedding, dtype=np.float32)
+            similarity_to_master = compute_similarity(new_embedding, master_emb)
+            if similarity_to_master < 0.60:
+                print(f"Sample rejected: low similarity to master ({similarity_to_master:.2f})", file=sys.stderr)
+                return {"status": "skipped", "reason": "low_similarity"}
+
+        # 2. Проверка на дубликаты среди существующих образцов
+        existing_samples = db.query(ProductSample).filter(ProductSample.product_id == product_id).all()
+        for sample in existing_samples:
+            sample_emb = np.frombuffer(sample.embedding, dtype=np.float32)
+            sim = compute_similarity(new_embedding, sample_emb)
+            if sim > 0.95:
+                print(f"Sample rejected: too similar to existing sample ({sim:.2f})", file=sys.stderr)
+                return {"status": "skipped", "reason": "duplicate"}
+
+        # 3. Сохранение
+        new_sample = ProductSample(
+            product_id=product_id,
+            embedding=new_embedding.astype(np.float32).tobytes()
+        )
+        db.add(new_sample)
+        db.commit()
+        
+        print(f"Added new sample for product {product_id}", file=sys.stderr)
+        return {"status": "success"}
+
+    except Exception as e:
+        print(f"Error adding product sample: {e}", file=sys.stderr)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.patch("/{product_id}", response_model=ProductResponse)
 def update_product(

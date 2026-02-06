@@ -269,6 +269,22 @@ export function SellProduct() {
 
   const handleSelectFromCameraSearch = (product: Product) => {
     setSelectedProduct(product);
+
+    // Feedback Loop: Add the captured image as a sample for the product
+    if (capturedImage) {
+      // Background task (don't wait for it)
+      (async () => {
+        try {
+          // imageData is base64, convert to blob
+          const response = await fetch(capturedImage);
+          const blob = await response.blob();
+          await productService.addSample(product.id, blob);
+          console.log(`Sample added for product ${product.id}`);
+        } catch (err) {
+          console.error("Failed to add feedback sample", err);
+        }
+      })();
+    }
   };
 
   return (

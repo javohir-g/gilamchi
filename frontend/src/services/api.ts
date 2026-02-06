@@ -304,6 +304,15 @@ export const productService = {
     });
 
     return response.data.map(fromProduct);
+  },
+  addSample: async (id: string, file: Blob) => {
+    const formData = new FormData();
+    formData.append("file", file, "sample.jpg");
+
+    const response = await api.post(`products/${id}/samples`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
   }
 };
 

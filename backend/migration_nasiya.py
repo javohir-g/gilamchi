@@ -56,7 +56,6 @@ def main():
     ):
         changes_made = True
     
-    # 2. Add order_id to debts
     if add_column_if_missing(
         "debts",
         "order_id",
@@ -68,6 +67,14 @@ def main():
         with engine.begin() as conn:
             conn.execute(text("CREATE INDEX IF NOT EXISTS idx_debts_order_id ON debts(order_id)"))
         print("✓ Added index on debts.order_id")
+    
+    # 2.1 Add initial_payment to debts
+    if add_column_if_missing(
+        "debts",
+        "initial_payment",
+        "NUMERIC(15, 2) DEFAULT 0"
+    ):
+        changes_made = True
     
     # 3. Add is_nasiya to sales
     if add_column_if_missing(
