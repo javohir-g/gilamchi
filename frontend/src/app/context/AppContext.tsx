@@ -93,7 +93,6 @@ export interface Collection {
   price_per_sqm?: number;
   buy_price_per_sqm?: number;
   price_usd_per_sqm?: number;
-  price_nasiya_per_sqm?: number;
 }
 
 export interface BasketItem {
@@ -157,7 +156,8 @@ export interface Debt {
   phoneNumber?: string; // Debtor's phone number
   orderDetails: string; // What they're buying
   totalAmount: number; // Total order amount
-  paidAmount: number; // Amount already paid
+  initial_payment: number; // Upfront payment made at sale
+  paidAmount: number; // Total amount paid so far (including initial)
   remainingAmount: number; // Amount left to pay
   paymentDeadline: string; // When they said they'll pay
   branchId: string;
@@ -166,8 +166,10 @@ export interface Debt {
   date: string; // When debt was created
   status: "pending" | "paid" | "overdue"; // Payment status
   orderItems?: BasketItem[]; // Optional: store the actual items they bought
-  paymentHistory: DebtPayment[]; // History of all payments made
+  paymentHistory?: DebtPayment[]; // History of all payments made
   orderId?: string; // Link to the order
+  exchange_rate?: number;
+  branch_id?: string; // for backward compatibility/backend consistency
 }
 
 export interface Branch {
@@ -214,7 +216,8 @@ interface AppContextType {
   completeOrder: (
     payments: Payment[],
     sellerEnteredTotal: number,
-  ) => void;
+    isNasiya?: boolean,
+  ) => Promise<string>;
   addSale: (sale: Sale) => void;
   addProduct: (product: Product) => void;
   updateProduct: (productId: string, updates: Partial<Product>) => void;
@@ -680,15 +683,7 @@ export function AppProvider({
 
     const orderId = `o${Date.now()}`;
     const calculatedTotal = basket.reduce(
-      (sum, item) => {
-        if (!isNasiya) return sum + item.total;
-
-        const collection = collections.find(c => c.name === item.collection);
-        if (!collection || !collection.price_nasiya_per_sqm) return sum + item.total;
-
-        if (item.area) return sum + (collection.price_nasiya_per_sqm * item.area);
-        return sum + (collection.price_nasiya_per_sqm * item.quantity);
-      },
+      (sum, item) => sum + item.total,
       0,
     );
 
@@ -708,21 +703,8 @@ export function AppProvider({
       );
       if (!product) return Promise.resolve();
 
-      // Calculate base price for this item (either normal sell price or nasiya price)
+      // Calculate base price for this item
       let itemBaseTotal = item.total;
-      if (isNasiya) {
-        const collection = collections.find(c => c.name === item.collection);
-        if (collection && collection.price_nasiya_per_sqm) {
-          if (item.area) {
-            // For unit products (carpets), total area = unit area * quantity
-            // For meter products, item.area is already the total area of the cut
-            const totalArea = item.type === 'unit' ? item.area * item.quantity : item.area;
-            itemBaseTotal = collection.price_nasiya_per_sqm * totalArea;
-          } else {
-            itemBaseTotal = collection.price_nasiya_per_sqm * item.quantity;
-          }
-        }
-      }
 
       // Calculate this item's proportion of total calculated price
       const itemProportion = itemBaseTotal / calculatedTotal;

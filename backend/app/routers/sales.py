@@ -87,9 +87,6 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
     metric = area if area else qty
 
     base_sell_price = float(product.sell_price)
-    if sale.is_nasiya and collection and collection.price_nasiya_per_sqm:
-        base_sell_price = float(collection.price_nasiya_per_sqm)
-    
     buy_price = float(product.buy_price)
     sale_amount = float(sale.amount or (base_sell_price * metric))
     

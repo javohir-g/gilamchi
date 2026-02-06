@@ -21,6 +21,7 @@ class Debt(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     seller_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"))
     
     total_amount: Mapped[float] = mapped_column(DECIMAL(15, 2))
+    initial_payment: Mapped[float] = mapped_column(DECIMAL(15, 2), default=0)
     remaining_amount: Mapped[float] = mapped_column(DECIMAL(15, 2))
     paid_amount: Mapped[float] = mapped_column(DECIMAL(15, 2), default=0)
     

@@ -99,7 +99,7 @@ export function CreateDebt() {
     payments.push({ type: "debt", amount: remaining });
 
     // Call completeOrder which returns orderId
-    completeOrder(payments, totalAmount, isNasiya).then((orderId) => {
+    completeOrder(payments, totalAmount, isNasiya).then((orderId: string) => {
       // Create debt linked to orderId
       const debt: Debt = {
         id: `d${Date.now()}`,
@@ -108,6 +108,7 @@ export function CreateDebt() {
         orderDetails: orderDetails.trim(),
         totalAmount: totalAmount,
         paidAmount: paidAmount,
+        initial_payment: paidAmount,
         remainingAmount: remaining,
         paymentDeadline: new Date(paymentDeadline).toISOString(),
         branchId: user.branchId || "",
@@ -117,13 +118,14 @@ export function CreateDebt() {
         status: "pending",
         orderItems: basketItems,
         orderId: orderId, // Link to the order
+        paymentHistory: []
       };
 
       addDebt(debt);
       clearBasket();
       toast.success("Hammasi muvaffaqiyatli saqlandi!");
       navigate("/seller/home");
-    }).catch(err => {
+    }).catch((err: any) => {
       console.error("Order completion failed:", err);
       toast.error("Xatolik yuz berdi!");
     });

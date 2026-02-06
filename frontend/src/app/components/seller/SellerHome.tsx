@@ -88,35 +88,52 @@ export function SellerHome() {
     )
     .reduce((sum, e) => sum + e.amount, 0);
 
-  // Group sales by orderId
-  const orders: Order[] = [];
-  const orderMap = new Map<string, Sale[]>();
+  // Get all operations (Orders + Debt Payments)
+  const operations: any[] = [];
 
-  todaySales.forEach((sale) => {
-    const orderId = sale.orderId || sale.id;
-    if (!orderMap.has(orderId)) {
-      orderMap.set(orderId, []);
-    }
-    orderMap.get(orderId)!.push(sale);
-  });
-
+  // Add grouped orders
   orderMap.forEach((orderSales, orderId) => {
     const totalAmount = orderSales.reduce((sum, s) => sum + s.amount, 0);
     const paymentTypes = [...new Set(orderSales.map((s) => s.paymentType))];
+    const isNasiya = orderSales.some(s => s.is_nasiya);
 
-    orders.push({
-      orderId,
+    operations.push({
+      id: orderId,
+      opType: 'order',
       sales: orderSales,
       totalAmount,
       date: orderSales[0].date,
       paymentTypes: paymentTypes.map((pt) =>
         pt === "cash" ? "Naqd" : pt === "card" ? "Karta" : "O'tkazma",
       ),
+      isNasiya
     });
   });
 
-  // Sort orders by date (newest first)
-  orders.sort(
+  // Add debt payments
+  useApp().debts.forEach(debt => {
+    debt.paymentHistory?.forEach(payment => {
+      // Ensure we only show payments recorded by this seller/branch today if needed
+      const isOurBranch = isAdminViewingAsSeller
+        ? String(debt.branch_id).toLowerCase() === String(user?.branchId).toLowerCase()
+        : true;
+
+      if (isOurBranch && isToday(payment.date)) {
+        operations.push({
+          id: payment.id,
+          opType: 'payment',
+          amount: payment.amount,
+          date: payment.date,
+          debtorName: debt.debtorName,
+          debtId: debt.id,
+          note: payment.note
+        });
+      }
+    });
+  });
+
+  // Sort operations by date (newest first)
+  operations.sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
 
@@ -248,36 +265,91 @@ export function SellerHome() {
           </h3>
 
           <div className="space-y-3">
-            {orders.length === 0 ? (
+            {operations.length === 0 ? (
               <Card className="p-12 text-center text-muted-foreground bg-card rounded-2xl border border-border">
                 Bugun hali savdo yo'q
               </Card>
             ) : (
-              orders.map((order) => {
-                const isExpanded = expandedOrders.has(order.orderId);
+              operations.map((op) => {
+                if (op.opType === 'payment') {
+                  // Render Debt Payment Card
+                  return (
+                    <Card
+                      key={op.id}
+                      className="p-4 border border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/30 dark:bg-emerald-950/10 overflow-hidden hover:shadow-md transition-shadow rounded-2xl cursor-pointer"
+                      onClick={() => navigate(`/seller/debts`)} // Navigate to debts to see details
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="bg-emerald-500/10 p-2 rounded-xl">
+                            <HandCoins className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                          </div>
+                          <div>
+                            <div className="font-bold text-foreground">
+                              Qarz to'lovi: {op.debtorName}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {new Date(op.date).toLocaleTimeString("uz-UZ", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                              {op.note && ` • ${op.note}`}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                            {formatCurrency(op.amount * exchangeRate)}
+                          </div>
+                          <Badge variant="outline" className="text-[10px] uppercase font-bold text-emerald-500 border-emerald-200">
+                            Qarz yopildi
+                          </Badge>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                }
+
+                // Render Order Card
+                const order = op;
+                const isExpanded = expandedOrders.has(order.id);
                 const isMultiProduct = order.sales.length > 1;
 
                 return (
                   <Card
-                    key={order.orderId}
-                    className="p-0 border border-border bg-card overflow-hidden hover:shadow-md transition-shadow rounded-2xl"
+                    key={order.id}
+                    className={`p-0 border border-border overflow-hidden hover:shadow-md transition-shadow rounded-2xl ${order.isNasiya
+                        ? "bg-yellow-50/50 dark:bg-yellow-900/10 border-yellow-200/50 dark:border-yellow-900/30"
+                        : "bg-card"
+                      }`}
                   >
                     {/* Order Header */}
                     <div
                       className={`p-4 ${isMultiProduct ? "cursor-pointer" : ""}`}
-                      onClick={() => isMultiProduct && toggleOrder(order.orderId)}
+                      onClick={() => isMultiProduct && toggleOrder(order.id)}
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-1">
-                            <div className="bg-blue-500/10 p-2 rounded-xl">
-                              <Package className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                            <div className={order.isNasiya ? "bg-orange-500/10 p-2 rounded-xl" : "bg-blue-500/10 p-2 rounded-xl"}>
+                              {order.isNasiya ? (
+                                <HandCoins className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                              ) : (
+                                <Package className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                              )}
                             </div>
-                            <span className="font-bold text-lg text-foreground">
-                              {isMultiProduct
-                                ? `${order.sales.length} ta mahsulot`
-                                : order.sales[0].productName}
-                            </span>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-lg text-foreground leading-tight">
+                                {isMultiProduct
+                                  ? `${order.sales.length} ta mahsulot`
+                                  : order.sales[0].productName}
+                              </span>
+                              {order.isNasiya && (
+                                <span className="text-[10px] font-black text-orange-600 dark:text-orange-400 uppercase tracking-tighter">
+                                  NASIYA SAVDO
+                                </span>
+                              )}
+                            </div>
                           </div>
                           {!isMultiProduct && (
                             <div className="text-sm text-muted-foreground ml-13">
@@ -317,7 +389,7 @@ export function SellerHome() {
                           </div>
                           {(() => {
                             const branchProfit = order.sales.reduce(
-                              (sum, sale) => sum + (sale.seller_profit || 0),
+                              (sum: number, sale: any) => sum + (sale.seller_profit || 0),
                               0,
                             );
                             if (branchProfit !== 0) {
@@ -346,7 +418,7 @@ export function SellerHome() {
                     {isMultiProduct && isExpanded && (
                       <div className="bg-secondary/10 border-t border-border p-4">
                         <div className="space-y-3">
-                          {order.sales.map((sale) => (
+                          {order.sales.map((sale: any) => (
                             <div
                               key={sale.id}
                               className="flex items-center justify-between text-sm"

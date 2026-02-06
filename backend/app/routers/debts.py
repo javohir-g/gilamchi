@@ -23,6 +23,7 @@ def create_debt(debt: DebtCreate, db: Session = Depends(get_db), current_user = 
             seller_id=current_user.id,
             total_amount=debt.total_amount,
             paid_amount=debt.paid_amount,
+            initial_payment=debt.paid_amount,
             remaining_amount=remaining,
             payment_deadline=debt.payment_deadline,
             status="pending" if remaining > 0 else "paid",

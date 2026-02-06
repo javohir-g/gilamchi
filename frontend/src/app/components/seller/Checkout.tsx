@@ -28,15 +28,7 @@ export function Checkout() {
   const [isNasiya, setIsNasiya] = useState(false);
 
   const calculatedTotal = basket.reduce(
-    (sum, item) => {
-      if (!isNasiya) return sum + item.total;
-
-      const collection = collections.find(c => c.name === item.collection);
-      if (!collection || !collection.price_nasiya_per_sqm) return sum + item.total;
-
-      if (item.area) return sum + (collection.price_nasiya_per_sqm * item.area);
-      return sum + (collection.price_nasiya_per_sqm * item.quantity);
-    },
+    (sum, item) => sum + item.total,
     0,
   );
 

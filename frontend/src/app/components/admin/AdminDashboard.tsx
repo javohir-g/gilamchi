@@ -280,7 +280,7 @@ export function AdminDashboard() {
                 <div className="flex items-center space-x-2 mb-2">
                   <DollarSign className="h-4 w-4 md:h-5 md:w-5 text-emerald-100" />
                   <span className="text-xs md:text-sm font-medium text-emerald-100/80">
-                    Filiallar foydasi
+                    Sotuvchilar foydasi
                   </span>
                 </div>
                 <div className="text-xl md:text-3xl font-bold text-white tracking-tight">

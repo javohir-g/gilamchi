@@ -118,10 +118,20 @@ export function BranchDetail() {
     .filter(e => e.category === "staff")
     .reduce((sum, e) => sum + e.amount, 0);
 
-  // Combine sales and expenses for unified history
+  // Combine sales, expenses, and debt payments for unified history
+  const allDebtPayments = branchDebts.flatMap(debt =>
+    (debt.paymentHistory || []).map(p => ({
+      ...p,
+      entryType: "payment" as const,
+      debtorName: debt.debtorName,
+      debtId: debt.id
+    }))
+  );
+
   const unifiedHistory = [
     ...branchSales.map(s => ({ ...s, entryType: "sale" as const })),
-    ...branchExpenses.map(e => ({ ...e, entryType: "expense" as const }))
+    ...branchExpenses.map(e => ({ ...e, entryType: "expense" as const })),
+    ...allDebtPayments
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   // New debts created in the period
@@ -131,7 +141,7 @@ export function BranchDetail() {
 
   // Debt payments received in the period
   const totalDebtPaymentsInPeriod = branchDebts.reduce((sum, debt) => {
-    const periodPayments = debt.paymentHistory.filter((payment) => {
+    const periodPayments = (debt.paymentHistory || []).filter((payment) => {
       return new Date(payment.date) >= startDate;
     });
     return (
@@ -382,22 +392,37 @@ export function BranchDetail() {
               {unifiedHistory.map((item) => (
                 <div
                   key={item.id}
-                  className={`flex items-start justify-between rounded-xl border p-4 transition-all hover:shadow-sm ${item.entryType === "sale"
-                    ? "bg-white dark:bg-gray-800/50 border-gray-100 dark:border-gray-700"
-                    : "bg-orange-50/30 dark:bg-orange-950/20 border-orange-100 dark:border-orange-900/50"
+                  onClick={() => item.entryType === "payment" && navigate("/admin/debts")}
+                  className={`flex items-start justify-between rounded-xl border p-4 transition-all hover:shadow-sm ${item.entryType === "payment" ? "cursor-pointer" : ""
+                    } ${item.entryType === "sale"
+                      ? (item as any).isNasiya
+                        ? "bg-yellow-50/50 dark:bg-yellow-900/10 border-yellow-200/50 dark:border-yellow-900/30"
+                        : "bg-white dark:bg-gray-800/50 border-gray-100 dark:border-gray-700"
+                      : item.entryType === "payment"
+                        ? "bg-emerald-50/30 dark:bg-emerald-950/10 border-emerald-100 dark:border-emerald-900/30"
+                        : "bg-orange-50/30 dark:bg-orange-950/20 border-orange-100 dark:border-orange-900/50"
                     }`}
                 >
                   <div className="flex-1">
                     <div className="flex items-center space-x-2">
                       <div className={`p-2 rounded-lg ${item.entryType === "sale"
                         ? "bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400"
-                        : "bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400"
+                        : item.entryType === "payment"
+                          ? "bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400"
+                          : "bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400"
                         }`}>
-                        {item.entryType === "sale" ? <Package className="h-4 w-4" /> : <DollarSign className="h-4 w-4" />}
+                        {item.entryType === "sale" ? <Package className="h-4 w-4" /> : item.entryType === "payment" ? <DollarSign className="h-4 w-4" /> : <DollarSign className="h-4 w-4" />}
                       </div>
                       <div>
-                        <div className="font-bold dark:text-white">
-                          {item.entryType === "sale" ? (item as any).productName : (item as any).description}
+                        <div className="font-bold dark:text-white flex items-center gap-2">
+                          {item.entryType === "sale"
+                            ? (item as any).productName
+                            : item.entryType === "payment"
+                              ? `${(item as any).debtorName} (Qarz to'lovi)`
+                              : (item as any).description}
+                          {(item as any).isNasiya && (
+                            <Badge className="bg-orange-100 text-orange-600 border-orange-200 text-[8px] h-4 py-0">NASIYA</Badge>
+                          )}
                         </div>
                         <div className="text-[10px] text-gray-400 uppercase tracking-tighter">
                           {new Date(item.date).toLocaleDateString("uz-UZ")} • {new Date(item.date).toLocaleTimeString("uz-UZ", { hour: '2-digit', minute: '2-digit' })}
@@ -439,9 +464,11 @@ export function BranchDetail() {
                     )}
                   </div>
                   <div className="text-right ml-4">
-                    <div className={`text-lg font-black ${item.entryType === "sale" ? "text-blue-600 dark:text-blue-400" : "text-orange-600 dark:text-orange-400"
+                    <div className={`text-lg font-black ${item.entryType === "sale" || item.entryType === "payment"
+                      ? item.entryType === "payment" ? "text-emerald-600 dark:text-emerald-400" : "text-blue-600 dark:text-blue-400"
+                      : "text-orange-600 dark:text-orange-400"
                       }`}>
-                      {item.entryType === "sale" ? "+" : "-"}{formatCurrency(item.amount * (item.entryType === "sale" ? exchangeRate : 1), item.entryType === "sale" ? "UZS" : "USD")}
+                      {item.entryType === "sale" || item.entryType === "payment" ? "+" : "-"}{formatCurrency(item.amount * (item.entryType === "sale" || item.entryType === "payment" ? (item.entryType === "payment" ? 1 : exchangeRate) : 1), (item.entryType === "sale" || item.entryType === "payment") ? "UZS" : "USD")}
                     </div>
                   </div>
                 </div>
