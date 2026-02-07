@@ -220,61 +220,23 @@ export function AddToBasketModal({
             </div>
           </div>
 
-          {/* Size Selection */}
-          {(isCarpetOrMetraj || (product.availableSizes && product.availableSizes.length > 0)) && (
-            <div className="space-y-3">
-              <Label className="text-lg dark:text-white">O'lchamni tanlang</Label>
-              <Select
-                value={selectedSize}
-                onValueChange={(val) => {
-                  setSelectedSize(val);
-                  if (val !== "other") {
-                    // When a preset size is selected, width and height are updated by the effect
-                  } else {
-                    // When "other" is selected, clear width/height for manual input
-                    setWidth("");
-                    setHeight("");
-                    setArea(0);
-                  }
-                }}
-              >
-                <SelectTrigger className="h-12 text-lg dark:bg-gray-700 dark:text-white">
-                  <SelectValue placeholder="O'lchamni tanlang" />
-                </SelectTrigger>
-                <SelectContent>
-                  {product.availableSizes?.map((s) => {
-                    const sizeName = typeof s === 'string' ? s : s.size;
-                    const sizeQty = typeof s === 'string' ? product.quantity : s.quantity;
-                    return (
-                      <SelectItem key={sizeName} value={sizeName}>
-                        {sizeName} ({sizeQty} dona)
-                      </SelectItem>
-                    );
-                  })}
-                  <SelectItem value="other">Boshqa olcham</SelectItem>
-                </SelectContent>
-              </Select>
-              {area > 0 && (
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Maydon: {area.toFixed(2)} m²
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Carpet Size Selection - Only shown if "Boshqa olcham" is selected or no sizes available */}
-          {isCarpetOrMetraj && (selectedSize === "other" || !product.availableSizes || product.availableSizes.length === 0) && (
-            <div className="space-y-3">
-              <Label className="block text-lg dark:text-white">
+          {/* Carpet/Unit Size Input */}
+          {(isCarpetOrMetraj || isUnit) && (
+            <div className="space-y-4">
+              <Label className="block text-lg dark:text-white font-bold">
                 O'lchamni kiriting {isMetraj && `(Eni: ${product.width}m)`}
               </Label>
+
               <div className="flex items-center space-x-4">
                 <div className="flex-1">
                   <Label className="text-xs text-gray-400 mb-1 block">Eni (m)</Label>
                   <Input
                     type="number"
                     value={width}
-                    onChange={(e) => setWidth(e.target.value)}
+                    onChange={(e) => {
+                      setWidth(e.target.value);
+                      setSelectedSize(""); // Reset preset size on manual change
+                    }}
                     className="h-12 text-center text-xl dark:bg-gray-700 dark:text-white"
                     min="0.1"
                     step="0.1"
@@ -287,7 +249,10 @@ export function AddToBasketModal({
                   <Input
                     type="number"
                     value={height}
-                    onChange={(e) => setHeight(e.target.value)}
+                    onChange={(e) => {
+                      setHeight(e.target.value);
+                      setSelectedSize(""); // Reset preset size on manual change
+                    }}
                     className="h-12 text-center text-xl dark:bg-gray-700 dark:text-white"
                     min="0.1"
                     step="0.1"
@@ -295,6 +260,63 @@ export function AddToBasketModal({
                   />
                 </div>
               </div>
+
+              {/* Stock Suggestions for Unit Products or Width for Metraj */}
+              {((isUnit && product.availableSizes && product.availableSizes.length > 0) || (isMetraj && product.width)) && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {isUnit ? "Skladda mavjud o'lchamlar:" : "Mavjud eni:"}
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {isUnit && product.availableSizes?.map((s) => {
+                      const sizeName = typeof s === 'string' ? s : s.size;
+                      const sizeQty = typeof s === 'string' ? product.quantity : s.quantity;
+                      const isActive = selectedSize === sizeName;
+
+                      return (
+                        <button
+                          key={sizeName}
+                          onClick={() => {
+                            setSelectedSize(sizeName);
+                          }}
+                          className={`flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all ${isActive
+                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                            : "border-gray-100 dark:border-gray-700 hover:border-blue-200"
+                            }`}
+                        >
+                          <span className={`text-base font-bold ${isActive ? "text-blue-600 dark:text-blue-400" : "dark:text-white"}`}>
+                            {sizeName}
+                          </span>
+                          <span className="text-[10px] text-gray-500">
+                            {sizeQty} ta qoldi
+                          </span>
+                        </button>
+                      );
+                    })}
+
+                    {isMetraj && product.width && (
+                      <button
+                        onClick={() => {
+                          setWidth(product.width!.toString());
+                          setSelectedSize(product.width!.toString());
+                        }}
+                        className={`flex flex-col items-center justify-center p-2 min-w-[60px] rounded-xl border-2 transition-all ${width === product.width.toString()
+                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                          : "border-gray-100 dark:border-gray-700 hover:border-blue-200"
+                          }`}
+                      >
+                        <span className={`text-base font-bold ${width === product.width.toString() ? "text-blue-600 dark:text-blue-400" : "dark:text-white"}`}>
+                          {product.width}
+                        </span>
+                        <span className="text-[10px] text-gray-500">
+                          Eni (m)
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {area > 0 && (
                 <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 font-medium">
                   Maydon: {area.toFixed(2)} m²
