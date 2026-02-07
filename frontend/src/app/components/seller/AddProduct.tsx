@@ -66,11 +66,14 @@ export function AddProduct() {
     }
   }, [user, branches, branchId]);
 
-  // Auto-calculate total quantity for unit products based on sizes
+  // Auto-calculate total quantity or length based on sizes/rolls
   useEffect(() => {
     if (type === "unit" && availableSizes.length > 0) {
       const total = availableSizes.reduce((sum, s) => sum + (parseInt(s.quantity) || 0), 0);
       setQuantity(total.toString());
+    } else if (type === "meter" && availableSizes.length > 0) {
+      const total = availableSizes.reduce((sum, s) => sum + (parseFloat(s.size) * (parseInt(s.quantity) || 0)), 0);
+      setTotalLength(total.toFixed(1));
     }
   }, [availableSizes, type]);
 
@@ -655,17 +658,91 @@ export function AddProduct() {
               </div>
             ) : (
               <div className="space-y-5">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="mb-2 block text-sm font-medium">Rulon uzunligi (m)</Label>
+                <div>
+                  <Label className="mb-2 block text-sm font-medium">
+                    Rulonlarni qo'shing (uzunligi - metr)
+                  </Label>
+                  <div className="flex space-x-2">
                     <Input
                       type="number"
                       step="0.1"
-                      value={totalLength}
-                      onChange={(e) => setTotalLength(e.target.value)}
-                      placeholder="Masalan: 25"
-                      className="h-12 rounded-xl"
+                      value={sizeInput}
+                      onChange={(e) => setSizeInput(e.target.value)}
+                      placeholder="Uzunligi (m)"
+                      className="h-12 flex-1 rounded-xl"
                     />
+                    <Input
+                      type="number"
+                      value={sizeQuantityInput}
+                      onChange={(e) => setSizeQuantityInput(e.target.value)}
+                      placeholder="Soni"
+                      className="h-12 w-24 rounded-xl text-center"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const qty = parseInt(sizeQuantityInput) || 1;
+                          if (sizeInput && !availableSizes.find(s => s.size === sizeInput)) {
+                            setAvailableSizes([...availableSizes, { size: sizeInput, quantity: qty }]);
+                            setSizeInput("");
+                            setSizeQuantityInput("");
+                          }
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      className="h-12 w-12 rounded-xl bg-blue-600"
+                      onClick={() => {
+                        const qty = parseInt(sizeQuantityInput) || 1;
+                        if (sizeInput && !availableSizes.find(s => s.size === sizeInput)) {
+                          setAvailableSizes([...availableSizes, { size: sizeInput, quantity: qty }]);
+                          setSizeInput("");
+                          setSizeQuantityInput("");
+                        }
+                      }}
+                    >
+                      <Plus className="h-5 w-5" />
+                    </Button>
+                  </div>
+                  {availableSizes.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      {availableSizes.map((s) => (
+                        <Badge
+                          key={s.size}
+                          variant="secondary"
+                          className="flex items-center py-1.5 px-3 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-100 rounded-lg group"
+                        >
+                          <span className="font-bold mr-1">{s.size}m</span>
+                          <span className="text-[10px] opacity-70">({s.quantity} rulon)</span>
+                          <X
+                            className="ml-2 h-3.5 w-3.5 cursor-pointer text-green-400 hover:text-red-500 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setAvailableSizes(availableSizes.filter((item) => item.size !== s.size));
+                            }}
+                          />
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="mb-2 block text-sm font-medium">Umumiy uzunlik (m)</Label>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        step="0.1"
+                        value={totalLength}
+                        onChange={(e) => setTotalLength(e.target.value)}
+                        placeholder="0"
+                        className="h-12 rounded-xl pl-10"
+                      />
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-bold">
+                        Σ
+                      </div>
+                    </div>
                   </div>
                   <div>
                     <Label className="mb-2 block text-sm font-medium">Rulon eni (m)</Label>
