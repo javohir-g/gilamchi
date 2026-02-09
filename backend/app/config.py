@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int
     CORS_ORIGINS: str
     TIMEZONE: str
+    TELEGRAM_BOT_TOKEN: str = ""
 
     class Config:
         env_file = ".env"
