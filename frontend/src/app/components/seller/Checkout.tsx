@@ -25,12 +25,20 @@ export function Checkout() {
 
   const [cashAmount, setCashAmount] = useState("0");
   const [cardAmount, setCardAmount] = useState("0");
+  const [agreedPrice, setAgreedPrice] = useState("0");
   const [isNasiya, setIsNasiya] = useState(false);
 
   const calculatedTotal = basket.reduce(
     (sum, item) => sum + item.total,
     0,
   );
+
+  // Sync agreedPrice with calculatedTotal when switching to Nasiya or when total changes
+  useEffect(() => {
+    if (isNasiya) {
+      setAgreedPrice((calculatedTotal * exchangeRate).toString());
+    }
+  }, [calculatedTotal, exchangeRate, isNasiya]);
 
   // Helper function to format number with thousand separators
   const formatNumber = (value: string): string => {
@@ -84,12 +92,13 @@ export function Checkout() {
 
     // If Nasiya mode, redirect to debt creation
     if (isNasiya) {
+      const agreed = parseFormattedNumber(agreedPrice);
       navigate("/seller/create-debt", {
         state: {
           basketItems: basket,
-          totalAmount: calculatedTotal,
+          totalAmount: agreed / exchangeRate,
           paidAmount: total / exchangeRate,
-          remainingAmount: Math.max(0, calculatedTotal - (total / exchangeRate)),
+          remainingAmount: Math.max(0, (agreed - total) / exchangeRate),
           isNasiya: true,
           exchangeRate: exchangeRate
         },
@@ -169,13 +178,28 @@ export function Checkout() {
             </div>
 
             {/* Calculated Total */}
-            <div>
-              <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Jami summa
-              </Label>
-              <div className="text-xl font-semibold text-gray-700 dark:text-gray-300 mt-1">
-                {formatCurrency(calculatedTotal * exchangeRate)}
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Jami summa
+                </Label>
+                <div className="text-xl font-semibold text-gray-700 dark:text-gray-300 mt-1">
+                  {formatCurrency(calculatedTotal * exchangeRate)}
+                </div>
               </div>
+              {isNasiya && (
+                <div className="flex-1">
+                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Kelishilgan narx
+                  </Label>
+                  <Input
+                    type="text"
+                    value={agreedPrice}
+                    onChange={(e) => setAgreedPrice(formatNumber(e.target.value))}
+                    className="mt-1 h-10 font-semibold border-2 border-indigo-200 dark:bg-gray-700 focus:border-indigo-400"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Seller Entered Total */}
@@ -196,7 +220,7 @@ export function Checkout() {
                     min="0"
                   />
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                    Qolgan qarz: {formatCurrency(Math.max(0, (calculatedTotal * exchangeRate) - parseFormattedNumber(cashAmount)))}
+                    Qolgan qarz: {formatCurrency(Math.max(0, parseFormattedNumber(agreedPrice) - parseFormattedNumber(cashAmount)))}
                   </p>
                 </>
               ) : (
