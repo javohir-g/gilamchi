@@ -72,8 +72,12 @@ export function AddProduct() {
       const total = availableSizes.reduce((sum, s) => sum + (parseInt(s.quantity) || 0), 0);
       setQuantity(total.toString());
     } else if (type === "meter" && availableSizes.length > 0) {
-      const total = availableSizes.reduce((sum, s) => sum + (parseFloat(s.size) * (parseInt(s.quantity) || 0)), 0);
-      setTotalLength(total.toFixed(1));
+      const total = availableSizes.reduce((sum, s) => {
+        const parts = s.size.split('x');
+        const length = parts.length === 2 ? parseFloat(parts[1]) : parseFloat(parts[0]);
+        return sum + (length * (parseInt(s.quantity) || 1));
+      }, 0);
+      setTotalLength(total.toFixed(2));
     }
   }, [availableSizes, type]);
 
@@ -630,7 +634,7 @@ export function AddProduct() {
                           <span className="text-[10px] opacity-70">({s.quantity} dona)</span>
                           <X
                             className="ml-2 h-3.5 w-3.5 cursor-pointer text-blue-400 hover:text-red-500 transition-colors"
-                            onClick={(e) => {
+                            onClick={(e: React.MouseEvent) => {
                               e.stopPropagation();
                               setAvailableSizes(availableSizes.filter((item) => item.size !== s.size));
                             }}
@@ -660,44 +664,57 @@ export function AddProduct() {
               <div className="space-y-5">
                 <div>
                   <Label className="mb-2 block text-sm font-medium">
-                    Rulonlarni qo'shing (uzunligi - metr)
+                    Rulonlarni qo'shing (Eni x Bo'yi)
                   </Label>
                   <div className="flex space-x-2">
-                    <Input
-                      type="number"
-                      step="0.1"
-                      value={sizeInput}
-                      onChange={(e) => setSizeInput(e.target.value)}
-                      placeholder="Uzunligi (m)"
-                      className="h-12 flex-1 rounded-xl"
-                    />
-                    <Input
-                      type="number"
-                      value={sizeQuantityInput}
-                      onChange={(e) => setSizeQuantityInput(e.target.value)}
-                      placeholder="Soni"
-                      className="h-12 w-24 rounded-xl text-center"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          const qty = parseInt(sizeQuantityInput) || 1;
-                          if (sizeInput && !availableSizes.find(s => s.size === sizeInput)) {
-                            setAvailableSizes([...availableSizes, { size: sizeInput, quantity: qty }]);
-                            setSizeInput("");
-                            setSizeQuantityInput("");
+                    <div className="flex-1">
+                      <Input
+                        type="number"
+                        step="0.1"
+                        value={sizeInput}
+                        onChange={(e) => setSizeInput(e.target.value)}
+                        placeholder="Eni (m)"
+                        className="h-12 w-full rounded-xl"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <Input
+                        type="number"
+                        step="0.1"
+                        value={sizeQuantityInput}
+                        onChange={(e) => setSizeQuantityInput(e.target.value)}
+                        placeholder="Bo'yi (m)"
+                        className="h-12 w-full rounded-xl"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            const w = parseFloat(sizeInput);
+                            const l = parseFloat(sizeQuantityInput);
+                            if (w > 0 && l > 0) {
+                              const sizeStr = `${w}x${l}`;
+                              if (!availableSizes.find(s => s.size === sizeStr)) {
+                                setAvailableSizes([...availableSizes, { size: sizeStr, quantity: 1 }]);
+                                setSizeInput("");
+                                setSizeQuantityInput("");
+                              }
+                            }
                           }
-                        }
-                      }}
-                    />
+                        }}
+                      />
+                    </div>
                     <Button
                       type="button"
                       className="h-12 w-12 rounded-xl bg-blue-600"
                       onClick={() => {
-                        const qty = parseInt(sizeQuantityInput) || 1;
-                        if (sizeInput && !availableSizes.find(s => s.size === sizeInput)) {
-                          setAvailableSizes([...availableSizes, { size: sizeInput, quantity: qty }]);
-                          setSizeInput("");
-                          setSizeQuantityInput("");
+                        const w = parseFloat(sizeInput);
+                        const l = parseFloat(sizeQuantityInput);
+                        if (w > 0 && l > 0) {
+                          const sizeStr = `${w}x${l}`;
+                          if (!availableSizes.find(s => s.size === sizeStr)) {
+                            setAvailableSizes([...availableSizes, { size: sizeStr, quantity: 1 }]);
+                            setSizeInput("");
+                            setSizeQuantityInput("");
+                          }
                         }
                       }}
                     >
@@ -716,7 +733,7 @@ export function AddProduct() {
                           <span className="text-[10px] opacity-70">({s.quantity} rulon)</span>
                           <X
                             className="ml-2 h-3.5 w-3.5 cursor-pointer text-green-400 hover:text-red-500 transition-colors"
-                            onClick={(e) => {
+                            onClick={(e: React.MouseEvent) => {
                               e.stopPropagation();
                               setAvailableSizes(availableSizes.filter((item) => item.size !== s.size));
                             }}

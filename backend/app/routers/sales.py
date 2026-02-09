@@ -57,15 +57,55 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
             
     elif product.type == ProductType.METER:
         available = float(product.remaining_length if product.remaining_length is not None else (product.total_length or 0))
-        print(f"DEBUG: Current remaining_length (available): {available}, Sale length: {sale.quantity}", file=sys.stderr)
+        sale_len = float(sale.quantity)
+        sale_width = float(sale.width) if sale.width else None
         
-        if available < float(sale.quantity):
-             raise HTTPException(status_code=400, detail=f"Insufficient stock (requested {sale.quantity}m, available {available}m)")
+        print(f"DEBUG: Current remaining_length: {available}, Sale length: {sale_len}, Width: {sale_width}", file=sys.stderr)
         
-        product.remaining_length = available - float(sale.quantity)
+        if available < sale_len:
+             raise HTTPException(status_code=400, detail=f"Insufficient stock (requested {sale_len}m, available {available}m)")
+        
+        # Individual roll deduction
+        if sale_width and product.available_sizes:
+            sizes = list(product.available_sizes)
+            found = False
+            for s in sizes:
+                if isinstance(s, dict) and "size" in s:
+                    try:
+                        # size format "WxL"
+                        size_str = s["size"]
+                        if 'x' in size_str:
+                            w_part, l_part = size_str.split('x')
+                            w = float(w_part)
+                            l = float(l_part)
+                            
+                            # Match by width
+                            if w == sale_width:
+                                if l < sale_len:
+                                    continue # Try next roll with same width
+                                
+                                # Deduct from this roll
+                                new_l = l - sale_len
+                                if new_l <= 0.05: # Effectively empty
+                                    sizes.remove(s)
+                                else:
+                                    s["size"] = f"{w}x{new_l:.2f}"
+                                
+                                print(f"DEBUG: Roll {size_str} updated to {w}x{new_l:.2f}", file=sys.stderr)
+                                found = True
+                                break
+                    except Exception as e:
+                        print(f"DEBUG: Error parsing roll size {s.get('size')}: {e}", file=sys.stderr)
+            
+            if found:
+                from sqlalchemy.orm.attributes import flag_modified
+                product.available_sizes = sizes
+                flag_modified(product, "available_sizes")
+        
+        product.remaining_length = available - sale_len
         print(f"DEBUG: New remaining_length: {product.remaining_length}", file=sys.stderr)
             
-        if product.remaining_length <= 0:
+        if product.remaining_length <= 0.05:
             from datetime import datetime, timezone
             product.deleted_at = datetime.now(timezone.utc)
             product.deleted_by = current_user.id

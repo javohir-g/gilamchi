@@ -261,11 +261,11 @@ export function AddToBasketModal({
                 </div>
               </div>
 
-              {/* Stock Suggestions for Unit Products or Width for Metraj */}
-              {((isUnit && product.availableSizes && product.availableSizes.length > 0) || (isMetraj && product.width)) && (
+              {/* Stock Suggestions for Unit Products or Metraj Rolls */}
+              {((isUnit && product.availableSizes && product.availableSizes.length > 0) || (isMetraj && (product.width || (product.availableSizes && product.availableSizes.length > 0)))) && (
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    {isUnit ? "Skladda mavjud o'lchamlar:" : "Mavjud eni:"}
+                    {isUnit ? "Skladda mavjud o'lchamlar:" : "Skladdagi rulonlar:"}
                   </Label>
                   <div className="flex flex-wrap gap-2">
                     {isUnit && product.availableSizes?.map((s) => {
@@ -294,11 +294,39 @@ export function AddToBasketModal({
                       );
                     })}
 
-                    {isMetraj && product.width && (
+                    {isMetraj && product.availableSizes?.map((s) => {
+                      const sizeName = typeof s === 'string' ? s : (s as any).size;
+                      const [w, l] = sizeName.includes('x') ? sizeName.split('x') : [sizeName, ""];
+                      const isActive = selectedSize === sizeName;
+
+                      return (
+                        <button
+                          key={sizeName}
+                          onClick={() => {
+                            setWidth(w);
+                            setHeight(l);
+                            setSelectedSize(sizeName);
+                          }}
+                          className={`flex flex-col items-center justify-center p-2 min-w-[70px] rounded-xl border-2 transition-all ${isActive
+                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                            : "border-gray-100 dark:border-gray-700 hover:border-blue-200"
+                            }`}
+                        >
+                          <span className={`text-base font-bold ${isActive ? "text-blue-600 dark:text-blue-400" : "dark:text-white"}`}>
+                            {w}{l ? ` x ${l}m` : 'm'}
+                          </span>
+                          <span className="text-[10px] text-gray-500">
+                            Rulon
+                          </span>
+                        </button>
+                      );
+                    })}
+
+                    {isMetraj && product.width && !product.availableSizes?.length && (
                       <button
                         onClick={() => {
                           setWidth(product.width!.toString());
-                          setSelectedSize(product.width!.toString());
+                          setSelectedSize('fixed-width');
                         }}
                         className={`flex flex-col items-center justify-center p-2 min-w-[60px] rounded-xl border-2 transition-all ${width === product.width.toString()
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
