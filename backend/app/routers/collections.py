@@ -14,6 +14,23 @@ def read_collections(db: Session = Depends(get_db)):
 
 @router.post("/", response_model=CollectionResponse)
 def create_collection(collection: CollectionCreate, db: Session = Depends(get_db), admin = Depends(get_admin_user)):
+    # Check if a collection with this name already exists (including soft-deleted ones)
+    existing_collection = db.query(Collection).filter(Collection.name == collection.name).first()
+    
+    if existing_collection:
+        if existing_collection.deleted_at is None:
+            raise HTTPException(status_code=400, detail=f"Collection '{collection.name}' already exists.")
+        else:
+            # Restore soft-deleted collection
+            existing_collection.deleted_at = None
+            existing_collection.icon = collection.icon
+            existing_collection.price_per_sqm = collection.price_per_sqm
+            existing_collection.buy_price_per_sqm = collection.buy_price_per_sqm
+            existing_collection.price_usd_per_sqm = collection.price_usd_per_sqm
+            db.commit()
+            db.refresh(existing_collection)
+            return existing_collection
+
     db_collection = Collection(**collection.dict())
     db.add(db_collection)
     db.commit()
