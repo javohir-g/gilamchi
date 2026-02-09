@@ -44,23 +44,15 @@ export function SellProductDetail() {
   const [width, setWidth] = useState("");
   const [height, setHeight] = useState("");
 
-  // Update price when Nasiya toggle or product changes
+  // Update price when product changes
   useEffect(() => {
     if (!product) return;
-
-    if (isNasiya && product.collection) {
-      const coll = collections.find(c => c.name === product.collection);
-      if (coll?.price_nasiya_per_sqm) {
-        setSellingPrice(coll.price_nasiya_per_sqm * exchangeRate);
-        return;
-      }
-    }
 
     setSellingPrice(isUnit
       ? (product.sellPrice * exchangeRate)
       : (product.sellPricePerMeter ? product.sellPricePerMeter * exchangeRate : 0)
     );
-  }, [isNasiya, product, collections, isUnit, exchangeRate]);
+  }, [product, isUnit, exchangeRate]);
 
   // Parse width and height from selectedSize
   useEffect(() => {
@@ -140,14 +132,7 @@ export function SellProductDetail() {
 
     const totalAmount = calculateTotal();
 
-    let standardPrice = isUnit ? product.sellPrice : (product.sellPricePerMeter || 0);
-
-    if (isNasiya && product.collection) {
-      const coll = collections.find(c => c.name === product.collection);
-      if (coll?.price_nasiya_per_sqm) {
-        standardPrice = coll.price_nasiya_per_sqm;
-      }
-    }
+    const standardPrice = isUnit ? product.sellPrice : (product.sellPricePerMeter || 0);
 
     const standardTotal = isCarpet && area > 0
       ? area * standardPrice * saleQuantity

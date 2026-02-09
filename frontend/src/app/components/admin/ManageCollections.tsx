@@ -78,7 +78,6 @@ export function ManageCollections() {
       name: newCollectionName,
       price_per_sqm: collectionPrice ? parseFloat(collectionPrice) : undefined,
       buy_price_per_sqm: collectionBuyPrice ? parseFloat(collectionBuyPrice) : undefined,
-      price_nasiya_per_sqm: collectionNasiyaPrice ? parseFloat(collectionNasiyaPrice) : undefined
     });
 
     toast.success("Kolleksiya qo'shildi!");
@@ -98,7 +97,6 @@ export function ManageCollections() {
       name: editCollectionName,
       price_per_sqm: collectionPrice ? parseFloat(collectionPrice) : undefined,
       buy_price_per_sqm: collectionBuyPrice ? parseFloat(collectionBuyPrice) : undefined,
-      price_nasiya_per_sqm: collectionNasiyaPrice ? parseFloat(collectionNasiyaPrice) : undefined
     });
 
     toast.success("Kolleksiya yangilandi!");

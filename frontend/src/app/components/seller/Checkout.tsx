@@ -171,7 +171,7 @@ export function Checkout() {
             {/* Calculated Total */}
             <div>
               <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {isNasiya ? "Nasiya narxi" : "Kassa narxi"}
+                Jami summa
               </Label>
               <div className="text-xl font-semibold text-gray-700 dark:text-gray-300 mt-1">
                 {formatCurrency(calculatedTotal * exchangeRate)}

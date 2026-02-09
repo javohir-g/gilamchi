@@ -169,7 +169,6 @@ const fromCollection = (data: any): any => ({
   price_per_sqm: data.price_per_sqm,
   buy_price_per_sqm: data.buy_price_per_sqm,
   price_usd_per_sqm: data.price_usd_per_sqm,
-  price_nasiya_per_sqm: data.price_nasiya_per_sqm
 });
 
 const fromStaff = (data: any): any => ({
@@ -185,7 +184,6 @@ const toCollection = (data: any): any => ({
   price_per_sqm: data.price_per_sqm,
   buy_price_per_sqm: data.buy_price_per_sqm,
   price_usd_per_sqm: data.price_usd_per_sqm,
-  price_nasiya_per_sqm: data.price_nasiya_per_sqm
 });
 
 const fromDebt = (data: any): any => ({
