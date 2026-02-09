@@ -89,6 +89,7 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
                                 if new_l <= 0.05: # Effectively empty
                                     sizes.remove(s)
                                 else:
+                                    # Preserve metadata like initial_length if present
                                     s["size"] = f"{w}x{new_l:.2f}"
                                 
                                 print(f"DEBUG: Roll {size_str} updated to {w}x{new_l:.2f}", file=sys.stderr)

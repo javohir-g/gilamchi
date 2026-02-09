@@ -399,11 +399,36 @@ export function SellProduct() {
                           <span className="ml-1">{product.collection}</span>
                         </div>
                       )}
+                      {product.type === 'meter' && product.availableSizes && product.availableSizes.length > 0 && (
+                        <div className="mt-2 space-y-2">
+                          {product.availableSizes.map((s: any, idx: number) => {
+                            const sizeStr = typeof s === 'string' ? s : s.size;
+                            const [w, l] = sizeStr.split('x').map(parseFloat);
+                            const initialL = s.initial_length || l;
+                            const percentage = Math.min(100, Math.max(0, (l / initialL) * 100));
+
+                            return (
+                              <div key={idx} className="space-y-1">
+                                <div className="flex justify-between text-[10px] font-bold">
+                                  <span className="text-blue-600 dark:text-blue-400">{w}m</span>
+                                  <span className="text-muted-foreground">{l.toFixed(1)}m / {initialL.toFixed(1)}m</span>
+                                </div>
+                                <div className="h-1.5 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                                    style={{ width: `${percentage}%` }}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                       {(() => {
                         const collection = collections.find(c => c.name === product.collection);
                         if (collection?.price_usd_per_sqm && (product.category === "Gilamlar" || product.category === "Metrajlar")) {
                           return (
-                            <div className="text-xs font-semibold text-green-600 dark:text-green-400">
+                            <div className="text-xs font-semibold text-green-600 dark:text-green-400 mt-1">
                               ${collection.price_usd_per_sqm}/m²
                             </div>
                           );

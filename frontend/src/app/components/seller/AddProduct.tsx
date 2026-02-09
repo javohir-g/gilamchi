@@ -699,7 +699,7 @@ export function AddProduct() {
                             if (w > 0 && l > 0) {
                               const sizeStr = `${w}x${l}`;
                               if (!availableSizes.find(s => s.size === sizeStr)) {
-                                setAvailableSizes([...availableSizes, { size: sizeStr, quantity: 1 }]);
+                                setAvailableSizes([...availableSizes, { size: sizeStr, initial_length: l, quantity: 1 }]);
                                 setSizeInput("");
                                 setSizeQuantityInput("");
                               }
@@ -717,7 +717,7 @@ export function AddProduct() {
                         if (w > 0 && l > 0) {
                           const sizeStr = `${w}x${l}`;
                           if (!availableSizes.find(s => s.size === sizeStr)) {
-                            setAvailableSizes([...availableSizes, { size: sizeStr, quantity: 1 }]);
+                            setAvailableSizes([...availableSizes, { size: sizeStr, initial_length: l, quantity: 1 }]);
                             setSizeInput("");
                             setSizeQuantityInput("");
                           }
