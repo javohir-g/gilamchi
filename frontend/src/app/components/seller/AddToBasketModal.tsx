@@ -209,7 +209,7 @@ export function AddToBasketModal({
                 {product.name}
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {product.category}
+                {product.collection} ({product.category})
               </p>
               {!isCarpetOrMetraj && (
                 <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -220,11 +220,71 @@ export function AddToBasketModal({
             </div>
           </div>
 
-          {/* Carpet/Unit Size Input */}
+          {/* Roll Selection for Metraj Products - AT THE TOP */}
+          {isMetraj && (
+            <div className="space-y-3">
+              <Label className="text-base font-bold dark:text-white">
+                Rulonni tanlang
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                {product.availableSizes?.map((s: any, idx: number) => {
+                  const sizeName = typeof s === 'string' ? s : s.size;
+                  const [w, l] = sizeName.split('x').map(parseFloat);
+                  const isActive = selectedSize === sizeName;
+
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setWidth(w.toString());
+                        setSelectedSize(sizeName);
+                        // Optional: Reset height if it exceeds new max
+                        if (parseFloat(height) > l) setHeight("");
+                      }}
+                      className={`flex flex-col items-center justify-center p-2.5 min-w-[80px] rounded-2xl border-2 transition-all ${isActive
+                        ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
+                        : "border-gray-100 dark:border-gray-700 hover:border-blue-200"
+                        }`}
+                    >
+                      <span className={`text-lg font-black ${isActive ? "text-blue-600 dark:text-blue-400" : "dark:text-white"}`}>
+                        {w}m
+                      </span>
+                      <span className="text-[10px] text-gray-500 font-medium">
+                        {l.toFixed(1)}m qoldi
+                      </span>
+                    </button>
+                  );
+                })}
+
+                {/* Fixed width fallback if no rolls defined */}
+                {product.width && (!product.availableSizes || product.availableSizes.length === 0) && (
+                  <button
+                    onClick={() => {
+                      setWidth(product.width!.toString());
+                      setSelectedSize('fixed');
+                    }}
+                    className={`flex flex-col items-center justify-center p-2.5 min-w-[80px] rounded-2xl border-2 transition-all ${width === product.width.toString()
+                      ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
+                      : "border-gray-100 dark:border-gray-700 hover:border-blue-200"
+                      }`}
+                  >
+                    <span className={`text-lg font-black ${width === product.width.toString() ? "text-blue-600 dark:text-blue-400" : "dark:text-white"}`}>
+                      {product.width}m
+                    </span>
+                    <span className="text-[10px] text-gray-500 font-medium">
+                      Asosiy eni
+                    </span>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Size/Quantity Inputs */}
           {(isCarpetOrMetraj || isUnit) && (
-            <div className="space-y-4">
+            <div className="space-y-4 pt-2 border-t dark:border-gray-700">
               <Label className="block text-lg dark:text-white font-bold">
-                O'lchamni kiriting {isMetraj && `(Eni: ${product.width}m)`}
+                {isMetraj ? "Sotiladigan uzunlikni kiring" : "O'lchamni kiriting"}
               </Label>
 
               <div className="flex items-center space-x-4">
@@ -235,40 +295,41 @@ export function AddToBasketModal({
                     value={width}
                     onChange={(e) => {
                       setWidth(e.target.value);
-                      setSelectedSize(""); // Reset preset size on manual change
+                      setSelectedSize("");
                     }}
-                    className="h-12 text-center text-xl dark:bg-gray-700 dark:text-white"
+                    className="h-12 text-center text-xl dark:bg-gray-700 dark:text-white font-bold"
                     min="0.1"
                     step="0.1"
                     placeholder="Eni"
-                    readOnly={isMetraj && !!product.width}
+                    readOnly={isMetraj && (!!product.width || (product.availableSizes && product.availableSizes.length > 0))}
                   />
                 </div>
                 <div className="flex-1">
-                  <Label className="text-xs text-gray-400 mb-1 block">Bo'yi (m)</Label>
+                  <Label className="text-xs text-gray-400 mb-1 block">Bo'yi (m) {isMetraj && selectedSize && `(Maks: ${maxQuantity}m)`}</Label>
                   <Input
                     type="number"
                     value={height}
                     onChange={(e) => {
                       setHeight(e.target.value);
-                      setSelectedSize(""); // Reset preset size on manual change
+                      if (!isMetraj) setSelectedSize("");
                     }}
-                    className="h-12 text-center text-xl dark:bg-gray-700 dark:text-white"
+                    className="h-12 text-center text-xl dark:bg-gray-700 dark:text-white font-bold"
                     min="0.1"
+                    max={isMetraj ? maxQuantity : undefined}
                     step="0.1"
                     placeholder="Bo'yi"
                   />
                 </div>
               </div>
 
-              {/* Stock Suggestions for Unit Products or Metraj Rolls */}
-              {((isUnit && product.availableSizes && product.availableSizes.length > 0) || (isMetraj && (product.width || (product.availableSizes && product.availableSizes.length > 0)))) && (
+              {/* Stock Suggestions for UNIT Products ONLY (Metraj handled above) */}
+              {isUnit && product.availableSizes && product.availableSizes.length > 0 && (
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    {isUnit ? "Skladda mavjud o'lchamlar:" : "Skladdagi rulonlar:"}
+                    Skladda mavjud o'lchamlar:
                   </Label>
                   <div className="flex flex-wrap gap-2">
-                    {isUnit && product.availableSizes?.map((s) => {
+                    {product.availableSizes.map((s) => {
                       const sizeName = typeof s === 'string' ? s : s.size;
                       const sizeQty = typeof s === 'string' ? product.quantity : s.quantity;
                       const isActive = selectedSize === sizeName;
@@ -293,126 +354,63 @@ export function AddToBasketModal({
                         </button>
                       );
                     })}
-
-                    {isMetraj && product.availableSizes?.map((s) => {
-                      const sizeName = typeof s === 'string' ? s : (s as any).size;
-                      const [w, l] = sizeName.includes('x') ? sizeName.split('x') : [sizeName, ""];
-                      const isActive = selectedSize === sizeName;
-
-                      return (
-                        <button
-                          key={sizeName}
-                          onClick={() => {
-                            setWidth(w);
-                            setHeight(l);
-                            setSelectedSize(sizeName);
-                          }}
-                          className={`flex flex-col items-center justify-center p-2 min-w-[70px] rounded-xl border-2 transition-all ${isActive
-                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                            : "border-gray-100 dark:border-gray-700 hover:border-blue-200"
-                            }`}
-                        >
-                          <span className={`text-base font-bold ${isActive ? "text-blue-600 dark:text-blue-400" : "dark:text-white"}`}>
-                            {w}{l ? ` x ${l}m` : 'm'}
-                          </span>
-                          <span className="text-[10px] text-gray-500">
-                            Rulon
-                          </span>
-                        </button>
-                      );
-                    })}
-
-                    {isMetraj && product.width && !product.availableSizes?.length && (
-                      <button
-                        onClick={() => {
-                          setWidth(product.width!.toString());
-                          setSelectedSize('fixed-width');
-                        }}
-                        className={`flex flex-col items-center justify-center p-2 min-w-[60px] rounded-xl border-2 transition-all ${width === product.width.toString()
-                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                          : "border-gray-100 dark:border-gray-700 hover:border-blue-200"
-                          }`}
-                      >
-                        <span className={`text-base font-bold ${width === product.width.toString() ? "text-blue-600 dark:text-blue-400" : "dark:text-white"}`}>
-                          {product.width}
-                        </span>
-                        <span className="text-[10px] text-gray-500">
-                          Eni (m)
-                        </span>
-                      </button>
-                    )}
                   </div>
                 </div>
               )}
 
               {area > 0 && (
-                <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 font-medium">
-                  Maydon: {area.toFixed(2)} m²
+                <div className="mt-1 text-base text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-900/10 p-3 rounded-xl flex justify-between items-center">
+                  <span>Umumiy maydon:</span>
+                  <span>{area.toFixed(2)} m²</span>
                 </div>
               )}
             </div>
           )}
 
-          {/* Quantity - Not needed for Metrajlar (they use width/height only) */}
-          {!isMetraj && (
-            <div>
-              <Label className="mb-5 block text-lg dark:text-white">
-                {isCarpet
-                  ? "Soni (dona)"
-                  : isUnit
-                    ? "Miqdor"
-                    : "Metr"}
+          {/* Quantity - For UNIT/CARPET only */}
+          {(isUnit || isCarpet) && (
+            <div className="pt-2 border-t dark:border-gray-700">
+              <Label className="mb-4 block text-lg dark:text-white font-bold">
+                {isCarpet ? "Soni (dona)" : "Miqdor"}
               </Label>
-              {isUnit || isCarpet ? (
-                <div className="flex items-center justify-between">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-12 w-12"
-                    onClick={() =>
-                      setQuantity(Math.max(1, quantity - 1))
-                    }
-                    disabled={quantity <= 1}
-                  >
-                    <Minus className="h-5 w-5" />
-                  </Button>
-                  <div className="text-3xl dark:text-white">
-                    {quantity}
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-12 w-12"
-                    onClick={() =>
-                      setQuantity(
-                        isUnit
-                          ? Math.min(maxQuantity, quantity + 1)
-                          : quantity + 1,
-                      )
-                    }
-                    disabled={isUnit && quantity >= maxQuantity}
-                  >
-                    <Plus className="h-5 w-5" />
-                  </Button>
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-12 w-12 rounded-xl"
+                  onClick={() =>
+                    setQuantity(Math.max(1, quantity - 1))
+                  }
+                  disabled={quantity <= 1}
+                >
+                  <Minus className="h-5 w-5" />
+                </Button>
+                <div className="text-3xl dark:text-white font-black">
+                  {quantity}
                 </div>
-              ) : (
-                <Input
-                  type="number"
-                  value={meters}
-                  onChange={(e) => setMeters(e.target.value)}
-                  className="h-12 text-center text-xl dark:bg-gray-700 dark:text-white"
-                  min="0.1"
-                  max={maxQuantity}
-                  step="0.1"
-                />
-              )}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-12 w-12 rounded-xl"
+                  onClick={() =>
+                    setQuantity(
+                      isUnit
+                        ? Math.min(maxQuantity, quantity + 1)
+                        : quantity + 1,
+                    )
+                  }
+                  disabled={isUnit && quantity >= maxQuantity}
+                >
+                  <Plus className="h-5 w-5" />
+                </Button>
+              </div>
             </div>
           )}
 
-          {/* Price - hidden for carpets as it's calculated from pricePerSquareMeter */}
+          {/* Price - hidden for carpets/metraj as they use collection price */}
           {!isCarpetOrMetraj && (
-            <div>
-              <Label className="mb-3 block text-lg dark:text-white">
+            <div className="pt-2 border-t dark:border-gray-700">
+              <Label className="mb-3 block text-lg font-bold dark:text-white">
                 Narx {!isUnit && "(metr uchun)"}
               </Label>
               <Input
@@ -423,7 +421,7 @@ export function AddToBasketModal({
                     (parseFloat(e.target.value) || 0) / exchangeRate,
                   )
                 }
-                className="h-12 text-xl dark:bg-gray-700 dark:text-white"
+                className="h-12 text-xl dark:bg-gray-700 dark:text-white font-bold"
               />
             </div>
           )}
