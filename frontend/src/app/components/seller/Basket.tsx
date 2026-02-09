@@ -151,13 +151,15 @@ export function Basket() {
                             O'lcham: {item.width}×{item.height} ({item.area.toFixed(2)} m²)
                           </p>
                         )}
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                          {item.width && item.height
-                            ? `Soni: ${item.quantity}`
-                            : (item.type === "unit"
-                              ? `Miqdor: ${item.quantity}`
-                              : `Metr: ${item.quantity}`)}
-                        </p>
+                        {item.category !== "Metrajlar" && (
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            {item.width && item.height
+                              ? `Soni: ${item.quantity}`
+                              : (item.type === "unit"
+                                ? `Miqdor: ${item.quantity}`
+                                : `Metr: ${item.quantity}`)}
+                          </p>
+                        )}
                       </div>
                       <div className="flex gap-1">
                         <Button

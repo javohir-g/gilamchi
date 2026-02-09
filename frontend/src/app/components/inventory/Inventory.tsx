@@ -1016,29 +1016,52 @@ export function Inventory() {
                         {product.code}
                       </h3>
 
-                      {product.availableSizes && product.availableSizes.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {product.availableSizes.map((s: any, i: number) => {
-                            const sStr = getSizeStr(s);
-                            const qty = typeof s === 'object' ? s.quantity : null;
+                      {product.type === 'meter' && product.availableSizes && product.availableSizes.length > 0 ? (
+                        <div className="flex flex-wrap gap-1.5 mt-1">
+                          {product.availableSizes.map((s: any, idx: number) => {
+                            const sizeStr = typeof s === 'string' ? s : s.size;
+                            const [w, l] = sizeStr.split('x').map(parseFloat);
+
                             return (
-                              <Badge
-                                key={i}
-                                variant="secondary"
-                                className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-0 text-[10px] px-2 py-0 h-5"
+                              <div
+                                key={idx}
+                                className="flex flex-col items-center justify-center min-w-[50px] p-1 rounded-lg border border-blue-100 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-900/10"
                               >
-                                {sStr} {qty !== null && `(${qty})`}
-                              </Badge>
+                                <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 leading-tight">
+                                  {w}m
+                                </span>
+                                <span className="text-[8px] text-muted-foreground font-medium">
+                                  {l.toFixed(1)}m
+                                </span>
+                              </div>
                             );
                           })}
                         </div>
+                      ) : (
+                        product.availableSizes && product.availableSizes.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {product.availableSizes.map((s: any, i: number) => {
+                              const sStr = getSizeStr(s);
+                              const qty = typeof s === 'object' ? s.quantity : null;
+                              return (
+                                <Badge
+                                  key={i}
+                                  variant="secondary"
+                                  className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-0 text-[10px] px-2 py-0 h-5"
+                                >
+                                  {sStr} {qty !== null && `(${qty})`}
+                                </Badge>
+                              );
+                            })}
+                          </div>
+                        )
                       )}
 
                       {(() => {
                         const collection = collections.find((c: any) => c.name === product.collection);
                         if (collection?.price_usd_per_sqm && (product.category === "Gilamlar" || product.category === "Metrajlar")) {
                           return (
-                            <div className="text-xs font-semibold text-green-600 dark:text-green-400">
+                            <div className="text-xs font-semibold text-green-600 dark:text-green-400 pt-1 border-t border-border/50 mt-1">
                               ${collection.price_usd_per_sqm}/m²
                             </div>
                           );

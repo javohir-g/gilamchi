@@ -37,6 +37,28 @@ export function AddToBasketModal({
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [selectedSizeObj, setSelectedSizeObj] = useState<any>(null);
 
+  const filteredSizes = useMemo(() => {
+    if (!product.availableSizes) return [];
+    if (isMetraj) return product.availableSizes; // Metraj rolls are managed differently
+
+    return product.availableSizes.filter((s) => {
+      const sizeStr = typeof s === "string" ? s : s.size;
+      const parts = sizeStr.split(/×|x/);
+      if (parts.length !== 2) return true;
+
+      const [w, h] = parts.map((p) => p.trim());
+
+      // If user selected a specific size dropdown, we keep it visible
+      if (selectedSize === sizeStr) return true;
+
+      // Filter by manual input
+      const widthMatch = !width || w.startsWith(width) || w === width;
+      const heightMatch = !height || h.startsWith(height) || h === height;
+
+      return widthMatch && heightMatch;
+    });
+  }, [product.availableSizes, width, height, isMetraj, selectedSize]);
+
   // Determine initial price
   const getInitialPrice = () => {
     // 1. If it has a specific m2 price, use it
@@ -329,7 +351,7 @@ export function AddToBasketModal({
                     Skladda mavjud o'lchamlar:
                   </Label>
                   <div className="flex flex-wrap gap-2">
-                    {product.availableSizes.map((s) => {
+                    {filteredSizes.map((s) => {
                       const sizeName = typeof s === 'string' ? s : s.size;
                       const sizeQty = typeof s === 'string' ? product.quantity : s.quantity;
                       const isActive = selectedSize === sizeName;
