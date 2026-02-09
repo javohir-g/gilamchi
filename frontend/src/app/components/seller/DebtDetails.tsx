@@ -195,10 +195,10 @@ export function DebtDetails() {
           </div>
 
           {/* Amounts Summary */}
-          <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t dark:border-gray-700">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t dark:border-gray-700">
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                Jami summa
+                Kelishuv summasi
               </p>
               <p className="font-semibold dark:text-white">
                 {formatCurrency(debt.totalAmount * exchangeRate)}
@@ -206,7 +206,15 @@ export function DebtDetails() {
             </div>
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                To'langan
+                Boshlang'ich to'lov
+              </p>
+              <p className="font-semibold text-blue-600 dark:text-blue-400">
+                {formatCurrency((debt.initial_payment || 0) * exchangeRate)}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                To'langan (Jami)
               </p>
               <p className="font-semibold text-green-600 dark:text-green-400">
                 {formatCurrency(debt.paidAmount * exchangeRate)}
