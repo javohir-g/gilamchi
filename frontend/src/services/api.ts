@@ -215,10 +215,13 @@ const toDebt = (data: any): any => ({
   phone_number: data.phoneNumber,
   order_details: data.orderDetails,
   total_amount: data.totalAmount,
+  paid_amount: data.paidAmount,
+  initial_payment: data.initial_payment,
   payment_deadline: data.paymentDeadline, // expected ISO string
   branch_id: data.branchId,
   seller_id: data.sellerId,
-  order_id: data.orderId
+  order_id: data.orderId,
+  exchange_rate: data.exchangeRate
 });
 
 // --- Services ---
