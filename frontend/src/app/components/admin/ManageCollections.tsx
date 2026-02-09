@@ -40,6 +40,7 @@ export function ManageCollections() {
   const [editCollectionName, setEditCollectionName] = useState("");
   const [collectionPrice, setCollectionPrice] = useState<string>("");
   const [collectionBuyPrice, setCollectionBuyPrice] = useState<string>("");
+  const [isSaving, setIsSaving] = useState(false);
 
   // Collection Icons Map
   const collectionIcons: Record<string, string> = {
@@ -74,17 +75,24 @@ export function ManageCollections() {
       return;
     }
 
-    await addCollection({
-      name: newCollectionName,
-      price_per_sqm: collectionPrice ? parseFloat(collectionPrice) : undefined,
-      buy_price_per_sqm: collectionBuyPrice ? parseFloat(collectionBuyPrice) : undefined,
-    });
+    setIsSaving(true);
+    try {
+      await addCollection({
+        name: newCollectionName,
+        price_per_sqm: collectionPrice ? parseFloat(collectionPrice) : undefined,
+        buy_price_per_sqm: collectionBuyPrice ? parseFloat(collectionBuyPrice) : undefined,
+      });
 
-    toast.success("Kolleksiya qo'shildi!");
-    setNewCollectionName("");
-    setCollectionPrice("");
-    setCollectionBuyPrice("");
-    setAddDialogOpen(false);
+      toast.success("Kolleksiya qo'shildi!");
+      setNewCollectionName("");
+      setCollectionPrice("");
+      setCollectionBuyPrice("");
+      setAddDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to add collection", error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleEditCollection = async () => {
@@ -93,27 +101,41 @@ export function ManageCollections() {
       return;
     }
 
-    await updateCollection(selectedCollectionId, {
-      name: editCollectionName,
-      price_per_sqm: collectionPrice ? parseFloat(collectionPrice) : undefined,
-      buy_price_per_sqm: collectionBuyPrice ? parseFloat(collectionBuyPrice) : undefined,
-    });
+    setIsSaving(true);
+    try {
+      await updateCollection(selectedCollectionId, {
+        name: editCollectionName,
+        price_per_sqm: collectionPrice ? parseFloat(collectionPrice) : undefined,
+        buy_price_per_sqm: collectionBuyPrice ? parseFloat(collectionBuyPrice) : undefined,
+      });
 
-    toast.success("Kolleksiya yangilandi!");
-    setEditDialogOpen(false);
-    setSelectedCollectionId(null);
-    setEditCollectionName("");
-    setCollectionPrice("");
-    setCollectionBuyPrice("");
+      toast.success("Kolleksiya yangilandi!");
+      setEditDialogOpen(false);
+      setSelectedCollectionId(null);
+      setEditCollectionName("");
+      setCollectionPrice("");
+      setCollectionBuyPrice("");
+    } catch (error) {
+      console.error("Failed to update collection", error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDeleteCollection = async () => {
     if (!selectedCollectionId) return;
 
-    await apiDeleteCollection(selectedCollectionId);
-    toast.success("Kolleksiya o'chirildi!");
-    setDeleteDialogOpen(false);
-    setSelectedCollectionId(null);
+    setIsSaving(true);
+    try {
+      await apiDeleteCollection(selectedCollectionId);
+      toast.success("Kolleksiya o'chirildi!");
+      setDeleteDialogOpen(false);
+      setSelectedCollectionId(null);
+    } catch (error) {
+      console.error("Failed to delete collection", error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const openEditDialog = (collection: any) => {
@@ -268,10 +290,13 @@ export function ManageCollections() {
                 setAddDialogOpen(false);
                 setNewCollectionName("");
               }}
+              disabled={isSaving}
             >
               Bekor qilish
             </Button>
-            <Button onClick={handleAddCollection}>Qo'shish</Button>
+            <Button onClick={handleAddCollection} disabled={isSaving}>
+              {isSaving ? "Saqlanmoqda..." : "Qo'shish"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -333,10 +358,13 @@ export function ManageCollections() {
                 setSelectedCollectionId(null);
                 setEditCollectionName("");
               }}
+              disabled={isSaving}
             >
               Bekor qilish
             </Button>
-            <Button onClick={handleEditCollection}>Saqlash</Button>
+            <Button onClick={handleEditCollection} disabled={isSaving}>
+              {isSaving ? "Saqlanmoqda..." : "Saqlash"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

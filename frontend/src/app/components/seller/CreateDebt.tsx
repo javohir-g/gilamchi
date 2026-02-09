@@ -53,6 +53,7 @@ export function CreateDebt() {
   };
 
   const parseFormattedNumber = (value: string): number => parseFloat(value) || 0;
+  const [isSaving, setIsSaving] = useState(false);
 
   const [customRemainingAmount, setCustomRemainingAmount] = useState(
     formatNumber((remainingAmount * exchangeRate).toString())
@@ -121,6 +122,7 @@ export function CreateDebt() {
     payments.push({ type: "debt", amount: remainingUZS });
 
     // Call completeOrder which returns orderId
+    setIsSaving(true);
     completeOrder(payments, totalAmount, isNasiya).then((orderId: string) => {
       // Create debt linked to orderId with UZS amounts
       const debt: Debt = {
@@ -150,6 +152,8 @@ export function CreateDebt() {
     }).catch((err: any) => {
       console.error("Order completion failed:", err);
       toast.error("Xatolik yuz berdi!");
+    }).finally(() => {
+      setIsSaving(false);
     });
   };
 
@@ -343,9 +347,10 @@ export function CreateDebt() {
             onClick={handleSaveDebt}
             className="h-14 flex-[2] bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-base font-semibold"
             size="lg"
+            disabled={isSaving}
           >
             <Save className="h-5 w-5 mr-2" />
-            Qarzni saqlash
+            {isSaving ? "Saqlanmoqda..." : "Qarzni saqlash"}
           </Button>
         </div>
       </div>

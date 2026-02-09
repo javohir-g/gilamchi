@@ -27,6 +27,7 @@ export function Checkout() {
   const [cardAmount, setCardAmount] = useState("0");
   const [agreedPrice, setAgreedPrice] = useState("0");
   const [isNasiya, setIsNasiya] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const calculatedTotal = basket.reduce(
     (sum, item) => sum + item.total,
@@ -125,9 +126,19 @@ export function Checkout() {
       });
     }
 
-    completeOrder(payments, total / exchangeRate, false); // false = Sotish (regular sale)
-    toast.success("Buyurtma muvaffaqiyatli yakunlandi!");
-    navigate("/seller/home");
+    setIsSaving(true);
+    completeOrder(payments, total / exchangeRate, false)
+      .then(() => {
+        toast.success("Buyurtma muvaffaqiyatli yakunlandi!");
+        navigate("/seller/home");
+      })
+      .catch((err: any) => {
+        console.error("Order completion failed:", err);
+        toast.error("Xatolik yuz berdi!");
+      })
+      .finally(() => {
+        setIsSaving(false);
+      });
   };
 
   const isValid = sellerTotal > 0;
@@ -319,9 +330,9 @@ export function Checkout() {
             onClick={handleComplete}
             className="h-14 flex-[2] bg-green-600 hover:bg-green-700 text-base font-semibold"
             size="lg"
-            disabled={!isValid}
+            disabled={!isValid || isSaving}
           >
-            ✓ Yakunlash
+            {isSaving ? "Yakunlanmoqda..." : "✓ Yakunlash"}
           </Button>
         </div>
       </div>

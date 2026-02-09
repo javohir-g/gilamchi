@@ -28,6 +28,7 @@ export function AddExpense() {
   );
   const [category, setCategory] = useState<"branch" | "staff">("branch");
   const [staffId, setStaffId] = useState<string>("");
+  const [isSaving, setIsSaving] = useState(false);
 
   const branchStaffMembers = staffMembers.filter(s => s.branchId === user?.branchId && s.isActive);
 
@@ -52,6 +53,7 @@ export function AddExpense() {
       return;
     }
 
+    setIsSaving(true);
     try {
       if (editingId) {
         // Update existing expense
@@ -94,6 +96,8 @@ export function AddExpense() {
       setAmount("");
     } catch (error) {
       toast.error("Xatolik yuz berdi!");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -108,6 +112,7 @@ export function AddExpense() {
 
   const handleDelete = async (expenseId: string) => {
     if (confirm("Xarajatni o'chirishni xohlaysizmi?")) {
+      setIsSaving(true);
       try {
         await deleteExpense(expenseId);
         toast.success("Xarajat o'chirildi!");
@@ -118,6 +123,8 @@ export function AddExpense() {
         }
       } catch (error) {
         toast.error("O'chirishda xatolik yuz berdi!");
+      } finally {
+        setIsSaving(false);
       }
     }
   };
@@ -248,8 +255,9 @@ export function AddExpense() {
               onClick={handleSave}
               className={`h-14 ${editingId ? "flex-1" : "w-full"} bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700`}
               size="lg"
+              disabled={isSaving}
             >
-              {editingId ? "Yangilash" : "Xarajatni qo'shish"}
+              {isSaving ? "Saqlanmoqda..." : (editingId ? "Yangilash" : "Xarajatni qo'shish")}
             </Button>
           </div>
         </Card>

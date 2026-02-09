@@ -53,6 +53,7 @@ export function AddProduct() {
   const [sizeInput, setSizeInput] = useState("");
   const [sizeQuantityInput, setSizeQuantityInput] = useState("");
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // We'll use collections from the context
   const [branchId, setBranchId] = useState<string>(user?.branchId || (branches.length > 0 ? branches[0].id : ""));
@@ -288,6 +289,7 @@ export function AddProduct() {
         sellPricePerMeter: parseFloat(sellPricePerMeter),
       };
 
+    setIsSaving(true);
     if (isEditMode && id) {
       const productToEdit = products.find((p) => p.id === id);
       let finalTypeData = { ...typeSpecificData };
@@ -313,6 +315,8 @@ export function AddProduct() {
         navigate(-1);
       } catch (error: any) {
         toast.error("Xatolik: " + error.message);
+      } finally {
+        setIsSaving(false);
       }
     } else {
       // Create - с оптимистичным обновлением
@@ -337,6 +341,8 @@ export function AddProduct() {
         console.error("Error adding product:", error);
         // Если ошибка - показываем уведомление (пользователь уже на другой странице)
         toast.error("Mahsulot qo'shishda xatolik bo'ldi: " + (error.response?.data?.detail || error.message));
+      } finally {
+        setIsSaving(false);
       }
     }
   };
@@ -850,8 +856,9 @@ export function AddProduct() {
           onClick={handleSave}
           className="h-14 w-full bg-blue-600 hover:bg-blue-700 text-lg font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
           size="lg"
+          disabled={isSaving}
         >
-          {isEditMode ? "Tahrirlashni saqlash" : "Mahsulotni yaratish"}
+          {isSaving ? "Saqlanmoqda..." : (isEditMode ? "Tahrirlashni saqlash" : "Mahsulotni yaratish")}
         </Button>
       </div>
 
