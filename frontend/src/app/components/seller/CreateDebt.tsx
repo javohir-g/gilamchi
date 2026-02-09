@@ -19,7 +19,7 @@ interface LocationState {
 export function CreateDebt() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { addDebt, user, clearBasket, completeOrder } = useApp();
+  const { addDebt, user, clearBasket, completeOrder, exchangeRate } = useApp();
 
   const state = location.state as LocationState | null;
 
@@ -44,8 +44,18 @@ export function CreateDebt() {
       })
       .join(", ");
   });
+  // Thousand separator helpers
+  const formatNumber = (value: string): string => {
+    const cleanedValue = value.replace(/[^\d.]/g, '');
+    const parts = cleanedValue.split('.');
+    if (parts.length > 2) return parts[0] + '.' + parts.slice(1).join('');
+    return cleanedValue;
+  };
+
+  const parseFormattedNumber = (value: string): number => parseFloat(value) || 0;
+
   const [customRemainingAmount, setCustomRemainingAmount] = useState(
-    remainingAmount.toString()
+    formatNumber((remainingAmount * exchangeRate).toString())
   );
   const [paymentDeadline, setPaymentDeadline] = useState(() => {
     // Default to 7 days from now
@@ -54,7 +64,15 @@ export function CreateDebt() {
     return date.toISOString().split("T")[0];
   });
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: "USD" | "UZS" = "UZS") => {
+    if (currency === "UZS") {
+      return new Intl.NumberFormat("uz-UZ", {
+        style: "currency",
+        currency: "UZS",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount);
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -80,7 +98,8 @@ export function CreateDebt() {
       return;
     }
 
-    const remaining = parseFloat(customRemainingAmount) || remainingAmount;
+    const remainingUZS = parseFormattedNumber(customRemainingAmount);
+    const remaining = remainingUZS / exchangeRate;
 
     if (remaining <= 0) {
       toast.error("Qarz summasi 0 dan katta bo'lishi kerak!");
@@ -160,7 +179,7 @@ export function CreateDebt() {
                 Jami narx:
               </span>
               <span className="font-semibold dark:text-white">
-                {formatCurrency(totalAmount)}
+                {formatCurrency(totalAmount * exchangeRate)}
               </span>
             </div>
             <div className="flex justify-between items-center">
@@ -168,7 +187,7 @@ export function CreateDebt() {
                 To'langan:
               </span>
               <span className="font-semibold text-green-600 dark:text-green-400">
-                {formatCurrency(paidAmount)}
+                {formatCurrency(paidAmount * exchangeRate)}
               </span>
             </div>
             <div className="pt-3 border-t dark:border-orange-700">
@@ -177,7 +196,7 @@ export function CreateDebt() {
                   Qarz:
                 </span>
                 <span className="text-xl font-bold text-red-600 dark:text-red-400">
-                  {formatCurrency(remainingAmount)}
+                  {formatCurrency(remainingAmount * exchangeRate)}
                 </span>
               </div>
             </div>
@@ -242,15 +261,14 @@ export function CreateDebt() {
                 <span className="text-red-500">*</span>
               </Label>
               <Input
-                type="number"
+                type="text"
                 value={customRemainingAmount}
-                onChange={(e) => setCustomRemainingAmount(e.target.value)}
+                onChange={(e) => setCustomRemainingAmount(formatNumber(e.target.value))}
                 className="h-14 text-lg font-semibold dark:bg-gray-700 dark:text-white border-2 border-orange-400 dark:border-orange-600"
                 placeholder="0"
-                min="0"
               />
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                Avtomatik hisoblangan: {formatCurrency(remainingAmount)}
+                Avtomatik hisoblangan: {formatCurrency(remainingAmount * exchangeRate)}
               </p>
             </div>
 
@@ -298,7 +316,7 @@ export function CreateDebt() {
                     </p>
                   )}
                   <p className="text-sm text-gray-600 dark:text-gray-300">
-                    {formatCurrency(item.total)}
+                    {formatCurrency(item.total * exchangeRate)}
                   </p>
                 </div>
               </div>
