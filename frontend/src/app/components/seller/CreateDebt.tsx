@@ -99,36 +99,39 @@ export function CreateDebt() {
     }
 
     const remainingUZS = parseFormattedNumber(customRemainingAmount);
-    const remaining = remainingUZS / exchangeRate;
+    // The user said "можно сохранять в базе данных в сумах" -> "can save in DB in Soms".
+    // So backend expects Soms now.
+    // All amounts sent to completeOrder and for debt creation should be in UZS.
 
-    if (remaining <= 0) {
+    if (remainingUZS <= 0) {
       toast.error("Qarz summasi 0 dan katta bo'lishi kerak!");
       return;
     }
 
     // Complete order first to record sales and reduce stock
     const payments: Payment[] = [];
-    if (paidAmount > 0) {
-      // For simplicity, we assume paid amount is cash if not specified. 
+    const paidAmountUZS = paidAmount * exchangeRate;
+    if (paidAmountUZS > 0) {
+      // For simplicity, we assume paid amount is cash if not specified.
       // In a real scenario, we might want to know if it was card/transfer.
-      payments.push({ type: "cash", amount: paidAmount });
+      payments.push({ type: "cash", amount: paidAmountUZS });
     }
 
     // Add debt payment type for the remaining amount
-    payments.push({ type: "debt", amount: remaining });
+    payments.push({ type: "debt", amount: remainingUZS });
 
     // Call completeOrder which returns orderId
     completeOrder(payments, totalAmount, isNasiya).then((orderId: string) => {
-      // Create debt linked to orderId
+      // Create debt linked to orderId with UZS amounts
       const debt: Debt = {
         id: `d${Date.now()}`,
         debtorName: debtorName.trim(),
         phoneNumber: phoneNumber.trim(),
         orderDetails: orderDetails.trim(),
-        totalAmount: totalAmount,
-        paidAmount: paidAmount,
-        initial_payment: paidAmount,
-        remainingAmount: remaining,
+        totalAmount: totalAmount * exchangeRate, // Convert to UZS
+        paidAmount: paidAmount * exchangeRate, // Convert to UZS
+        initial_payment: paidAmount * exchangeRate, // Convert to UZS
+        remainingAmount: remainingUZS, // Already in UZS
         paymentDeadline: new Date(paymentDeadline).toISOString(),
         branchId: user.branchId || "",
         sellerId: user.id,

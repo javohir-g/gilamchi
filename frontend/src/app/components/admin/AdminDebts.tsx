@@ -175,7 +175,7 @@ export function AdminDebts() {
               {pendingDebts.length}
             </div>
             <div className="text-xs text-orange-600 dark:text-orange-500 mt-1">
-              {formatCurrency(totalPending * exchangeRate)}
+              {formatCurrency(totalPending)}
             </div>
           </Card>
 
@@ -188,7 +188,7 @@ export function AdminDebts() {
               {paidDebts.length}
             </div>
             <div className="text-xs text-green-600 dark:text-green-500 mt-1">
-              {formatCurrency(totalPaid * exchangeRate)}
+              {formatCurrency(totalPaid)}
             </div>
           </Card>
 
@@ -202,7 +202,7 @@ export function AdminDebts() {
                 {overdueDebts.length}
               </div>
               <div className="text-sm text-red-600 dark:text-red-500">
-                {formatCurrency(totalOverdue * exchangeRate)}
+                {formatCurrency(totalOverdue)}
               </div>
             </div>
           </Card>
@@ -279,7 +279,7 @@ export function AdminDebts() {
                           </h3>
                           <p className="text-lg font-medium text-card-foreground break-words">
                             {formatCurrency(
-                              debt.remainingAmount * exchangeRate,
+                              debt.remainingAmount,
                             )}
                           </p>
                         </div>

@@ -101,9 +101,9 @@ export function DebtDetails() {
       return;
     }
 
-    const amountUSD = amount / exchangeRate;
+    const amountUZS = amount; // Input is in UZS
 
-    if (amountUSD > debt.remainingAmount) {
+    if (amountUZS > debt.remainingAmount) {
       toast.error(
         "To'lov summasi qarz summasidan oshmasligi kerak!",
       );
@@ -114,7 +114,7 @@ export function DebtDetails() {
 
     const payment: DebtPayment = {
       id: `dp${Date.now()}`,
-      amount: amountUSD,
+      amount: amountUZS,
       date: new Date().toISOString(),
       sellerId: user.id,
       sellerName: user.name,
@@ -201,7 +201,7 @@ export function DebtDetails() {
                 Kelishuv summasi
               </p>
               <p className="font-semibold dark:text-white">
-                {formatCurrency(debt.totalAmount * exchangeRate)}
+                {formatCurrency(debt.totalAmount)}
               </p>
             </div>
             <div>
@@ -209,7 +209,7 @@ export function DebtDetails() {
                 Boshlang'ich to'lov
               </p>
               <p className="font-semibold text-blue-600 dark:text-blue-400">
-                {formatCurrency((debt.initial_payment || 0) * exchangeRate)}
+                {formatCurrency(debt.initial_payment || 0)}
               </p>
             </div>
             <div>
@@ -217,7 +217,7 @@ export function DebtDetails() {
                 To'langan (Jami)
               </p>
               <p className="font-semibold text-green-600 dark:text-green-400">
-                {formatCurrency(debt.paidAmount * exchangeRate)}
+                {formatCurrency(debt.paidAmount)}
               </p>
             </div>
             <div>
@@ -225,7 +225,7 @@ export function DebtDetails() {
                 Qolgan qarz
               </p>
               <p className="text-xl font-bold text-red-600 dark:text-red-400">
-                {formatCurrency(debt.remainingAmount * exchangeRate)}
+                {formatCurrency(debt.remainingAmount)}
               </p>
             </div>
           </div>
@@ -356,7 +356,7 @@ export function DebtDetails() {
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-bold text-green-700 dark:text-green-400">
-                      +{formatCurrency(payment.amount * exchangeRate)}
+                      +{formatCurrency(payment.amount)}
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                       {formatDate(payment.date)}
@@ -428,14 +428,14 @@ export function DebtDetails() {
                       <span className="text-gray-500 dark:text-gray-400">
                         Jami:{" "}
                         {formatCurrency(
-                          historyDebt.totalAmount * exchangeRate,
+                          historyDebt.totalAmount,
                         )}
                       </span>
                       {historyDebt.status !== "paid" && (
                         <span className="font-semibold text-red-600 dark:text-red-400">
                           Qarz:{" "}
                           {formatCurrency(
-                            historyDebt.remainingAmount * exchangeRate,
+                            historyDebt.remainingAmount,
                           )}
                         </span>
                       )}
@@ -483,7 +483,7 @@ export function DebtDetails() {
                 Qolgan qarz
               </p>
               <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                {formatCurrency(debt.remainingAmount * exchangeRate)}
+                {formatCurrency(debt.remainingAmount)}
               </p>
             </div>
 
@@ -505,7 +505,7 @@ export function DebtDetails() {
                 autoFocus
               />
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Maksimal: {formatCurrency(debt.remainingAmount * exchangeRate)}
+                Maksimal: {formatCurrency(debt.remainingAmount)}
               </p>
             </div>
 

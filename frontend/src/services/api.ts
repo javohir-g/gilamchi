@@ -193,7 +193,7 @@ const fromDebt = (data: any): any => ({
   orderDetails: data.order_details,
   totalAmount: data.total_amount,
   initial_payment: data.initial_payment,
-  paidAmount: (data.initial_payment || 0) + (data.paid_amount || 0),
+  paidAmount: data.paid_amount,
   remainingAmount: data.remaining_amount,
   paymentDeadline: data.payment_deadline,
   branchId: data.branch_id,

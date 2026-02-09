@@ -148,6 +148,7 @@ export interface DebtPayment {
   sellerId: string;
   sellerName: string;
   note?: string; // Optional payment note
+  exchange_rate?: number;
 }
 
 export interface Debt {
