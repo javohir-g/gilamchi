@@ -5,6 +5,10 @@ import hashlib
 import hmac
 import json
 from typing import Optional
+from urllib.parse import parse_qs, unquote
+import logging
+
+logger = logging.getLogger(__name__)
 
 from ..database import get_db
 from ..models.user import User, UserRole
@@ -40,24 +44,28 @@ def verify_telegram_data(init_data: str, bot_token: str) -> dict:
 
 @router.post("/auth", response_model=Token)
 async def telegram_auth(init_data: str, db: Session = Depends(get_db)):
-    # In a real app, bot_token would be from settings
-    # For now, if we don't have it, we might skip full verification if it's a test
-    # But let's assume we have it.
+    logger.info(f"Telegram auth attempt with init_data: {init_data[:50]}...")
     
-    # Simple bypass for local development or if token is missing (SECURITY RISK)
-    # user_data = verify_telegram_data(init_data, settings.telegram_bot_token)
-    
-    # Mocking user data for now if we can't verify
     try:
-        import json
-        data = dict(qc.split('=') for qc in init_data.split('&'))
-        user_data = json.loads(data['user'])
-    except:
-        # If init_data is just a JSON string for testing
-        try:
-            user_data = json.loads(init_data)
-        except:
-             raise HTTPException(status_code=401, detail="Invalid Telegram data")
+        # 1. Parse query string
+        params = parse_qs(init_data)
+        # parse_qs returns lists for values, take the first one
+        data = {k: v[0] for k, v in params.items()}
+        
+        if 'user' not in data:
+            # Maybe it's raw JSON for testing
+            try:
+                user_data = json.loads(init_data)
+            except:
+                logger.error("No 'user' field in init_data and not a valid JSON")
+                raise HTTPException(status_code=401, detail="Invalid Telegram data: user field missing")
+        else:
+            user_data = json.loads(data['user'])
+            
+        logger.info(f"Loaded user_data for telegram_id: {user_data.get('id')}")
+    except Exception as e:
+        logger.error(f"Failed to parse telegram data: {str(e)}")
+        raise HTTPException(status_code=401, detail=f"Invalid Telegram data format: {str(e)}")
 
     telegram_id = user_data.get('id')
     if not telegram_id:
@@ -92,15 +100,18 @@ async def telegram_auth(init_data: str, db: Session = Depends(get_db)):
 
 @router.post("/register-invitation", response_model=Token)
 async def register_by_invitation(init_data: str, token: str, db: Session = Depends(get_db)):
+    logger.info(f"Registration attempt with token: {token}")
     try:
-        import json
-        data = dict(qc.split('=') for qc in init_data.split('&'))
-        user_data = json.loads(data['user'])
-    except:
-        try:
+        params = parse_qs(init_data)
+        data = {k: v[0] for k, v in params.items()}
+        
+        if 'user' not in data:
             user_data = json.loads(init_data)
-        except:
-             raise HTTPException(status_code=401, detail="Invalid Telegram data")
+        else:
+            user_data = json.loads(data['user'])
+    except Exception as e:
+        logger.error(f"Failed to parse telegram data in registration: {str(e)}")
+        raise HTTPException(status_code=401, detail="Invalid Telegram data")
 
     telegram_id = user_data.get('id')
     

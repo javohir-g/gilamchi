@@ -27,8 +27,20 @@ export function LoginScreen() {
     try {
       const response = await telegramService.auth(webApp!.initData);
       localStorage.setItem('token', response.access_token);
+
+      // Get user details
+      const userDetails = await authService.getMe();
+      setUser(userDetails);
       await fetchData();
-      toast.success("Muvaffaqiyatli kirdingiz!");
+
+      toast.success(`Xush kelibsiz, ${userDetails.fullName || userDetails.name}!`);
+
+      // Redirect based on role
+      if (userDetails.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/seller/home');
+      }
     } catch (error: any) {
       if (error.response?.status === 404) {
         // Not registered, might need to check for start_param (invitation token)
@@ -47,13 +59,27 @@ export function LoginScreen() {
   };
 
   const handleRegistration = async (token: string) => {
+    setLoading(true);
     try {
       const response = await telegramService.registerByInvitation(webApp!.initData, token);
       localStorage.setItem('token', response.access_token);
+
+      const userDetails = await authService.getMe();
+      setUser(userDetails);
       await fetchData();
+
       toast.success("Muvaffaqiyatli ro'yxatdan o'tdingiz!");
+
+      // Redirect based on role
+      if (userDetails.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/seller/home');
+      }
     } catch (error) {
       toast.error("Ro'yxatdan o'tishda xatolik yuz berdi.");
+    } finally {
+      setLoading(false);
     }
   };
   const [username, setUsername] = useState("");
