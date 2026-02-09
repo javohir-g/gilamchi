@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import get_settings
 from .routers import auth, branches, users, products, sales, debts, expenses, collections, staff, telegram, settings as settings_router
+from .utils.bot_service import run_bot
 from .database import engine, Base
 
 settings = get_settings()
@@ -42,7 +43,10 @@ async def startup_event():
         # Fire and forget background task
         asyncio.create_task(preload_in_background())
         
-        print("Startup: CLIP model preload scheduled in background")
+        # Start the Telegram Bot in the background
+        asyncio.create_task(run_bot())
+        
+        print("Startup: CLIP model preload and Telegram Bot scheduled in background")
     except Exception as e:
         print(f"Startup warning: Failed to preload CLIP model: {e}")
 
