@@ -27,7 +27,7 @@ services:
       db:
         condition: service_healthy
     env_file:
-      - .env.prod
+      - .env
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-gilamchi_user}:${POSTGRES_PASSWORD:-secure_password_please_change}@db:5432/${POSTGRES_DB:-gilamchi_db}
       # Increase timeout for workers if needed
