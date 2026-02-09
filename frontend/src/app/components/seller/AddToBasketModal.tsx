@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { X, Plus, Minus } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
