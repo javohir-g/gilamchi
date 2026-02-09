@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import React from 'react';
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { useApp } from "../../context/AppContext";
-import { authService } from "../../../services/api";
+import { authService, telegramService } from "../../../services/api";
+import { useTelegram } from "../../context/TelegramContext";
 import { toast } from "sonner";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -12,6 +13,49 @@ import { Label } from "../ui/label";
 export function LoginScreen() {
   const navigate = useNavigate();
   const { setUser, fetchData } = useApp();
+  const { webApp, isReady } = useTelegram();
+  const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    if (isReady && webApp?.initData) {
+      handleTelegramLogin();
+    }
+  }, [isReady, webApp]);
+
+  const handleTelegramLogin = async () => {
+    setLoading(true);
+    try {
+      const response = await telegramService.auth(webApp!.initData);
+      localStorage.setItem('token', response.access_token);
+      await fetchData();
+      toast.success("Muvaffaqiyatli kirdingiz!");
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        // Not registered, might need to check for start_param (invitation token)
+        const startParam = webApp?.initDataUnsafe?.start_param;
+        if (startParam) {
+          handleRegistration(startParam);
+        } else {
+          toast.error("Siz ro'yxatdan o'tmagansiz. Iltimos, admin bilan bog'laning.");
+        }
+      } else {
+        console.error("Telegram auth failed", error);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegistration = async (token: string) => {
+    try {
+      const response = await telegramService.registerByInvitation(webApp!.initData, token);
+      localStorage.setItem('token', response.access_token);
+      await fetchData();
+      toast.success("Muvaffaqiyatli ro'yxatdan o'tdingiz!");
+    } catch (error) {
+      toast.error("Ro'yxatdan o'tishda xatolik yuz berdi.");
+    }
+  };
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);

@@ -5,7 +5,11 @@ from uuid import UUID
 from ..database import get_db
 from ..models.staff import Staff
 from ..schemas.staff import StaffCreate, StaffUpdate, StaffResponse
-from ..utils.dependencies import get_current_user
+from ..utils.dependencies import get_current_user, get_admin_user
+from ..models.invitation import InvitationLink
+from ..schemas.invitation import InvitationCreate, InvitationResponse
+from datetime import datetime, timedelta, timezone
+import secrets
 
 router = APIRouter(tags=["staff"])
 
@@ -73,3 +77,34 @@ def delete_staff(
     db.delete(db_staff)
     db.commit()
     return {"message": "Staff deleted"}
+@router.post("/generate-link", response_model=InvitationResponse)
+def generate_invitation_link(
+    invitation: InvitationCreate,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_admin_user)
+):
+    token = secrets.token_urlsafe(16)
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=invitation.expires_in_hours)
+    
+    db_invitation = InvitationLink(
+        token=token,
+        branch_id=invitation.branch_id,
+        role=invitation.role,
+        expires_at=expires_at
+    )
+    db.add(db_invitation)
+    db.commit()
+    db.refresh(db_invitation)
+    
+    # URL construction - base bot URL can be in settings
+    bot_url = f"https://t.me/gilamchi_robot?start={token}"
+    
+    return InvitationResponse(
+        id=db_invitation.id,
+        token=db_invitation.token,
+        branch_id=db_invitation.branch_id,
+        role=db_invitation.role,
+        is_used=db_invitation.is_used,
+        expires_at=db_invitation.expires_at,
+        url=bot_url
+    )

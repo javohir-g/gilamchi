@@ -7,8 +7,12 @@ import {
     Building,
     CheckCircle,
     XCircle,
-    Pencil
+    Pencil,
+    Link as LinkIcon,
+    Copy,
+    ExternalLink
 } from "lucide-react";
+import { invitationService } from "../../../services/api";
 import { useNavigate } from "react-router-dom";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
@@ -22,6 +26,8 @@ export function ManageStaffMembers() {
     const [selectedBranch, setSelectedBranch] = useState<string>("all");
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [invitationLink, setInvitationLink] = useState<string | null>(null);
+    const [isGenerating, setIsGenerating] = useState(false);
 
     const [formData, setFormData] = useState({
         name: "",
@@ -35,6 +41,31 @@ export function ManageStaffMembers() {
 
     const getBranchName = (branchId: string) => {
         return branches.find(b => b.id === branchId)?.name || "N/A";
+    };
+
+    const handleGenerateLink = async () => {
+        if (!formData.branchId) {
+            toast.error("Iltimos, avval filialni tanlang");
+            return;
+        }
+        setIsGenerating(true);
+        try {
+            const data = await invitationService.generateLink({
+                branch_id: formData.branchId,
+                role: "seller"
+            });
+            setInvitationLink(data.url);
+            toast.success("Taklif havolasi yaratildi");
+        } catch (error) {
+            toast.error("Havola yaratishda xatolik");
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
+        toast.success("Nusxalandi");
     };
 
     const handleSave = async () => {
@@ -98,6 +129,18 @@ export function ManageStaffMembers() {
                         className="p-2 bg-blue-600 rounded-full"
                     >
                         <Plus className="h-6 w-6" />
+                    </button>
+                    <button
+                        onClick={() => {
+                            setIsAdding(true);
+                            setEditingId(null);
+                            setInvitationLink(null);
+                            setFormData({ name: "Yangi Havola", branchId: selectedBranch === 'all' ? "" : selectedBranch, isActive: true });
+                        }}
+                        className="p-2 bg-green-600 rounded-full ml-2"
+                        title="Havola yaratish"
+                    >
+                        <LinkIcon className="h-6 w-6" />
                     </button>
                 </div>
 
@@ -167,9 +210,38 @@ export function ManageStaffMembers() {
                                 </label>
                             </div>
                             <div className="flex gap-2 pt-2">
-                                <Button variant="outline" className="flex-1" onClick={() => setIsAdding(false)}>Bekor qilish</Button>
+                                <Button variant="outline" className="flex-1" onClick={() => { setIsAdding(false); setInvitationLink(null); }}>Bekor qilish</Button>
+                                {!editingId && !invitationLink && (
+                                    <Button
+                                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                                        onClick={handleGenerateLink}
+                                        disabled={isGenerating}
+                                    >
+                                        {isGenerating ? "Yaratilmoqda..." : "Havola yaratish"}
+                                    </Button>
+                                )}
                                 <Button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white" onClick={handleSave}>Saqlash</Button>
                             </div>
+
+                            {invitationLink && (
+                                <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                                    <p className="text-xs text-green-700 dark:text-green-400 mb-2 font-medium">Taklif havolasi tayyor:</p>
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            readOnly
+                                            value={invitationLink}
+                                            className="h-9 text-xs bg-white dark:bg-gray-800 border-green-200"
+                                        />
+                                        <Button size="icon" variant="outline" className="h-9 w-9 shrink-0" onClick={() => copyToClipboard(invitationLink)}>
+                                            <Copy className="h-4 w-4" />
+                                        </Button>
+                                        <Button size="icon" variant="outline" className="h-9 w-9 shrink-0" onClick={() => window.open(invitationLink, '_blank')}>
+                                            <ExternalLink className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                    <p className="text-[10px] text-gray-500 mt-2 italic">Bu havola bir marta ishlatilishi mumkin va 24 soat davomida amal qiladi.</p>
+                                </div>
+                            )}
                         </div>
                     </Card>
                 )}

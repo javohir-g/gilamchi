@@ -10,3 +10,4 @@ from .audit import AuditLog, AuditAction
 from .settings import Settings
 from .staff import Staff
 from .product_sample import ProductSample
+from .invitation import InvitationLink

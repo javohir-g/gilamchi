@@ -70,9 +70,11 @@ api.interceptors.response.use(
 const fromUser = (data: any): any => ({
   id: data.id,
   name: data.username, // Map username to name
+  fullName: data.full_name,
   role: data.role,
   branchId: data.branch_id,
   canAddProducts: data.can_add_products,
+  telegramId: data.telegram_id,
 });
 
 const fromProduct = (data: any): any => ({
@@ -441,6 +443,24 @@ export const settingsService = {
   },
   update: async (data: { exchange_rate: number }) => {
     const response = await api.patch('settings/', data);
+    return response.data;
+  }
+};
+
+export const telegramService = {
+  auth: async (initData: string) => {
+    const response = await api.post(`telegram/auth?init_data=${encodeURIComponent(initData)}`);
+    return response.data;
+  },
+  registerByInvitation: async (initData: string, token: string) => {
+    const response = await api.post(`telegram/register-invitation?init_data=${encodeURIComponent(initData)}&token=${token}`);
+    return response.data;
+  }
+};
+
+export const invitationService = {
+  generateLink: async (data: { branch_id?: string; role?: string; expires_in_hours?: number }) => {
+    const response = await api.post('staff/generate-link', data);
     return response.data;
   }
 };
