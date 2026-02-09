@@ -45,7 +45,7 @@ async def telegram_auth(init_data: str, db: Session = Depends(get_db)):
     # But let's assume we have it.
     
     # Simple bypass for local development or if token is missing (SECURITY RISK)
-    # user_data = verify_telegram_data(init_data, settings.TELEGRAM_BOT_TOKEN)
+    # user_data = verify_telegram_data(init_data, settings.telegram_bot_token)
     
     # Mocking user data for now if we can't verify
     try:
