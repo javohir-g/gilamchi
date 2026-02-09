@@ -42,21 +42,30 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def run_bot():
     """Start the bot in polling mode"""
+    logger.info("Initializing Telegram bot...")
+    
     if not settings.telegram_bot_token:
-        logger.warning("TELEGRAM_BOT_TOKEN is not set. Bot will not start.")
+        logger.error("TELEGRAM_BOT_TOKEN is not set or empty. Bot will not start.")
         return
 
-    application = ApplicationBuilder().token(settings.telegram_bot_token).build()
-    
-    start_handler = CommandHandler('start', start)
-    application.add_handler(start_handler)
-    
-    logger.info("Starting Telegram bot polling...")
-    # This will run as a background task in FastAPI
-    async with application:
+    try:
+        logger.info(f"Building application with token: {settings.telegram_bot_token[:10]}...")
+        application = ApplicationBuilder().token(settings.telegram_bot_token).build()
+        
+        start_handler = CommandHandler('start', start)
+        application.add_handler(start_handler)
+        
+        logger.info("Initializing application handlers...")
         await application.initialize()
         await application.start()
+        
+        logger.info("Starting Telegram bot polling...")
         await application.updater.start_polling()
+        
+        logger.info("Telegram bot is running and polling.")
+        
         # Keep running until cancelled
         while True:
             await asyncio.sleep(3600)
+    except Exception as e:
+        logger.exception("Failed to start Telegram bot background task")
