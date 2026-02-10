@@ -7,23 +7,19 @@ from ..config import get_settings
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-# The frontend URL for the Mini App
-# In production, this should be the public URL
-# For local testing, it might be different
-WEB_APP_URL = "https://62.171.165.103.sslip.io/"
-
+    
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /start command"""
     user = update.effective_user
     args = context.args # Deep link parameters (e.g., /start <token>)
     token = args[0] if args else None
     
-    url = WEB_APP_URL
+    url = settings.WEB_APP_URL
     if token:
         # If there's a token, we might want to pass it to the WebApp-
         # Telegram handles this via start_param which is available in initDataUnsafe
         # The URL remains the same, but the app will see the start_param.
-        url = WEB_APP_URL # Start param is handled by Telegram deep links automatically
+        url = settings.WEB_APP_URL # Start param is handled by Telegram deep links automatically
         message = f"Xush kelibsiz, {user.first_name}! Ro'yxatdan o'tishni yakunlash uchun pastdagi tugmani bosing."
     else:
         message = f"Xush kelibsiz, {user.first_name}! Gilamchi tizimiga kirish uchun pastdagi tugmani bosing."

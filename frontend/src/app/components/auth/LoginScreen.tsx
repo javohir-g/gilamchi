@@ -124,6 +124,42 @@ export function LoginScreen() {
     }
   };
 
+  if (webApp?.initData) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-white to-gray-100 p-4">
+        <div className="text-center space-y-6">
+          <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-3xl bg-white shadow-xl border border-gray-100 p-2 animate-pulse">
+            <img
+              src="/icons/brand-logo-v1.png"
+              alt="Gilamchi Logo"
+              className="h-full w-full object-contain"
+            />
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold text-[#1F3F8C]">
+              {loading ? "Tizimga kirilmoqda..." : "Gilamchi"}
+            </h2>
+
+            {!loading && (
+              <div className="max-w-xs mx-auto text-sm text-gray-500 font-medium">
+                {/* Only show this if we are not loading (meaning likely failed or waiting) */}
+                <p>Agar avtomatik kirish amalga oshmasa, internet aloqasini tekshiring.</p>
+                <Button
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => window.location.reload()}
+                >
+                  Qayta urinish
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-white to-gray-100 p-4">
       <div className="w-full max-w-md space-y-8">
