@@ -47,9 +47,14 @@ export function LoginScreen() {
         let startParam = webApp?.initDataUnsafe?.start_param;
 
         if (!startParam) {
-          // Fallback: Check URL query params
+          // Fallback 1: Check URL query params
           const urlParams = new URLSearchParams(window.location.search);
           startParam = urlParams.get('start_param') || undefined;
+
+          if (!startParam) {
+            // Fallback 2: Check sessionStorage (captured in App.tsx before redirect)
+            startParam = sessionStorage.getItem('start_param') || undefined;
+          }
         }
 
         if (startParam) {
@@ -155,8 +160,10 @@ export function LoginScreen() {
                 {/* TODO: Remove this debug block after testing */}
                 <div className="p-2 bg-gray-100 rounded text-xs text-left overflow-hidden mt-2 mb-2 border border-dashed border-gray-300">
                   <p className="font-bold">DEBUG INFO:</p>
+                  <p className="whitespace-pre-wrap break-all">Href: {window.location.href}</p>
                   <p>Params: {new URLSearchParams(window.location.search).toString()}</p>
-                  <p>StartParam: {new URLSearchParams(window.location.search).get('start_param') || "None"}</p>
+                  <p>StartParam (URL): {new URLSearchParams(window.location.search).get('start_param') || "None"}</p>
+                  <p>StartParam (Session): {sessionStorage.getItem('start_param') || "None"}</p>
                   <p>Unsafe: {webApp?.initDataUnsafe?.start_param || "None"}</p>
                 </div>
 
