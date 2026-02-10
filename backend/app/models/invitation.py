@@ -10,6 +10,7 @@ class InvitationLink(UUIDMixin, TimestampMixin, Base):
     token: Mapped[str] = mapped_column(String, unique=True, index=True)
     branch_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("branches.id"), nullable=True)
     role: Mapped[str] = mapped_column(String, default="seller")
+    username_hint: Mapped[str | None] = mapped_column(String, nullable=True)
     is_used: Mapped[bool] = mapped_column(Boolean, default=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 

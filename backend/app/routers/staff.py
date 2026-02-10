@@ -19,14 +19,7 @@ def create_staff(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Only admins can manage staff")
-    
-    new_staff = Staff(**staff.model_dump())
-    db.add(new_staff)
-    db.commit()
-    db.refresh(new_staff)
-    return new_staff
+    raise HTTPException(status_code=400, detail="Manual staff creation is deprecated. Please use invitation links.")
 
 @router.get("/", response_model=List[StaffResponse])
 def get_staff(
@@ -34,10 +27,31 @@ def get_staff(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    query = db.query(Staff).filter(Staff.deleted_at == None)
+    # Query Users with role 'seller' or 'admin' (excluding the main admin if needed, or just all)
+    # We map User fields to StaffResponse fields
+    from ..models.user import User
+    
+    query = db.query(User).filter(User.deleted_at == None)
+    
     if branch_id:
-        query = query.filter(Staff.branch_id == branch_id)
-    return query.all()
+        query = query.filter(User.branch_id == branch_id)
+        
+    users = query.all()
+    
+    # Map users to StaffResponse interface
+    # StaffResponse expects: id, name, branch_id, is_active, created_at
+    staff_list = []
+    for user in users:
+        staff_list.append({
+            "id": user.id,
+            "name": user.full_name or user.username, # Fallback to username if full_name is missing
+            "branch_id": user.branch_id,
+            "is_active": True, # Users in this list are considered active since we filtered deleted_at
+            "created_at": user.created_at,
+            "updated_at": user.updated_at
+        })
+        
+    return staff_list
 
 @router.patch("/{staff_id}", response_model=StaffResponse)
 def update_staff(
@@ -49,17 +63,33 @@ def update_staff(
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Only admins can manage staff")
     
-    db_staff = db.query(Staff).filter(Staff.id == staff_id, Staff.deleted_at == None).first()
-    if not db_staff:
-        raise HTTPException(status_code=404, detail="Staff not found")
+    # Update User instead of Staff
+    from ..models.user import User
+    db_user = db.query(User).filter(User.id == staff_id).first()
     
-    update_data = staff_update.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(db_staff, key, value)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Staff (User) not found")
+        
+    # We only allow updating name (full_name) and branch_id for now
+    if staff_update.name:
+        db_user.full_name = staff_update.name
+    if staff_update.branch_id:
+        db_user.branch_id = staff_update.branch_id
+    if staff_update.is_active is False:
+        # Soft delete if set to inactive
+        from datetime import datetime
+        db_user.deleted_at = datetime.now()
     
     db.commit()
-    db.refresh(db_staff)
-    return db_staff
+    db.refresh(db_user)
+    
+    return {
+        "id": db_user.id,
+        "name": db_user.full_name or db_user.username,
+        "branch_id": db_user.branch_id,
+        "is_active": db_user.deleted_at is None,
+        "created_at": db_user.created_at
+    }
 
 @router.delete("/{staff_id}")
 def delete_staff(
@@ -70,13 +100,18 @@ def delete_staff(
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Only admins can manage staff")
     
-    db_staff = db.query(Staff).filter(Staff.id == staff_id).first()
-    if not db_staff:
-        raise HTTPException(status_code=404, detail="Staff not found")
+    from ..models.user import User
+    from datetime import datetime
     
-    db.delete(db_staff)
+    db_user = db.query(User).filter(User.id == staff_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Staff (User) not found")
+    
+    # Soft delete
+    db_user.deleted_at = datetime.now()
     db.commit()
-    return {"message": "Staff deleted"}
+    
+    return {"message": "Staff (User) deactivated"}
 @router.post("/generate-link", response_model=InvitationResponse)
 def generate_invitation_link(
     invitation: InvitationCreate,
@@ -90,7 +125,8 @@ def generate_invitation_link(
         token=token,
         branch_id=invitation.branch_id,
         role=invitation.role,
-        expires_at=expires_at
+        expires_at=expires_at,
+        username_hint=invitation.username_hint
     )
     db.add(db_invitation)
     db.commit()

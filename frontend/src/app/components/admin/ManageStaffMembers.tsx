@@ -22,17 +22,18 @@ import { toast } from "sonner";
 
 export function ManageStaffMembers() {
     const navigate = useNavigate();
-    const { staffMembers, branches, addStaffMember, updateStaffMember, deleteStaffMember } = useApp();
+    const { staffMembers, branches, updateStaffMember, deleteStaffMember } = useApp();
     const [selectedBranch, setSelectedBranch] = useState<string>("all");
-    const [isAdding, setIsAdding] = useState(false);
+    const [isAdding, setIsAdding] = useState(false); // Controls the "Generate Link" modal
     const [editingId, setEditingId] = useState<string | null>(null);
     const [invitationLink, setInvitationLink] = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
 
+    // Form data for Link Generation
     const [formData, setFormData] = useState({
-        name: "",
+        name: "", // Used as username_hint for link generation
         branchId: "",
-        isActive: true
+        isActive: true // Not used for link generation but kept for compatibility
     });
 
     const filteredStaff = selectedBranch === "all"
@@ -48,11 +49,13 @@ export function ManageStaffMembers() {
             toast.error("Iltimos, avval filialni tanlang");
             return;
         }
+
         setIsGenerating(true);
         try {
             const data = await invitationService.generateLink({
                 branch_id: formData.branchId,
-                role: "seller"
+                role: "seller",
+                username_hint: formData.name || undefined // Send name as hint
             });
             setInvitationLink(data.url);
             toast.success("Taklif havolasi yaratildi");
@@ -69,19 +72,16 @@ export function ManageStaffMembers() {
     };
 
     const handleSave = async () => {
-        if (!formData.name || !formData.branchId) {
-            toast.error("Iltimos, barcha maydonlarni to'ldiring");
-            return;
-        }
+        // This is only for EDITING existing staff
+        if (!editingId) return;
 
         try {
-            if (editingId) {
-                await updateStaffMember(editingId, formData);
-                toast.success("Xodim ma'lumotlari yangilandi");
-            } else {
-                await addStaffMember(formData);
-                toast.success("Yangi xodim qo'shildi");
-            }
+            await updateStaffMember(editingId, {
+                name: formData.name,
+                branchId: formData.branchId,
+                isActive: formData.isActive
+            });
+            toast.success("Xodim ma'lumotlari yangilandi");
             setIsAdding(false);
             setEditingId(null);
             setFormData({ name: "", branchId: "", isActive: true });
@@ -98,6 +98,7 @@ export function ManageStaffMembers() {
         });
         setEditingId(staff.id);
         setIsAdding(true);
+        setInvitationLink(null);
     };
 
     const handleDelete = async (id: string) => {
@@ -120,27 +121,18 @@ export function ManageStaffMembers() {
                         <ArrowLeft className="h-6 w-6" />
                     </button>
                     <h1 className="text-xl font-semibold">Xodimlar ro'yxati</h1>
-                    <button
-                        onClick={() => {
-                            setIsAdding(true);
-                            setEditingId(null);
-                            setFormData({ name: "", branchId: selectedBranch === 'all' ? "" : selectedBranch, isActive: true });
-                        }}
-                        className="p-2 bg-blue-600 rounded-full"
-                    >
-                        <Plus className="h-6 w-6" />
-                    </button>
+
                     <button
                         onClick={() => {
                             setIsAdding(true);
                             setEditingId(null);
                             setInvitationLink(null);
-                            setFormData({ name: "Yangi Havola", branchId: selectedBranch === 'all' ? "" : selectedBranch, isActive: true });
+                            setFormData({ name: "", branchId: selectedBranch === 'all' ? "" : selectedBranch, isActive: true });
                         }}
-                        className="p-2 bg-green-600 rounded-full ml-2"
-                        title="Havola yaratish"
+                        className="p-2 bg-green-600 rounded-full ml-2 shadow-lg hover:bg-green-500 transition-colors"
+                        title="Xodim qo'shish (Havola orqali)"
                     >
-                        <LinkIcon className="h-6 w-6" />
+                        <Plus className="h-6 w-6" />
                     </button>
                 </div>
 
@@ -170,20 +162,31 @@ export function ManageStaffMembers() {
 
             <div className="px-4 pt-4 space-y-4 max-w-lg mx-auto">
                 {isAdding && (
-                    <Card className="p-4 border-2 border-blue-200 dark:border-blue-800 dark:bg-gray-800">
+                    <Card className="p-4 border-2 border-green-200 dark:border-green-800 dark:bg-gray-800">
                         <h2 className="text-lg font-medium mb-4 dark:text-white">
-                            {editingId ? "Xodimni tahrirlash" : "Yangi xodim qo'shish"}
+                            {editingId ? "Xodimni tahrirlash" : "Yangi xodim qo'shish (Taklif havolasi)"}
                         </h2>
+
+                        {!editingId && (
+                            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg text-sm">
+                                <p>Yangi xodim qo'shish uchun unga <b>taklif havolasi</b> yuboring.</p>
+                            </div>
+                        )}
+
                         <div className="space-y-3">
                             <div>
-                                <label className="text-xs text-gray-500 mb-1 block">Ismi</label>
+                                <label className="text-xs text-gray-500 mb-1 block">
+                                    {editingId ? "Ismi" : "Foydalanuvchi nomi (Lotincha, bo'sh joylarsiz)"}
+                                </label>
                                 <Input
-                                    placeholder="Xodim ismi"
+                                    placeholder={editingId ? "Xodim ismi" : "Masalan: ali_sales"}
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                     className="dark:bg-gray-700"
                                 />
+                                {!editingId && <p className="text-[10px] text-gray-400 mt-1">Bu nom Telegram orqali kirganda login sifatida ishlatiladi.</p>}
                             </div>
+
                             <div>
                                 <label className="text-xs text-gray-500 mb-1 block">Filial</label>
                                 <select
@@ -197,31 +200,30 @@ export function ManageStaffMembers() {
                                     ))}
                                 </select>
                             </div>
-                            <div className="flex items-center gap-2 py-2">
-                                <input
-                                    type="checkbox"
-                                    id="isActive"
-                                    checked={formData.isActive}
-                                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
-                                />
-                                <label htmlFor="isActive" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Faol (foyda taqsimotida qatnashadi)
-                                </label>
-                            </div>
-                            <div className="flex gap-2 pt-2">
-                                <Button variant="outline" className="flex-1" onClick={() => { setIsAdding(false); setInvitationLink(null); }}>Bekor qilish</Button>
-                                {!editingId && !invitationLink && (
-                                    <Button
-                                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                                        onClick={handleGenerateLink}
-                                        disabled={isGenerating}
-                                    >
-                                        {isGenerating ? "Yaratilmoqda..." : "Havola yaratish"}
-                                    </Button>
-                                )}
-                                <Button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white" onClick={handleSave}>Saqlash</Button>
-                            </div>
+
+                            {/* Only show Generate Link button if NOT editing */}
+                            {!editingId && !invitationLink && (
+                                <Button
+                                    className="w-full bg-green-600 hover:bg-green-700 text-white mt-2"
+                                    onClick={handleGenerateLink}
+                                    disabled={isGenerating}
+                                >
+                                    {isGenerating ? "Yaratilmoqda..." : "Havola yaratish"}
+                                </Button>
+                            )}
+
+                            {/* Only show Save button if EDITING */}
+                            {editingId && (
+                                <div className="flex gap-2 pt-2">
+                                    <Button variant="outline" className="flex-1" onClick={() => setIsAdding(false)}>Bekor qilish</Button>
+                                    <Button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white" onClick={handleSave}>Saqlash</Button>
+                                </div>
+                            )}
+
+                            {/* Close button for Add mode */}
+                            {!editingId && (
+                                <Button variant="outline" className="w-full mt-2" onClick={() => { setIsAdding(false); setInvitationLink(null); }}>Yopish</Button>
+                            )}
 
                             {invitationLink && (
                                 <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">

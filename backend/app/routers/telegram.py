@@ -134,8 +134,18 @@ async def register_by_invitation(init_data: str, token: str, db: Session = Depen
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     password_hash = pwd_context.hash(random_password)
 
+    # Use hint if available, otherwise default to tg_ID
+    final_username = invitation.username_hint if invitation.username_hint else f"tg_{telegram_id}"
+    
+    # Check if username already taken (if hint provided)
+    if invitation.username_hint:
+         existing_username = db.query(User).filter(User.username == final_username).first()
+         if existing_username:
+             # Use fallback if hint taken
+             final_username = f"{final_username}_{telegram_id}"
+
     new_user = User(
-        username=f"tg_{telegram_id}",
+        username=final_username,
         telegram_id=telegram_id,
         full_name=f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}".strip(),
         role=invitation.role,

@@ -6,6 +6,7 @@ class InvitationCreate(BaseModel):
     branch_id: Optional[UUID4] = None
     role: str = "seller"
     expires_in_hours: int = 24
+    username_hint: Optional[str] = None
 
 class InvitationResponse(BaseModel):
     id: UUID4

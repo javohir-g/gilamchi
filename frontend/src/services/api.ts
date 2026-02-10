@@ -459,7 +459,7 @@ export const telegramService = {
 };
 
 export const invitationService = {
-  generateLink: async (data: { branch_id?: string; role?: string; expires_in_hours?: number }) => {
+  generateLink: async (data: { branch_id?: string; role?: string; expires_in_hours?: number; username_hint?: string }) => {
     const response = await api.post('staff/generate-link', data);
     return response.data;
   }
