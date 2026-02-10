@@ -17,6 +17,8 @@ from ..schemas.token import Token
 from ..schemas.user import UserResponse
 from ..utils.security import create_access_token
 from ..config import get_settings
+from passlib.context import CryptContext
+import secrets
 
 router = APIRouter(tags=["telegram"])
 settings = get_settings()
@@ -126,12 +128,19 @@ async def register_by_invitation(init_data: str, token: str, db: Session = Depen
          raise HTTPException(status_code=400, detail="User already registered")
 
     # Create new user
+    # Generate a random password hash to satisfy NotNull constraint on password_hash column
+    # The user won't know this password, but that's fine as they login via Telegram
+    random_password = secrets.token_urlsafe(32)
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    password_hash = pwd_context.hash(random_password)
+
     new_user = User(
         username=f"tg_{telegram_id}",
         telegram_id=telegram_id,
         full_name=f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}".strip(),
         role=invitation.role,
-        branch_id=invitation.branch_id
+        branch_id=invitation.branch_id,
+        password_hash=password_hash
     )
     db.add(new_user)
     
