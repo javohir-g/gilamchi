@@ -97,7 +97,9 @@ def generate_invitation_link(
     db.refresh(db_invitation)
     
     # URL construction - base bot URL can be in settings
-    bot_url = f"https://t.me/gilamchi_robot?start={token}"
+    from ..config import get_settings
+    settings = get_settings()
+    bot_url = f"https://t.me/{settings.telegram_bot_username}?start={token}"
     
     return InvitationResponse(
         id=db_invitation.id,

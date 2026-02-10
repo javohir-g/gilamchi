@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     CORS_ORIGINS: str
     TIMEZONE: str
     telegram_bot_token: str = ""
+    telegram_bot_username: str = "gilamchi_robot" # Default fallback
     WEB_APP_URL: str = "https://google.com" # Default fallback
 
     class Config:
