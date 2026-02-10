@@ -301,6 +301,18 @@ function AppContent() {
 }
 
 export default function App() {
+  // Capture start_param before routing potentially strips it
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    const startParam = params.get('start_param');
+    if (startParam) {
+      sessionStorage.setItem('start_param', startParam);
+      // Clean up URL to avoid pollution, optional but good practice
+      // window.history.replaceState({}, document.title, window.location.pathname); 
+      // Actually, let's keep it for now for debug visibility
+    }
+  }
+
   return (
     <BrowserRouter>
       <AppProvider>
