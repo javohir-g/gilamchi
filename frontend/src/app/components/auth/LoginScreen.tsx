@@ -150,8 +150,16 @@ export function LoginScreen() {
 
             {!loading && (
               <div className="max-w-xs mx-auto text-sm text-gray-500 font-medium">
-                {/* Only show this if we are not loading (meaning likely failed or waiting) */}
                 <p>Agar avtomatik kirish amalga oshmasa, internet aloqasini tekshiring.</p>
+
+                {/* TODO: Remove this debug block after testing */}
+                <div className="p-2 bg-gray-100 rounded text-xs text-left overflow-hidden mt-2 mb-2 border border-dashed border-gray-300">
+                  <p className="font-bold">DEBUG INFO:</p>
+                  <p>Params: {new URLSearchParams(window.location.search).toString()}</p>
+                  <p>StartParam: {new URLSearchParams(window.location.search).get('start_param') || "None"}</p>
+                  <p>Unsafe: {webApp?.initDataUnsafe?.start_param || "None"}</p>
+                </div>
+
                 <Button
                   variant="outline"
                   className="mt-4"

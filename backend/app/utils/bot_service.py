@@ -14,8 +14,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     args = context.args # Deep link parameters (e.g., /start <token>)
     token = args[0] if args else None
     
+    logger.info(f"Start command received. Args: {args}")
     url = settings.WEB_APP_URL
     if token:
+        logger.info(f"Token found: {token}")
         # If there's a token, we might want to pass it to the WebApp-
         # Telegram handles this via start_param which is available in initDataUnsafe
         # The URL remains the same, but the app will see the start_param.
@@ -24,8 +26,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
              url = f"{settings.WEB_APP_URL}&start_param={token}"
         else:
              url = f"{settings.WEB_APP_URL}?start_param={token}"
+        logger.info(f"Generated URL with token: {url}")
         message = f"Xush kelibsiz, {user.first_name}! Ro'yxatdan o'tishni yakunlash uchun pastdagi tugmani bosing."
     else:
+        logger.info("No token found")
         message = f"Xush kelibsiz, {user.first_name}! Gilamchi tizimiga kirish uchun pastdagi tugmani bosing."
 
     keyboard = [
