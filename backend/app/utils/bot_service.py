@@ -19,7 +19,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # If there's a token, we might want to pass it to the WebApp-
         # Telegram handles this via start_param which is available in initDataUnsafe
         # The URL remains the same, but the app will see the start_param.
-        url = settings.WEB_APP_URL # Start param is handled by Telegram deep links automatically
+        # However, for Inline Keyboard Button, we need to pass it in the URL if we want to read it from window.location
+        if '?' in settings.WEB_APP_URL:
+             url = f"{settings.WEB_APP_URL}&start_param={token}"
+        else:
+             url = f"{settings.WEB_APP_URL}?start_param={token}"
         message = f"Xush kelibsiz, {user.first_name}! Ro'yxatdan o'tishni yakunlash uchun pastdagi tugmani bosing."
     else:
         message = f"Xush kelibsiz, {user.first_name}! Gilamchi tizimiga kirish uchun pastdagi tugmani bosing."

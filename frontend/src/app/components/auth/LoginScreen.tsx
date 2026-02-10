@@ -44,7 +44,14 @@ export function LoginScreen() {
     } catch (error: any) {
       if (error.response?.status === 404) {
         // Not registered, might need to check for start_param (invitation token)
-        const startParam = webApp?.initDataUnsafe?.start_param;
+        let startParam = webApp?.initDataUnsafe?.start_param;
+
+        if (!startParam) {
+          // Fallback: Check URL query params
+          const urlParams = new URLSearchParams(window.location.search);
+          startParam = urlParams.get('start_param') || undefined;
+        }
+
         if (startParam) {
           handleRegistration(startParam);
         } else {
