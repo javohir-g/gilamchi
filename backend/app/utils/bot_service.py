@@ -4,7 +4,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppI
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 from ..config import get_settings
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 settings = get_settings()
 
     
@@ -14,10 +14,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     args = context.args # Deep link parameters (e.g., /start <token>)
     token = args[0] if args else None
     
-    logger.info(f"Start command received. Args: {args}")
+    print(f"Start command received. Args: {args}")
     url = settings.WEB_APP_URL
     if token:
-        logger.info(f"Token found: {token}")
+        print(f"Token found: {token}")
         # If there's a token, we might want to pass it to the WebApp-
         # Telegram handles this via start_param which is available in initDataUnsafe
         # The URL remains the same, but the app will see the start_param.
@@ -26,10 +26,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
              url = f"{settings.WEB_APP_URL}&start_param={token}"
         else:
              url = f"{settings.WEB_APP_URL}?start_param={token}"
-        logger.info(f"Generated URL with token: {url}")
+        print(f"Generated URL with token: {url}")
         message = f"Xush kelibsiz, {user.first_name}! Ro'yxatdan o'tishni yakunlash uchun pastdagi tugmani bosing."
     else:
-        logger.info("No token found")
+        print("No token found")
         message = f"Xush kelibsiz, {user.first_name}! Gilamchi tizimiga kirish uchun pastdagi tugmani bosing."
 
     keyboard = [
@@ -46,30 +46,31 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def run_bot():
     """Start the bot in polling mode"""
-    logger.info("Initializing Telegram bot...")
+    print("Initializing Telegram bot...")
     
     if not settings.telegram_bot_token:
-        logger.error("TELEGRAM_BOT_TOKEN is not set or empty. Bot will not start.")
+        print("TELEGRAM_BOT_TOKEN is not set or empty. Bot will not start.")
         return
 
     try:
-        logger.info(f"Building application with token: {settings.telegram_bot_token[:10]}...")
+        print(f"Building application with token: {settings.telegram_bot_token[:10]}...")
         application = ApplicationBuilder().token(settings.telegram_bot_token).build()
         
         start_handler = CommandHandler('start', start)
         application.add_handler(start_handler)
         
-        logger.info("Initializing application handlers...")
+        print("Initializing application handlers...")
         await application.initialize()
         await application.start()
         
-        logger.info("Starting Telegram bot polling...")
+        print("Starting Telegram bot polling...")
         await application.updater.start_polling()
         
-        logger.info("Telegram bot is running and polling.")
+        print("Telegram bot is running and polling.")
         
         # Keep running until cancelled
         while True:
             await asyncio.sleep(3600)
     except Exception as e:
-        logger.exception("Failed to start Telegram bot background task")
+        print(f"Failed to start Telegram bot background task: {e}")
+
