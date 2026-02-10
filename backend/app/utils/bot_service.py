@@ -10,7 +10,7 @@ settings = get_settings()
 # The frontend URL for the Mini App
 # In production, this should be the public URL
 # For local testing, it might be different
-WEB_APP_URL = "https://gilamchi-taupe.vercel.app/" # User's frontend URL as seen in previous logs if available, or just a placeholder
+WEB_APP_URL = "https://62.171.165.103.sslip.io/"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /start command"""
