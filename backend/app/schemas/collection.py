@@ -8,6 +8,7 @@ class CollectionBase(BaseModel):
     price_per_sqm: Optional[float] = None
     buy_price_per_sqm: Optional[float] = None
     price_usd_per_sqm: Optional[float] = None
+    branch_id: Optional[UUID4] = None
 
 class CollectionCreate(CollectionBase):
     pass
@@ -22,6 +23,7 @@ class CollectionResponse(CollectionBase):
 class SizeBase(BaseModel):
     size: str
     collection_id: Optional[UUID4] = None
+    branch_id: Optional[UUID4] = None
 
 class SizeCreate(SizeBase):
     pass

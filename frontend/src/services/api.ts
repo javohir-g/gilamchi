@@ -171,6 +171,7 @@ const fromCollection = (data: any): any => ({
   price_per_sqm: data.price_per_sqm,
   buy_price_per_sqm: data.buy_price_per_sqm,
   price_usd_per_sqm: data.price_usd_per_sqm,
+  branchId: data.branch_id,
 });
 
 const fromStaff = (data: any): any => ({
@@ -186,6 +187,7 @@ const toCollection = (data: any): any => ({
   price_per_sqm: data.price_per_sqm,
   buy_price_per_sqm: data.buy_price_per_sqm,
   price_usd_per_sqm: data.price_usd_per_sqm,
+  branch_id: data.branchId,
 });
 
 const fromDebt = (data: any): any => ({
@@ -392,8 +394,8 @@ export const expenseService = {
 }
 
 export const collectionService = {
-  getAll: async () => {
-    const response = await api.get('collections/');
+  getAll: async (branchId?: string) => {
+    const response = await api.get('collections/', { params: branchId ? { branch_id: branchId } : {} });
     return response.data.map(fromCollection);
   },
   create: async (data: any) => {

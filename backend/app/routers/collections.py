@@ -9,13 +9,19 @@ from ..utils.dependencies import get_admin_user
 router = APIRouter()
 
 @router.get("/", response_model=List[CollectionResponse])
-def read_collections(db: Session = Depends(get_db)):
-    return db.query(Collection).filter(Collection.deleted_at == None).all()
+def read_collections(branch_id: str = None, db: Session = Depends(get_db)):
+    query = db.query(Collection).filter(Collection.deleted_at == None)
+    if branch_id:
+        query = query.filter(Collection.branch_id == branch_id)
+    return query.all()
 
 @router.post("/", response_model=CollectionResponse)
 def create_collection(collection: CollectionCreate, db: Session = Depends(get_db), admin = Depends(get_admin_user)):
-    # Check if a collection with this name already exists (including soft-deleted ones)
-    existing_collection = db.query(Collection).filter(Collection.name == collection.name).first()
+    # Check if a collection with this name already exists in this branch (including soft-deleted ones)
+    existing_collection = db.query(Collection).filter(
+        Collection.name == collection.name,
+        Collection.branch_id == collection.branch_id
+    ).first()
     
     if existing_collection:
         if existing_collection.deleted_at is None:
@@ -54,7 +60,10 @@ def update_collection(collection_id: str, collection: CollectionCreate, db: Sess
         # This is basic logic: area * price_per_sqm
         # We need products that have width and total_length/remaining_length
         from ..models.product import Product
-        products = db.query(Product).filter(Product.collection == db_collection.name).all()
+        products = db.query(Product).filter(
+            Product.collection == db_collection.name,
+            Product.branch_id == db_collection.branch_id
+        ).all()
         for p in products:
             if p.width and p.total_length:
                 p.sell_price = float(p.width) * float(p.total_length) * float(db_collection.price_per_sqm)

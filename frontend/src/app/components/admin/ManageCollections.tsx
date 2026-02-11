@@ -26,10 +26,11 @@ import {
 import { useApp } from "../../context/AppContext";
 import { toast } from "sonner";
 import { BottomNav } from "../shared/BottomNav";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 
 export function ManageCollections() {
   const navigate = useNavigate();
-  const { products, collections: ctxCollections, addCollection, updateCollection, deleteCollection: apiDeleteCollection } = useApp();
+  const { products, collections: ctxCollections, branches, fetchCollectionsForBranch, addCollection, updateCollection, deleteCollection: apiDeleteCollection, user } = useApp();
 
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -56,12 +57,39 @@ export function ManageCollections() {
 
   const getCollectionIcon = (name: string) => collectionIcons[name] || "📦";
 
-  // Use collections from context
-  const collections = ctxCollections;
-
-  // Helper to count products in a collection
+  // Helper to count products in a collection (filtered by branch if possible)
   const getCollectionCount = (collectionName: string) => {
-    return products.filter((p) => p.collection === collectionName).length;
+    return products.filter((p) => p.collection === collectionName && (user?.role === 'admin' ? p.branchId === selectedBranchId : true)).length;
+  };
+
+  // Use collections from context but filter by branch
+  // Admin can select branch
+  const [selectedBranchId, setSelectedBranchId] = useState<string>(user?.branchId || "");
+
+  // Update selectedBranchId when branches load if not set
+  useMemo(() => {
+    if (!selectedBranchId && branches.length > 0) {
+      // Sort branches to ensure consisten order if needed, or just take first
+      // Assuming branches are: Yangi Bozor, Hunarmandlar, Naymancha
+      setSelectedBranchId(branches[0].id);
+    }
+  }, [branches, selectedBranchId]);
+
+  const [localCollections, setLocalCollections] = useState<any[]>([]);
+
+  useMemo(() => {
+    if (user?.role === 'admin' && selectedBranchId) {
+      fetchCollectionsForBranch(selectedBranchId).then(setLocalCollections);
+    } else {
+      setLocalCollections(ctxCollections);
+    }
+  }, [selectedBranchId, ctxCollections, user, fetchCollectionsForBranch]);
+
+  const collections = user?.role === 'admin' ? localCollections : ctxCollections;
+
+  // ... helper functions
+  const handleBranchChange = (newBranchId: string) => {
+    setSelectedBranchId(newBranchId);
   };
 
   const handleAddCollection = async () => {
@@ -81,6 +109,7 @@ export function ManageCollections() {
         name: newCollectionName,
         price_per_sqm: collectionPrice ? parseFloat(collectionPrice) : undefined,
         buy_price_per_sqm: collectionBuyPrice ? parseFloat(collectionBuyPrice) : undefined,
+        branch_id: user?.role === 'admin' ? selectedBranchId : user?.branchId
       });
 
       toast.success("Kolleksiya qo'shildi!");
@@ -165,9 +194,17 @@ export function ManageCollections() {
           >
             <ChevronLeft className="h-6 w-6" />
           </Button>
-          <h1 className="text-xl text-card-foreground flex-1">
-            Kolleksiyalarni boshqarish
-          </h1>
+          <div className="flex-1">
+            <h1 className="text-xl text-card-foreground">
+              Kolleksiyalarni boshqarish
+            </h1>
+            {user?.role === 'admin' && (
+              <p className="text-xs text-muted-foreground">
+                {branches.find(b => b.id === selectedBranchId)?.name} filiali
+              </p>
+            )}
+          </div>
+
           <Button
             size="icon"
             variant="ghost"
@@ -177,6 +214,25 @@ export function ManageCollections() {
             <Plus className="h-6 w-6" />
           </Button>
         </div>
+
+        {/* Branch Tabs for Admin */}
+        {user?.role === 'admin' && branches.length > 0 && (
+          <div className="px-4 pb-2">
+            <Tabs
+              value={selectedBranchId}
+              onValueChange={setSelectedBranchId}
+              className="w-full"
+            >
+              <TabsList className="w-full grid" style={{ gridTemplateColumns: `repeat(${branches.length}, 1fr)` }}>
+                {branches.map(branch => (
+                  <TabsTrigger key={branch.id} value={branch.id} className="text-xs sm:text-sm">
+                    {branch.name}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+        )}
       </div>
 
       {/* Collections Grid */}

@@ -94,6 +94,7 @@ export interface Collection {
   price_per_sqm?: number;
   buy_price_per_sqm?: number;
   price_usd_per_sqm?: number;
+  branch_id?: string;
 }
 
 export interface BasketItem {
@@ -252,6 +253,7 @@ interface AppContextType {
   isAdminViewingAsSeller: boolean;
   originalAdminUser: User | null;
   fetchData: () => Promise<void>;
+  fetchCollectionsForBranch: (branchId: string) => Promise<Collection[]>;
   isLoading: boolean;
   addBranch: (name: string) => Promise<void>;
   deleteBranch: (id: string) => Promise<void>;
@@ -320,7 +322,7 @@ export function AppProvider({
         fetchSafe(() => salesService.getAll(), setSales),
         fetchSafe(() => debtService.getAll(), setDebts),
         fetchSafe(() => expenseService.getAll(), setExpenses),
-        fetchSafe(() => collectionService.getAll(), setCollections),
+        fetchSafe(() => collectionService.getAll(user?.branchId), setCollections),
         fetchSafe(() => staffService.getAll(), setStaffMembers),
         fetchSafe(() => settingsService.get(), (data) => setExchangeRate(data.exchange_rate))
       ]);
@@ -330,6 +332,16 @@ export function AppProvider({
       setIsLoading(false);
     }
   }, []);
+
+  const fetchCollectionsForBranch = async (branchId: string) => {
+    try {
+      const data = await collectionService.getAll(branchId);
+      return data;
+    } catch (e) {
+      console.error("Failed to fetch collections for branch", e);
+      return [];
+    }
+  };
 
   useEffect(() => {
     const initAuth = async () => {
@@ -862,6 +874,7 @@ export function AppProvider({
         isAdminViewingAsSeller,
         originalAdminUser,
         fetchData,
+        fetchCollectionsForBranch,
         isLoading,
         addBranch,
         deleteBranch,

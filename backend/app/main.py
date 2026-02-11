@@ -50,10 +50,12 @@ async def startup_event():
     except Exception as e:
         print(f"Startup warning: Failed to preload CLIP model: {e}")
 
+origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",")]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Simplified to literal wildcard for robust handling
-    allow_credentials=False, # Must be False when origin is *
+    allow_origins=origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -17,9 +17,23 @@ def seed():
     db = SessionLocal()
     
     # Ensure Branches Exist
-    branch_names = ["Filial 1", "Filial 2", "Filial 3"]
+    new_branch_names = ["Yangi Bozor", "Hunarmandlar", "Naymancha"]
+    old_names_map = {
+        "Filial 1": "Yangi Bozor",
+        "Filial 2": "Hunarmandlar",
+        "Filial 3": "Naymancha"
+    }
+
     branches = []
-    for name in branch_names:
+    
+    # First, handle renames if they are still with old names
+    for old_name, new_name in old_names_map.items():
+        existing = db.query(Branch).filter(Branch.name == old_name).first()
+        if existing:
+            existing.name = new_name
+            db.commit()
+
+    for name in new_branch_names:
         branch = db.query(Branch).filter(Branch.name == name).first()
         if not branch:
             branch = Branch(name=name)
@@ -27,6 +41,22 @@ def seed():
             db.commit()
             db.refresh(branch)
         branches.append(branch)
+    
+    # Migration: Move existing collections to the first branch (Yangi Bozor)
+    from app.models.collection import Collection, Size
+    first_branch = branches[0]
+    
+    collections_to_migrate = db.query(Collection).filter(Collection.branch_id == None).all()
+    for col in collections_to_migrate:
+        col.branch_id = first_branch.id
+        print(f"Migrated collection '{col.name}' to branch '{first_branch.name}'")
+    
+    sizes_to_migrate = db.query(Size).filter(Size.branch_id == None).all()
+    for size in sizes_to_migrate:
+        size.branch_id = first_branch.id
+        print(f"Migrated size '{size.size}' to branch '{first_branch.name}'")
+    
+    db.commit()
     
     # Ensure Specific Telegram Admins Exist/Updated
     tg_admins = [

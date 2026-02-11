@@ -28,7 +28,7 @@ import { AnimatePresence } from "motion/react";
 export function AddProduct() {
   const navigate = useNavigate();
   const { id } = useParams(); // Get product ID from URL if editing
-  const { user, addProduct, updateProduct, products, branches, collections } = useApp();
+  const { user, addProduct, updateProduct, products, branches, collections: globalCollections, fetchCollectionsForBranch } = useApp();
   const { t } = useLanguage();
 
   const isEditMode = Boolean(id);
@@ -57,7 +57,7 @@ export function AddProduct() {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // We'll use collections from the context
+  const [localCollections, setLocalCollections] = useState<any[]>([]);
   const [branchId, setBranchId] = useState<string>(user?.branchId || (branches.length > 0 ? branches[0].id : ""));
 
   // Update branchId if user or branches load
@@ -68,6 +68,15 @@ export function AddProduct() {
       setBranchId(branches[0].id.toString());
     }
   }, [user, branches, branchId]);
+
+  // Fetch collections when branchId changes
+  useEffect(() => {
+    if (branchId) {
+      fetchCollectionsForBranch(branchId).then(setLocalCollections);
+    } else {
+      setLocalCollections([]);
+    }
+  }, [branchId, fetchCollectionsForBranch]);
 
   // Auto-calculate total quantity or length based on sizes/rolls
   useEffect(() => {
@@ -196,7 +205,7 @@ export function AddProduct() {
   // Auto-calculate sell price when collection or size changes
   useEffect(() => {
     if (collection && !isEditMode) {
-      const selectedCollectionData = collections.find(c => c.name === collection);
+      const selectedCollectionData = localCollections.find(c => c.name === collection);
 
       const buyRate = selectedCollectionData?.buy_price_per_sqm || 0;
       const sellRate = selectedCollectionData?.price_per_sqm || 0;
@@ -248,7 +257,7 @@ export function AddProduct() {
         }
       }
     }
-  }, [collection, availableSizes, type, width, products, isEditMode, collections]);
+  }, [collection, availableSizes, type, width, products, isEditMode, localCollections]);
 
   const handleSave = async () => {
     if (!code || !buyPrice || !sellPrice) {
@@ -494,7 +503,7 @@ export function AddProduct() {
                     <SelectValue placeholder={t('seller.selectCollection')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {collections.map((c) => (
+                    {localCollections.map((c) => (
                       <SelectItem key={c.id} value={c.name}>
                         {c.name}
                       </SelectItem>

@@ -31,3 +31,12 @@ build/
 # IDEs
 .vscode/
 .idea/
+
+# Temporary migration scripts
+backend/create_admin.py
+backend/fix_schema.py
+restore_db.py
+
+# Database dumps
+*.sql
+server_dump*.sql
