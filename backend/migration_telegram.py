@@ -54,6 +54,7 @@ def migrate():
                     token VARCHAR UNIQUE NOT NULL,
                     branch_id UUID REFERENCES branches(id),
                     role VARCHAR NOT NULL DEFAULT 'seller',
+                    username_hint VARCHAR,
                     is_used BOOLEAN NOT NULL DEFAULT FALSE,
                     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
                     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -63,9 +64,20 @@ def migrate():
                 );
             """))
             conn.commit()
-            print("✓ Created invitation_links table")
+            print("✓ Created/Verified invitation_links table")
         except Exception as e:
-            print(f"⚠ invitation_links table might already exist: {e}")
+            print(f"⚠ invitation_links table error: {e}")
+
+        # Ensure username_hint exists if table was created without it
+        try:
+            conn.execute(text("""
+                ALTER TABLE invitation_links 
+                ADD COLUMN IF NOT EXISTS username_hint VARCHAR;
+            """))
+            conn.commit()
+            print("✓ Verified username_hint column in invitation_links")
+        except Exception as e:
+            print(f"⚠ could not add username_hint to invitation_links: {e}")
         
         # Create index on token
         try:
