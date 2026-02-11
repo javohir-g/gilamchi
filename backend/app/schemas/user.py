@@ -6,6 +6,7 @@ import uuid
 
 class UserBase(BaseModel):
     username: str
+    full_name: Optional[str] = None
     role: UserRole = UserRole.SELLER
     branch_id: Optional[UUID4] = None
     can_add_products: bool = False

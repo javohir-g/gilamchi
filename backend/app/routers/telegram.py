@@ -99,7 +99,7 @@ async def telegram_auth(init_data: str, db: Session = Depends(get_db)):
                     username=f"admin_{db_search_id}",
                     telegram_id=db_search_id,
                     password_hash=password_hash,
-                    full_name=user_data.get('first_name', 'Admin'),
+                    full_name=f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}".strip() or "Admin",
                     role=UserRole.ADMIN
                 )
                 db.add(user)
