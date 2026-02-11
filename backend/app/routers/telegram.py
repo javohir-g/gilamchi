@@ -23,8 +23,6 @@ import secrets
 router = APIRouter(tags=["telegram"])
 settings = get_settings()
 
-ADMIN_IDS = [6867575783, "6867575783", 947732542, "947732542", 6965037980, "6965037980"]
-
 def verify_telegram_data(init_data: str, bot_token: str) -> dict:
     # This is a simplified version, in production you should use the official HMAC verification
     # For this exercise, we'll implement the logic

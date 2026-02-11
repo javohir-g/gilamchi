@@ -18,6 +18,7 @@ import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { useApp } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { toast } from "sonner";
 
 export function ManageStaffMembers() {
