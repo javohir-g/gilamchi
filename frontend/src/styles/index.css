@@ -2,10 +2,16 @@
 @import './theme.css';
 @import './fonts.css';
 
-/* Telegram WebApp Safe Area */
+/* Telegram WebApp Safe Area - Fixed padding for header/bottom */
 body {
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/* Add padding to main app container instead */
+#root {
+    padding-top: 8px;
+    padding-bottom: 8px;
 }
 
 /* Mobile-first utility classes */

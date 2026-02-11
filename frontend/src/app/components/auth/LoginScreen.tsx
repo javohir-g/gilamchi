@@ -20,7 +20,6 @@ export function LoginScreen() {
     // Expand WebApp to fullscreen to prevent UI overlap
     if (isReady && webApp) {
       webApp.expand();
-      webApp.enableClosingConfirmation();
     }
 
     if (isReady && webApp?.initData) {
