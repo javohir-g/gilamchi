@@ -823,7 +823,7 @@ export function AddProduct() {
       </div>
 
       {/* Fixed Bottom Button - Adjusted for stability */}
-      <div className="fixed bottom-16 left-0 right-0 border-t dark:border-gray-700 bg-white/95 backdrop-blur-md dark:bg-gray-800/95 p-4 z-20 shadow-2xl">
+      <div className="fixed bottom-0 left-0 right-0 border-t dark:border-gray-700 bg-white/95 backdrop-blur-md dark:bg-gray-800/95 p-4 z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
         <Button
           onClick={handleSave}
           className="h-14 w-full bg-blue-600 hover:bg-blue-700 text-lg font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
@@ -833,8 +833,6 @@ export function AddProduct() {
           {isSaving ? `${t('common.saving')}...` : (isEditMode ? t('seller.saveEdit') : t('seller.createProduct'))}
         </Button>
       </div>
-
-      <BottomNav />
 
       <AnimatePresence>
         {isCameraOpen && (

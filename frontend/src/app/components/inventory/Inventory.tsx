@@ -1161,7 +1161,7 @@ export function Inventory() {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          {user?.canAddProducts && (
+          {user?.canAddProducts && !isAdmin && (
             <Button
               size="icon"
               variant="ghost"
