@@ -3,8 +3,16 @@ from app.models.user import User, UserRole
 from app.models.branch import Branch
 from app.utils.security import get_password_hash
 import uuid
+import migration_telegram
 
 def seed():
+    # Run Telegram migration first to ensure columns exist
+    try:
+        print("Running Telegram migration...")
+        migration_telegram.migrate()
+    except Exception as e:
+        print(f"Migration error (might be okay if already migrated): {e}")
+
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     
