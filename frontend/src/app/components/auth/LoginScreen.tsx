@@ -69,6 +69,8 @@ export function LoginScreen() {
         }
       } else {
         console.error("Telegram auth failed", error);
+        const msg = error.response?.data?.detail || error.message || "Unknown error";
+        toast.error(`Telegram orqali kirishda xatolik: ${msg}`);
       }
     } finally {
       setLoading(false);
