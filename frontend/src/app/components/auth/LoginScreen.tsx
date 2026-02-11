@@ -170,6 +170,7 @@ export function LoginScreen() {
                   <p>StartParam (URL): {new URLSearchParams(window.location.search).get('start_param') || "None"}</p>
                   <p>StartParam (Session): {sessionStorage.getItem('start_param') || "None"}</p>
                   <p>Unsafe: {webApp?.initDataUnsafe?.start_param || "None"}</p>
+                  <p>User ID (WebApp): {webApp?.initDataUnsafe?.user?.id || "None"}</p>
                 </div>
 
                 <Button
