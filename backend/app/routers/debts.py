@@ -77,3 +77,20 @@ def create_payment(debt_id: str, payment: PaymentCreate, db: Session = Depends(g
     db.commit()
     db.refresh(new_payment)
     return new_payment
+
+@router.delete("/{debt_id}")
+def delete_debt(debt_id: str, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    # Only admins can delete debts
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can delete debts")
+    
+    debt = db.query(Debt).filter(Debt.id == debt_id).first()
+    if not debt:
+        raise HTTPException(status_code=404, detail="Debt not found")
+    
+    # Soft delete
+    from datetime import datetime
+    debt.deleted_at = datetime.now()
+    db.commit()
+    
+    return {"message": "Debt deleted successfully"}

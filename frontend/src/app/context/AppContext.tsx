@@ -574,8 +574,14 @@ export function AppProvider({
     );
   };
 
-  const deleteDebt = (debtId: string) => {
-    setDebts((prev) => prev.filter((d) => d.id !== debtId));
+  const deleteDebt = async (debtId: string) => {
+    try {
+      await debtService.delete(debtId);
+      setDebts((prev) => prev.filter((d) => d.id !== debtId));
+    } catch (error) {
+      console.error("Failed to delete debt", error);
+      throw error;
+    }
   };
 
   const makeDebtPayment = async (

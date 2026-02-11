@@ -7,6 +7,7 @@ import {
   TrendingUp,
   Search,
   Building2,
+  Trash2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
@@ -22,12 +23,28 @@ import {
 import { useApp } from "../../context/AppContext";
 import { Badge } from "../ui/badge";
 import { BottomNav } from "../shared/BottomNav";
+import { toast } from "sonner";
 
 export function AdminDebts() {
   const navigate = useNavigate();
-  const { debts, branches, exchangeRate } = useApp();
+  const { debts, branches, exchangeRate, deleteDebt } = useApp();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterBranch, setFilterBranch] = useState("all");
+
+  const handleDeleteDebt = async (debtId: string, debtorName: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (!confirm(`${debtorName}ning qarzini o'chirmoqchimisiz?`)) {
+      return;
+    }
+
+    try {
+      await deleteDebt(debtId);
+      toast.success("Qarz o'chirildi");
+    } catch (error) {
+      toast.error("Qarzni o'chirishda xatolik");
+    }
+  };
 
   // Filter debts by branch and search query
   const filteredDebts = debts
@@ -284,8 +301,16 @@ export function AdminDebts() {
                           </p>
                         </div>
                       </div>
-                      <div className="flex-shrink-0">
+                      <div className="flex items-center gap-2 flex-shrink-0">
                         {getStatusBadge(debt)}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => handleDeleteDebt(debt.id, debt.debtorName, e)}
+                          className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
 

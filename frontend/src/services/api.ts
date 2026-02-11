@@ -346,6 +346,9 @@ export const debtService = {
     // Payment payload: amount, note?
     const response = await api.post(`debts/${debtId}/payments`, data);
     return response.data;
+  },
+  delete: async (debtId: string) => {
+    await api.delete(`debts/${debtId}`);
   }
 }
 
