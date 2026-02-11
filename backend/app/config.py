@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     telegram_bot_token: str = ""
     telegram_bot_username: str = "gilamchi_robot" # Default fallback
     WEB_APP_URL: str = "https://google.com" # Default fallback
+    ADMIN_IDS: List[str] = ["6867575783", "947732542", "6965037980"]
 
     class Config:
         env_file = ".env"

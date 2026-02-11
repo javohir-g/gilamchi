@@ -74,17 +74,15 @@ async def telegram_auth(init_data: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="No Telegram ID found")
 
     # 1. Check if it's a hardcoded admin
-    # Convert telegram_id to string and integer to be absolutely sure
     str_id = str(telegram_id)
-    int_id = int(telegram_id) if str_id.isdigit() else None
     
-    logger.info(f"Checking auth for ID: {telegram_id} (type: {type(telegram_id)}). str_id: {str_id}, int_id: {int_id}")
+    logger.info(f"Checking auth for ID: {telegram_id} (type: {type(telegram_id)}).")
     
-    if int_id in ADMIN_IDS or str_id in ADMIN_IDS:
-        logger.info(f"ID {telegram_id} recognized as ADMIN")
+    if str_id in settings.ADMIN_IDS:
+        logger.info(f"ID {telegram_id} recognized as ADMIN from settings")
         try:
-            # Force integer for DB query search
-            db_search_id = int_id if int_id is not None else telegram_id
+            # db_search_id should be int for DB consistency if possible, but keep as is if it works
+            db_search_id = int(telegram_id)
             user = db.query(User).filter(User.telegram_id == db_search_id).first()
             if not user:
                 logger.info(f"Admin with telegram_id {db_search_id} not found in DB, creating...")
@@ -120,7 +118,7 @@ async def telegram_auth(init_data: str, db: Session = Depends(get_db)):
 
     # 2. Check if user already exists in DB
     try:
-        db_search_id = int_id if int_id is not None else telegram_id
+        db_search_id = int(telegram_id)
         user = db.query(User).filter(User.telegram_id == db_search_id).first()
         if user:
             logger.info(f"Found existing user {user.username} for telegram_id {db_search_id}")
@@ -135,6 +133,7 @@ async def telegram_auth(init_data: str, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Database error during user auth check for ID {telegram_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
 
     logger.warning(f"ID {telegram_id} is not an admin and not registered in DB")
 

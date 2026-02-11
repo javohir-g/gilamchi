@@ -40,8 +40,10 @@ export function ManageStaffMembers() {
         ? staffMembers
         : staffMembers.filter(s => s.branchId === selectedBranch);
 
+    const { t } = useLanguage();
+
     const getBranchName = (branchId: string | undefined | null) => {
-        if (!branchId) return "Admin";
+        if (!branchId) return t('common.admin');
         return branches.find(b => b.id === branchId)?.name || "N/A";
     };
 

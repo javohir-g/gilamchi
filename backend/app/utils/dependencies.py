@@ -40,6 +40,31 @@ def get_current_active_user(current_user: User = Depends(get_current_user)):
     if current_user.deleted_at:
         import logging
         logger = logging.getLogger(__name__)
+        
+        # Proactive reactivation for hardcoded admins
+        if current_user.telegram_id and str(current_user.telegram_id) in settings.ADMIN_IDS:
+            logger.info(f"Proactively reactivating hardcoded admin: {current_user.username}")
+            from ..database import SessionLocal
+            db = SessionLocal()
+            try:
+                # Need to refresh the instance from DB to avoid session issues, 
+                # but we can also just update it here if it's attached.
+                # Since get_current_user provides an attached instance, let's use it.
+                current_user.deleted_at = None
+                current_user.deleted_by = None
+                # current_user is already in a session from get_current_user
+                import sqlalchemy
+                from sqlalchemy.orm import object_session
+                session = object_session(current_user)
+                if session:
+                    session.commit()
+                    session.refresh(current_user)
+                    return current_user
+            except Exception as e:
+                logger.error(f"Failed to proactively reactivate admin: {str(e)}")
+            finally:
+                db.close()
+
         logger.warning(f"Access attempt by inactive user: {current_user.username}")
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
