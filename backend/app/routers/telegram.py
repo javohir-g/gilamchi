@@ -88,10 +88,17 @@ async def telegram_auth(init_data: str, db: Session = Depends(get_db)):
             user = db.query(User).filter(User.telegram_id == db_search_id).first()
             if not user:
                 logger.info(f"Admin with telegram_id {db_search_id} not found in DB, creating...")
+                
+                # Generate a random password hash to satisfy NotNull constraint
+                random_password = secrets.token_urlsafe(32)
+                pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+                password_hash = pwd_context.hash(random_password)
+                
                 # Auto-create admin if not exists
                 user = User(
                     username=f"admin_{db_search_id}",
                     telegram_id=db_search_id,
+                    password_hash=password_hash,
                     full_name=user_data.get('first_name', 'Admin'),
                     role=UserRole.ADMIN
                 )
