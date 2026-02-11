@@ -65,6 +65,8 @@ export const uzLatn = {
     seller: {
         sellProduct: "Mahsulot sotish",
         addProduct: "Mahsulot qo'shish",
+        createProduct: "Mahsulotni yaratish",
+        saveEdit: "O'zgarishlarni saqlash",
         addExpense: "Xarajat qo'shish",
         dailySales: "Kunlik sotuvlar",
         basket: "Savat",

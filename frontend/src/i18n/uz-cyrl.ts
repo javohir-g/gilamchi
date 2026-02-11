@@ -68,6 +68,8 @@ export const uzCyrl = {
     seller: {
         sellProduct: "Маҳсулот сотиш",
         addProduct: "Маҳсулот қўшиш",
+        createProduct: "Маҳсулотни яратиш",
+        saveEdit: "Ўзгаришларни сақлаш",
         addExpense: "Харажат қўшиш",
         dailySales: "Кунлик сотувлар",
         basket: "Сават",
