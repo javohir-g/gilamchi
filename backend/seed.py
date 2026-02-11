@@ -82,7 +82,7 @@ def seed():
     
     db.commit()
     print("Seeding complete.")
-    print(f"Admin: {admin_username} / {admin_password}")
+    print("Administrators and Sellers have been ensured/updated.")
     print("Sellers: filial1/filial1, filial2/filial2, filial3/filial3")
     db.close()
 
