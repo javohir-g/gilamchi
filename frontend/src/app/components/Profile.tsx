@@ -101,7 +101,7 @@ export function Profile() {
       const branch = branches.find((b) => b.id === user?.branchId);
       return branch ? `${branch.name} (Sotuvchi)` : user?.name;
     }
-    return user?.name;
+    return user?.fullName || user?.name;
   };
 
   return (
@@ -168,7 +168,7 @@ export function Profile() {
                   </div>
                   <div className="text-left">
                     <div className="font-medium text-card-foreground">
-                      {originalAdminUser?.name || user?.name}
+                      {originalAdminUser?.fullName || originalAdminUser?.name || user?.fullName || user?.name}
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {t('common.admin')}

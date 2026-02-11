@@ -187,7 +187,7 @@ export function SellerHome() {
             <div className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-1">
               {userBranch?.name || t('common.branch')}
             </div>
-            <h1 className="text-2xl font-bold text-foreground">{user?.name}</h1>
+            <h1 className="text-2xl font-bold text-foreground">{user?.fullName || user?.name}</h1>
           </div>
           <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 border-0 px-3 py-1 font-semibold">
             {t('common.seller')}

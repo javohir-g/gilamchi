@@ -126,7 +126,7 @@ export function LoginScreen() {
       fetchData(); // Don't await - load data in background
 
 
-      toast.success(`Xush kelibsiz, ${user.name}!`);
+      toast.success(`Xush kelibsiz, ${user.fullName || user.name}!`);
 
       // Redirect based on role
       if (user.role === 'admin') {
