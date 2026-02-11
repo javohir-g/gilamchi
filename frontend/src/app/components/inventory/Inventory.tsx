@@ -977,7 +977,7 @@ export function Inventory() {
                 key={product.id}
                 className="relative flex flex-col h-full overflow-hidden border border-border bg-card transition-all hover:shadow-lg"
               >
-                {isAdmin && (
+                {(isAdmin || (user?.canAddProducts && String(product.branchId) === String(user?.branchId))) && (
                   <div className="absolute top-2 right-2 z-10">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -993,9 +993,11 @@ export function Inventory() {
                         <DropdownMenuItem onClick={(e) => handleEditClick(product, e)}>
                           <Edit className="mr-2 h-4 w-4" /> {t('common.edit')}
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={(e) => handleMoveClick(product, e)}>
-                          <ArrowRightLeft className="mr-2 h-4 w-4" /> {t('profile.move')}
-                        </DropdownMenuItem>
+                        {isAdmin && (
+                          <DropdownMenuItem onClick={(e) => handleMoveClick(product, e)}>
+                            <ArrowRightLeft className="mr-2 h-4 w-4" /> {t('profile.move')}
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem onClick={(e) => handleDeleteClick(product, e)}>
                           <Trash2 className="mr-2 h-4 w-4" /> {t('common.delete')}
                         </DropdownMenuItem>

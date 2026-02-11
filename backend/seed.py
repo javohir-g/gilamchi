@@ -72,13 +72,14 @@ def seed():
                 password_hash=get_password_hash(password),
                 role=UserRole.SELLER,
                 branch_id=branch.id,
-                can_add_products=False
+                can_add_products=True
             )
             db.add(seller)
         else:
             seller.password_hash = get_password_hash(password)
             seller.branch_id = branch.id
             seller.role = UserRole.SELLER
+            seller.can_add_products = True
     
     db.commit()
     print("Seeding complete.")

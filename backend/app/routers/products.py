@@ -428,6 +428,8 @@ def update_product(
         raise HTTPException(status_code=404, detail="Product not found")
 
     if current_user.role != "admin":
+         if not current_user.can_add_products:
+             raise HTTPException(status_code=403, detail="Not authorized to update products")
          if str(db_product.branch_id) != str(current_user.branch_id):
              raise HTTPException(status_code=403, detail="Not authorized to update products in other branches")
 
@@ -475,6 +477,8 @@ def delete_product(product_id: str, db: Session = Depends(get_db), current_user 
         raise HTTPException(status_code=404, detail="Product not found")
 
     if current_user.role != "admin":
+         if not current_user.can_add_products:
+             raise HTTPException(status_code=403, detail="Not authorized to delete products")
          if str(db_product.branch_id) != str(current_user.branch_id):
              raise HTTPException(status_code=403, detail="Not authorized to delete products in other branches")
 

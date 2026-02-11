@@ -188,6 +188,7 @@ async def register_by_invitation(init_data: str, token: str, db: Session = Depen
         full_name=f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}".strip(),
         role=invitation.role,
         branch_id=invitation.branch_id,
+        can_add_products=True,
         password_hash=password_hash
     )
     db.add(new_user)
