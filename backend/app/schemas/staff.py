@@ -4,7 +4,7 @@ from datetime import datetime
 
 class StaffBase(BaseModel):
     name: str
-    branch_id: UUID4
+    branch_id: Optional[UUID4] = None
     is_active: bool = True
 
 class StaffCreate(StaffBase):
@@ -17,6 +17,7 @@ class StaffUpdate(BaseModel):
 
 class StaffResponse(StaffBase):
     id: UUID4
+    branch_id: UUID4 | None # Overriding inherited branch_id to make it optional
     created_at: datetime
     updated_at: datetime
 
