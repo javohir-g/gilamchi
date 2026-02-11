@@ -56,6 +56,7 @@ import {
   Category,
 } from "../../context/AppContext";
 import { BottomNav } from "../shared/BottomNav";
+import { useLanguage } from "../../context/LanguageContext";
 import { toast } from "sonner";
 
 type ViewMode =
@@ -102,6 +103,7 @@ export function Inventory() {
     deleteProduct,
     collections,
   } = useApp();
+  const { t } = useLanguage();
 
   // Admin / General State
   const [filterBranch, setFilterBranch] = useState("all");
@@ -247,7 +249,7 @@ export function Inventory() {
       const isCorrectBranch =
         targetBranchId === "all" ||
         String(p.branchId) === String(targetBranchId);
-      const matchesCollection = (p.collection || "Kolleksiyasiz") === collectionName;
+      const matchesCollection = (p.collection || t('seller.withoutCollection')) === collectionName;
 
       // Category match logic
       let matchesCategory = false;
@@ -282,7 +284,7 @@ export function Inventory() {
         targetBranchId === "all" ||
         String(p.branchId) === String(targetBranchId);
       const matchesCollection =
-        (p.collection || "Kolleksiyasiz") === selectedCollection;
+        (p.collection || t('seller.withoutCollection')) === selectedCollection;
 
       // Category match logic
       let matchesCategory = false;
@@ -315,7 +317,7 @@ export function Inventory() {
           }
         });
       } else {
-        widthSet.add("O'lchamsiz");
+        widthSet.add(t('seller.withoutSize'));
       }
     });
 
@@ -343,9 +345,9 @@ export function Inventory() {
         targetBranchId === "all" ||
         String(p.branchId) === String(targetBranchId);
       const matchesCollection =
-        (p.collection || "Kolleksiyasiz") === selectedCollection;
+        (p.collection || t('seller.withoutCollection')) === selectedCollection;
 
-      const hasWidth = width === "O'lchamsiz"
+      const hasWidth = width === t('seller.withoutSize')
         ? (!p.availableSizes || p.availableSizes.length === 0)
         : p.availableSizes?.some(
           (s: any) => {
@@ -390,9 +392,9 @@ export function Inventory() {
         targetBranchId === "all" ||
         String(p.branchId) === String(targetBranchId);
       const matchesCollection =
-        (p.collection || "Kolleksiyasiz") === selectedCollection;
+        (p.collection || t('seller.withoutCollection')) === selectedCollection;
 
-      const hasWidth = width === "O'lchamsiz"
+      const hasWidth = width === t('seller.withoutSize')
         ? (!p.availableSizes || p.availableSizes.length === 0)
         : p.availableSizes?.some(
           (s: any) => {
@@ -445,7 +447,7 @@ export function Inventory() {
         targetBranchId === "all" ||
         String(p.branchId) === String(targetBranchId);
       const matchesCollection =
-        (p.collection || "Kolleksiyasiz") === selectedCollection;
+        (p.collection || t('seller.withoutCollection')) === selectedCollection;
 
       // Category match logic
       let matchesCategory = false;
@@ -469,9 +471,9 @@ export function Inventory() {
 
     const matchingSizes = new Set<string>();
     relevantProducts.forEach((p) => {
-      if (selectedWidth === "O'lchamsiz") {
+      if (selectedWidth === t('seller.withoutSize')) {
         if (!p.availableSizes || p.availableSizes.length === 0) {
-          matchingSizes.add("O'lchamsiz");
+          matchingSizes.add(t('seller.withoutSize'));
         }
       } else if (p.availableSizes) {
         p.availableSizes.forEach((s: any) => {
@@ -514,8 +516,8 @@ export function Inventory() {
         targetBranchId === "all" ||
         String(p.branchId) === String(targetBranchId);
       const matchesCollection =
-        (p.collection || "Kolleksiyasiz") === selectedCollection;
-      const hasSize = size === "O'lchamsiz"
+        (p.collection || t('seller.withoutCollection')) === selectedCollection;
+      const hasSize = size === t('seller.withoutSize')
         ? (!p.availableSizes || p.availableSizes.length === 0)
         : p.availableSizes?.some(s => getSizeStr(s) === size);
 
@@ -563,8 +565,8 @@ export function Inventory() {
         targetBranchId === "all" ||
         String(p.branchId) === String(targetBranchId);
 
-      const matchesCollection = !selectedCollection || String(p.collection || "Kolleksiyasiz") === selectedCollection;
-      const hasSize = !selectedSize || (selectedSize === "O'lchamsiz"
+      const matchesCollection = !selectedCollection || String(p.collection || t('seller.withoutCollection')) === selectedCollection;
+      const hasSize = !selectedSize || (selectedSize === t('seller.withoutSize')
         ? (!p.availableSizes || p.availableSizes.length === 0)
         : p.availableSizes?.some(s => getSizeStr(s) === selectedSize));
 
@@ -660,8 +662,8 @@ export function Inventory() {
       if (distinctSize) {
         setSelectedSize(getSizeStr(distinctSize));
         setViewMode("products");
-      } else if (width === "O'lchamsiz") {
-        setSelectedSize("O'lchamsiz");
+      } else if (width === t('seller.withoutSize')) {
+        setSelectedSize(t('seller.withoutSize'));
         setViewMode("products");
       }
     } else {
@@ -692,11 +694,11 @@ export function Inventory() {
         await updateProduct(productToMove.id, {
           branchId: targetBranchId,
         });
-        toast.success("Mahsulot ko'chirildi");
+        toast.success(t('messages.productMoved'));
         setMoveDialogOpen(false);
         setProductToMove(null);
       } catch (error) {
-        toast.error("Ko'chirishda xatolik yuz berdi");
+        toast.error(t('messages.moveError'));
       }
     }
   };
@@ -728,11 +730,11 @@ export function Inventory() {
           onValueChange={setFilterBranch}
         >
           <SelectTrigger className="h-12 bg-card border-border">
-            <SelectValue placeholder="Barcha filiallar" />
+            <SelectValue placeholder={t('seller.allBranches')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">
-              Barcha filiallar
+              {t('seller.allBranches')}
             </SelectItem>
             {branches.map((branch) => (
               <SelectItem key={branch.id} value={String(branch.id)}>
@@ -773,7 +775,7 @@ export function Inventory() {
                   className={`flex items-center justify-center space-x-2 text-sm ${config.color}`}
                 >
                   <Package className="h-4 w-4" />
-                  <span>{count} dona</span>
+                  <span>{count} {t('product.unit')}</span>
                 </div>
               </div>
             </Card>
@@ -803,7 +805,7 @@ export function Inventory() {
                 </h3>
                 <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
                   <Package className="h-4 w-4" />
-                  <span>{count} dona</span>
+                  <span>{count} {t('product.unit')}</span>
                 </div>
               </div>
             </Card>
@@ -811,7 +813,7 @@ export function Inventory() {
         })}
         {filteredCollectionNames.length === 0 && (
           <div className="col-span-2 text-center py-10 text-gray-500">
-            Hech qanday kolleksiya topilmadi
+            {t('messages.noResults')}
           </div>
         )}
       </div>
@@ -838,18 +840,18 @@ export function Inventory() {
           >
             <div className="mb-3 text-center">
               <span className="text-3xl font-bold text-card-foreground">
-                {width === "O'lchamsiz" ? width : `${width}x`}
+                {width === t('seller.withoutSize') ? width : `${width}x`}
               </span>
             </div>
 
             <div className="space-y-1">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>Qoldiq</span>
+                <span>{t('product.remaining')}</span>
                 <span className="font-semibold text-card-foreground">
                   {totalQuantity}{" "}
                   {selectedCategoryType === "Metrajlar"
                     ? "m"
-                    : "dona"}
+                    : t('product.unit')}
                 </span>
               </div>
               <Progress value={percentage} />
@@ -859,7 +861,7 @@ export function Inventory() {
       })}
       {widthsForCollection.length === 0 && (
         <div className="col-span-2 text-center py-10 text-gray-500">
-          Kenglik topilmadi
+          {t('messages.noResults')}
         </div>
       )}
     </div>
@@ -891,9 +893,9 @@ export function Inventory() {
 
             <div className="space-y-1">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>Qoldiq</span>
+                <span>{t('product.remaining')}</span>
                 <span className="font-semibold text-card-foreground">
-                  {totalQuantity} dona
+                  {totalQuantity} {t('product.unit')}
                 </span>
               </div>
               <Progress value={percentage} />
@@ -903,7 +905,7 @@ export function Inventory() {
       })}
       {heightsForWidth.length === 0 && (
         <div className="col-span-2 text-center py-10 text-gray-500">
-          Balandlik topilmadi
+          {t('messages.noResults')}
         </div>
       )}
     </div>
@@ -919,7 +921,7 @@ export function Inventory() {
           className="rounded-full px-4 h-9 font-medium"
           onClick={() => setSelectedCollection(null)}
         >
-          Hammasi
+          {t('common.all')}
         </Button>
         {filteredCollectionNames.map((c) => (
           <Button
@@ -939,7 +941,7 @@ export function Inventory() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Kod bo'yicha qidirish..."
+              placeholder={t('seller.searchPlaceholder')}
               className="pl-9 h-11 rounded-xl"
               value={sizeSearchQuery}
               onChange={(e) => setSizeSearchQuery(e.target.value)}
@@ -948,7 +950,7 @@ export function Inventory() {
         </div>
         {finalProducts.length === 0 ? (
           <div className="col-span-2 py-12 text-center text-muted-foreground">
-            <p>Mahsulot topilmadi</p>
+            <p>{t('messages.noResults')}</p>
           </div>
         ) : (
           finalProducts.map((product) => {
@@ -989,13 +991,13 @@ export function Inventory() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={(e) => handleEditClick(product, e)}>
-                          <Edit className="mr-2 h-4 w-4" /> Tahrirlash
+                          <Edit className="mr-2 h-4 w-4" /> {t('common.edit')}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={(e) => handleMoveClick(product, e)}>
-                          <ArrowRightLeft className="mr-2 h-4 w-4" /> Ko'chirish
+                          <ArrowRightLeft className="mr-2 h-4 w-4" /> {t('profile.move')}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={(e) => handleDeleteClick(product, e)}>
-                          <Trash2 className="mr-2 h-4 w-4" /> O'chirish
+                          <Trash2 className="mr-2 h-4 w-4" /> {t('common.delete')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -1073,12 +1075,12 @@ export function Inventory() {
                     <div className="space-y-2">
                       <div className="space-y-1">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Omborda:</span>
+                          <span className="text-muted-foreground">{t('product.inStock')}:</span>
                           <span className="font-medium text-foreground">
                             {product.type === "unit" ? (
-                              <>{product.quantity} dona</>
+                              <>{product.quantity} {t('product.unit')}</>
                             ) : (
-                              <>{product.remainingLength}/{product.totalLength} m</>
+                              <>{product.remainingLength}/{product.totalLength} {t('common.meter_short')}</>
                             )}
                           </span>
                         </div>
@@ -1091,7 +1093,7 @@ export function Inventory() {
                       </div>
 
                       <div className="text-blue-600 dark:text-blue-400 font-bold text-sm">
-                        {new Intl.NumberFormat("uz-UZ").format(product.sellPrice)} so'm
+                        {new Intl.NumberFormat("uz-UZ").format(product.sellPrice)} {t('common.currency')}
                       </div>
                     </div>
                   </div>
@@ -1120,18 +1122,18 @@ export function Inventory() {
           )}
           <h1 className="text-xl text-card-foreground flex-1 font-bold">
             {viewMode === "categories"
-              ? "Kategoriyalar"
+              ? t('product.categories')
               : viewMode === "collections"
-                ? selectedCategoryType
+                ? (selectedCategoryType ? t(`product.${selectedCategoryType.toLowerCase()}` as any) : "")
                 : viewMode === "widths"
-                  ? `${selectedCollection} - Eni`
+                  ? `${selectedCollection} - ${t('seller.widths')}`
                   : viewMode === "heights"
-                    ? `${selectedWidth}x - Balandligi`
+                    ? `${selectedWidth}x - ${t('seller.heights')}`
                     : (selectedCollection && selectedSize)
                       ? `${selectedCollection} (${selectedSize})`
                       : (selectedCollection)
                         ? selectedCollection
-                        : selectedCategoryType}
+                        : (selectedCategoryType ? t(`product.${selectedCategoryType.toLowerCase()}` as any) : "")}
           </h1>
           {isAdmin && (
             <DropdownMenu>
@@ -1146,13 +1148,13 @@ export function Inventory() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => navigate("/seller/add-product")}>
-                  <Plus className="mr-2 h-4 w-4" /> Mahsulot qo'shish
+                  <Plus className="mr-2 h-4 w-4" /> {t('seller.addProduct')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/admin/manage-collections")}>
-                  <Package className="mr-2 h-4 w-4" /> Kolleksiyalarni boshqarish
+                  <Package className="mr-2 h-4 w-4" /> {t('admin.collections')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/admin/manage-sizes")}>
-                  <Ruler className="mr-2 h-4 w-4" /> O'lchamlarni boshqarish
+                  <Ruler className="mr-2 h-4 w-4" /> {t('admin.sizes')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -1179,9 +1181,9 @@ export function Inventory() {
       <Dialog open={moveDialogOpen} onOpenChange={setMoveDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Mahsulotni ko'chirish</DialogTitle>
+            <DialogTitle>{t('profile.move')}</DialogTitle>
             <DialogDescription>
-              Mahsulotni boshqa filialga ko'chirish uchun filial tanlang
+              {t('messages.selectBranchToMove')}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
@@ -1203,9 +1205,9 @@ export function Inventory() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setMoveDialogOpen(false)}>
-              Bekor qilish
+              {t('common.cancel')}
             </Button>
-            <Button onClick={handleConfirmMove}>Tasdiqlash</Button>
+            <Button onClick={handleConfirmMove}>{t('common.confirm')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1213,8 +1215,8 @@ export function Inventory() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Mahsulotni o'chirish</DialogTitle>
-            <DialogDescription>Bu amalni bekor qilish mumkin emas</DialogDescription>
+            <DialogTitle>{t('common.delete')}</DialogTitle>
+            <DialogDescription>{t('messages.confirmDeleteProduct')}</DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
             <p className="text-sm text-muted-foreground">
@@ -1223,7 +1225,7 @@ export function Inventory() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Bekor qilish
+              {t('common.cancel')}
             </Button>
             <Button
               disabled={isDeleting}
@@ -1232,18 +1234,18 @@ export function Inventory() {
                   try {
                     setIsDeleting(true);
                     await deleteProduct(productToDelete.id);
-                    toast.success("Mahsulot o'chirildi");
+                    toast.success(t('messages.deleteSuccess'));
                     setDeleteDialogOpen(false);
                     setProductToDelete(null);
                   } catch (error) {
-                    toast.error("O'chirishda xatolik yuz berdi");
+                    toast.error(t('messages.error'));
                   } finally {
                     setIsDeleting(false);
                   }
                 }
               }}
             >
-              Tasdiqlash
+              {t('common.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>

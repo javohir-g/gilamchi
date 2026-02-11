@@ -18,6 +18,7 @@ import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { useApp, Product } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { productService } from "../../../services/api";
 import { BottomNav } from "../shared/BottomNav";
 import { AddToBasketModal } from "./AddToBasketModal";
@@ -32,16 +33,17 @@ export function SellProduct() {
     useState<Category | null>(null);
   const navigate = useNavigate();
   const { products, user, basket, addToBasket, collections } = useApp();
+  const { t } = useLanguage();
 
   const categories: {
     name: Category;
     label: string;
     icon: string;
   }[] = [
-      { name: "Gilamlar", label: "Gilamlar", icon: "🧵" },
-      { name: "Metrajlar", label: "Metrajlar", icon: "📏" },
-      { name: "Ovalniy", label: "Ovalniy", icon: "⭕" },
-      { name: "Kovrik", label: "Kovrik", icon: "🔲" },
+      { name: "Gilamlar", label: t('product.carpets'), icon: "🧵" },
+      { name: "Metrajlar", label: t('product.meters'), icon: "📏" },
+      { name: "Ovalniy", label: t('product.oval'), icon: "⭕" },
+      { name: "Kovrik", label: t('product.rugs'), icon: "🔲" },
     ];
 
   const getCollectionIcon = (collectionName?: string) => {
@@ -173,7 +175,7 @@ export function SellProduct() {
     };
 
     addToBasket(item);
-    toast.success("Mahsulot savatga qo'shildi!");
+    toast.success(t('messages.addedToBasket'));
     setSelectedProduct(null);
   };
 
@@ -248,13 +250,13 @@ export function SellProduct() {
       setSimilarProducts(response);
 
       if (response.length === 0) {
-        toast.info("O'xshash mahsulotlar topilmadi. Boshqa rasm bilan urinib ko'ring.");
+        toast.info(t('messages.noSimilarProducts'));
       } else {
-        toast.success(`${response.length} ta o'xshash mahsulot topildi!`);
+        toast.success(t('messages.similarProductsFound').replace('{count}', response.length.toString()));
       }
     } catch (error) {
       console.error("Search error:", error);
-      toast.error("Rasm orqali qidirishda xatolik bo'ldi. Qaytadan urinib ko'ring.");
+      toast.error(t('messages.error'));
     } finally {
       setIsAnalyzing(false);
     }
@@ -300,7 +302,7 @@ export function SellProduct() {
             <ArrowLeft className="h-6 w-6 dark:text-white" />
           </Button>
           <h1 className="text-xl dark:text-white">
-            Mahsulot sotish
+            {t('seller.sellProduct')}
           </h1>
           <Button
             variant="ghost"
@@ -317,7 +319,7 @@ export function SellProduct() {
 
         {!user?.branchId && user?.role === 'seller' && (
           <div className="mx-4 mb-4 p-3 bg-red-100 border border-red-200 text-red-800 rounded-lg text-sm">
-            Filialingiz aniqlanmadi. Mahsulotlarni ko'rish uchun profilingizda filial biriktirilgan bo'lishi kerak.
+            {t('messages.noData')}
           </div>
         )}
 
@@ -326,7 +328,7 @@ export function SellProduct() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Mahsulot nomi yoki kodi..."
+              placeholder={t('seller.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="h-12 pl-10 pr-4 bg-input-background border-border"
@@ -339,7 +341,7 @@ export function SellProduct() {
             className="w-full h-12 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg flex items-center justify-center gap-2 transition-colors active:scale-98"
           >
             <Camera className="h-5 w-5" />
-            <span>Rasm orqali qidirish</span>
+            <span>{t('seller.cameraSearch')}</span>
           </button>
         </div>
       </div>
@@ -352,7 +354,7 @@ export function SellProduct() {
             className={`rounded-full ${selectedCategory === null ? "bg-blue-600 text-white hover:bg-blue-700" : ""}`}
             onClick={() => setSelectedCategory(null)}
           >
-            Barchasi
+            {t('common.all')}
           </Button>
           {categories.map((cat) => (
             <Button
@@ -372,7 +374,7 @@ export function SellProduct() {
       <div className="p-4 space-y-3">
         {filteredProducts.length === 0 ? (
           <div className="py-12 text-center text-muted-foreground">
-            <p>Mahsulot topilmadi</p>
+            <p>{t('messages.noResults')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
@@ -411,10 +413,10 @@ export function SellProduct() {
                                 className="flex flex-col items-center justify-center min-w-[54px] p-1.5 rounded-lg border border-blue-100 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-900/10"
                               >
                                 <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 leading-tight">
-                                  {w}m
+                                  {w}{t('common.meter_short')}
                                 </span>
                                 <span className="text-[9px] text-muted-foreground font-medium">
-                                  {l.toFixed(1)}m
+                                  {l.toFixed(1)}{t('common.meter_short')}
                                 </span>
                               </div>
                             );
@@ -441,7 +443,7 @@ export function SellProduct() {
                       size="sm"
                     >
                       <Plus className="h-4 w-4 mr-1" />
-                      Qo'shish
+                      {t('common.add')}
                     </Button>
                   </div>
                 </div>
@@ -458,7 +460,7 @@ export function SellProduct() {
           product={selectedProduct}
           onAdd={(item) => {
             addToBasket(item);
-            toast.success("Mahsulot savatga qo'shildi!", {
+            toast.success(t('messages.addedToBasket'), {
               duration: 1000,
             });
           }}
@@ -482,14 +484,14 @@ export function SellProduct() {
 
           <div className="w-full max-w-sm space-y-3 text-center">
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-white">Rasm orqali qidirish</h2>
-              <p className="text-gray-400">Mahsulotni topish uchun rasmga oling yoki yuklang</p>
+              <h2 className="text-2xl font-bold text-white">{t('seller.cameraSearch')}</h2>
+              <p className="text-gray-400">{t('seller.cameraSearchDesc')}</p>
             </div>
 
             {isAnalyzing ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="text-white">Qidirilmoqda...</p>
+                <p className="text-white">{t('common.loading')}</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-4">
@@ -501,7 +503,7 @@ export function SellProduct() {
                   }}
                 >
                   <Camera className="w-10 h-10" />
-                  <span>Kamera</span>
+                  <span>{t('common.camera')}</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -512,7 +514,7 @@ export function SellProduct() {
                   }}
                 >
                   <ImageIcon className="w-10 h-10" />
-                  <span>Galereya</span>
+                  <span>{t('common.gallery')}</span>
                 </Button>
               </div>
             )}
@@ -551,7 +553,7 @@ export function SellProduct() {
             <div className="sticky top-0 bg-card border-b border-border z-10 shadow-sm">
               <div className="p-4 flex items-center justify-between">
                 <h2 className="text-xl text-card-foreground">
-                  O'xshash mahsulotlar
+                  {t('seller.similarProducts')}
                 </h2>
                 <Button
                   variant="ghost"
@@ -570,7 +572,7 @@ export function SellProduct() {
                     className={`rounded-full h-8 px-3 text-xs ${selectedCategory === null ? "bg-blue-600 text-white" : ""}`}
                     onClick={() => setSelectedCategory(null)}
                   >
-                    Barchasi
+                    {t('common.all')}
                   </Button>
                   {categories.map((cat) => (
                     <Button
@@ -639,22 +641,22 @@ export function SellProduct() {
                           {product.similarity_percentage !== undefined && (
                             <div className="flex items-center gap-2 text-muted-foreground">
                               <span className="text-green-600 dark:text-green-400 font-medium">
-                                ✓ {Math.round(product.similarity_percentage)}% o'xshashlik
+                                ✓ {t('seller.similarity').replace('{percent}', Math.round(product.similarity_percentage).toString())}
                               </span>
                             </div>
                           )}
                           {product.type === "unit" ? (
                             <div className="text-muted-foreground">
-                              Qoldiq:{" "}
+                              {t('product.inStock')}:{" "}
                               <span className="font-medium text-card-foreground">
-                                {product.quantity} dona
+                                {product.quantity} {t('common.unit')}
                               </span>
                             </div>
                           ) : (
                             <div className="text-muted-foreground">
-                              Qoldiq:{" "}
+                              {t('product.inStock')}:{" "}
                               <span className="font-medium text-card-foreground">
-                                {product.remainingLength} m
+                                {product.remainingLength} {t('common.meter')}
                               </span>
                             </div>
                           )}
@@ -668,7 +670,7 @@ export function SellProduct() {
                           size="sm"
                         >
                           <Plus className="h-4 w-4 mr-2" />
-                          Savatchaga qo'shish
+                          {t('seller.basket')}
                         </Button>
                       </div>
                     </div>
@@ -688,7 +690,7 @@ export function SellProduct() {
               setIsLiveCameraOpen(false);
             }}
             onClose={() => setIsLiveCameraOpen(false)}
-            title="Qidirish uchun rasmga oling"
+            title={t('seller.cameraSearch')}
           />
         )}
       </AnimatePresence>

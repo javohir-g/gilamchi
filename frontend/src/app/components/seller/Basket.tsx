@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { useApp, BasketItem } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { Input } from "../ui/input";
 import { BottomNav } from "../shared/BottomNav";
 import { EditBasketItemModal } from "./EditBasketItemModal";
@@ -19,6 +20,7 @@ export function Basket() {
   const navigate = useNavigate();
   const { basket, removeFromBasket, updateBasketItem, updateBasketItemFull, products, exchangeRate } =
     useApp();
+  const { t } = useLanguage();
   const [editingItem, setEditingItem] = useState<BasketItem | null>(null);
 
   const formatCurrency = (amount: number, currency: "USD" | "UZS" = "UZS") => {
@@ -71,14 +73,7 @@ export function Basket() {
       <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center space-x-4">
-            {/* <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate('/seller/sell')}
-            >
-              <ArrowLeft className="h-6 w-6 dark:text-white" />
-            </Button> */}
-            <h1 className="text-xl dark:text-white">Savat</h1>
+            <h1 className="text-xl dark:text-white">{t('seller.basket')}</h1>
           </div>
           <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
             <ShoppingCart className="h-5 w-5" />
@@ -97,12 +92,12 @@ export function Basket() {
 
             {/* Heading */}
             <h3 className="mb-2 text-xl text-gray-900 dark:text-white">
-              Savat bo'sh
+              {t('messages.basketEmpty')}
             </h3>
 
             {/* Description */}
             <p className="text-center text-gray-500 dark:text-gray-400 mb-8 max-w-sm">
-              Mahsulot sotish uchun savatga qo'shing
+              {t('messages.basketEmptyDesc')}
             </p>
 
             {/* Action Buttons */}
@@ -113,7 +108,7 @@ export function Basket() {
                 className="w-full h-14 text-base bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
               >
                 <Plus className="mr-2 h-5 w-5" />
-                Mahsulot sotish
+                {t('seller.sellProduct')}
               </Button>
             </div>
           </div>
@@ -126,7 +121,7 @@ export function Basket() {
               className="w-full h-12 border-2 border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950"
             >
               <Plus className="h-5 w-5 mr-2" />
-              Mahsulot qo'shish
+              {t('seller.addProduct')}
             </Button>
 
             {basket.map((item) => (
@@ -148,16 +143,16 @@ export function Basket() {
                         </h3>
                         {item.width && item.height && item.area && (
                           <p className="text-sm text-gray-500 dark:text-gray-400">
-                            O'lcham: {item.width}×{item.height} ({item.area.toFixed(2)} m²)
+                            {t('product.size')}: {item.width}×{item.height} ({item.area.toFixed(2)} m²)
                           </p>
                         )}
                         {item.category !== "Metrajlar" && (
                           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                             {item.width && item.height
-                              ? `Soni: ${item.quantity}`
+                              ? `${t('seller.quantityUnit')}: ${item.quantity}`
                               : (item.type === "unit"
-                                ? `Miqdor: ${item.quantity}`
-                                : `Metr: ${item.quantity}`)}
+                                ? `${t('seller.quantity')}: ${item.quantity}`
+                                : `${t('common.meter')}: ${item.quantity}`)}
                           </p>
                         )}
                       </div>
@@ -186,7 +181,7 @@ export function Basket() {
                     <div className="flex justify-between items-end pt-2 border-t dark:border-gray-700">
                       <div className="text-xs text-gray-500 dark:text-gray-400">
                         {formatCurrency(item.pricePerUnit * exchangeRate)}
-                        {item.type === "meter" ? " / m²" : " / dona"}
+                        {item.type === "meter" ? t('seller.perSqm') : t('seller.perUnit')}
                       </div>
                       <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
                         {formatCurrency(item.total * exchangeRate)}
@@ -211,7 +206,7 @@ export function Basket() {
           product={products.find((p) => p.id === editingItem.productId)!}
           onUpdate={(updatedItem) => {
             updateBasketItemFull(updatedItem);
-            toast.success("Mahsulot o'zgartirildi!", {
+            toast.success(t('messages.itemUpdated'), {
               duration: 1000,
             });
             setEditingItem(null);

@@ -19,6 +19,7 @@ import {
   Category,
   ProductType,
 } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { toast } from "sonner";
 import { BottomNav } from "../shared/BottomNav";
 import { LiveCamera } from "../shared/LiveCamera";
@@ -28,6 +29,7 @@ export function AddProduct() {
   const navigate = useNavigate();
   const { id } = useParams(); // Get product ID from URL if editing
   const { user, addProduct, updateProduct, products, branches, collections } = useApp();
+  const { t } = useLanguage();
 
   const isEditMode = Boolean(id);
 
@@ -250,12 +252,12 @@ export function AddProduct() {
 
   const handleSave = async () => {
     if (!code || !buyPrice || !sellPrice) {
-      toast.error("Barcha maydonlarni to'ldiring!");
+      toast.error(t('messages.fillAllFields'));
       return;
     }
 
-    if (type === "unit" && !quantity) {
-      toast.error("Miqdorni kiriting!");
+    if (type === "unit" && availableSizes.length === 0) {
+      toast.error(t('messages.fillAllFields'));
       return;
     }
 
@@ -263,7 +265,7 @@ export function AddProduct() {
       type === "meter" &&
       (!totalLength || !sellPricePerMeter)
     ) {
-      toast.error("Metr va narxni kiriting!");
+      toast.error(t('messages.fillAllFields'));
       return;
     }
 
@@ -290,60 +292,30 @@ export function AddProduct() {
       };
 
     setIsSaving(true);
-    if (isEditMode && id) {
-      const productToEdit = products.find((p) => p.id === id);
-      let finalTypeData = { ...typeSpecificData };
-
-      if (productToEdit && productToEdit.type === 'meter' && type === 'meter') {
-        if (productToEdit.totalLength === parseFloat(totalLength)) {
-          finalTypeData.remainingLength = productToEdit.remainingLength || parseFloat(totalLength);
-        } else {
-          if (productToEdit.totalLength !== parseFloat(totalLength)) {
-            finalTypeData.remainingLength = parseFloat(totalLength);
-          } else {
-            finalTypeData.remainingLength = productToEdit.remainingLength;
-          }
-        }
-      }
-
-      try {
+    try {
+      if (isEditMode && id) {
         await updateProduct(id, {
           ...commonData,
-          ...finalTypeData
+          ...typeSpecificData
         });
-        toast.success("Mahsulot yangilandi!");
-        navigate(-1);
-      } catch (error: any) {
-        toast.error("Xatolik: " + error.message);
-      } finally {
-        setIsSaving(false);
-      }
-    } else {
-      // Create - с оптимистичным обновлением
-      const newProduct = {
-        id: `p${Date.now()}`,
-        branchId: branchId,
-        ...commonData,
-        ...typeSpecificData
-      };
-
-      try {
-        // Показываем мгновенный успех
-        toast.success("Mahsulot qo'shildi!");
-
-        // Мгновенно переходим назад (оптимистичное обновление в AppContext)
-        navigate("/seller/home");
-
-        // API вызов происходит в фоне через AppContext
+        toast.success(t('messages.productUpdated'));
+      } else {
+        const newProduct = {
+          ...commonData,
+          ...typeSpecificData,
+          id: `p${Date.now()}`,
+          branchId: branchId,
+          createdAt: new Date().toISOString(),
+          isActive: true,
+        };
         await addProduct(newProduct);
-
-      } catch (error: any) {
-        console.error("Error adding product:", error);
-        // Если ошибка - показываем уведомление (пользователь уже на другой странице)
-        toast.error("Mahsulot qo'shishda xatolik bo'ldi: " + (error.response?.data?.detail || error.message));
-      } finally {
-        setIsSaving(false);
+        toast.success(t('messages.productAdded'));
       }
+      navigate(-1);
+    } catch (error: any) {
+      toast.error(t('messages.productAddError'));
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -379,7 +351,7 @@ export function AddProduct() {
             <ArrowLeft className="h-6 w-6 dark:text-white" />
           </Button>
           <h1 className="text-xl font-bold dark:text-white">
-            {isEditMode ? "Mahsulotni tahrirlash" : "Mahsulot qo'shish"}
+            {isEditMode ? t('seller.editProduct') : t('product.add')}
           </h1>
         </div>
       </div>
@@ -388,7 +360,7 @@ export function AddProduct() {
         {/* 1. Rasmi */}
         <section className="space-y-3">
           <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider ml-1">
-            Media
+            {t('seller.media')}
           </h2>
           <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
             <div className="space-y-4">
@@ -433,7 +405,7 @@ export function AddProduct() {
                   onClick={() => triggerFileInput(true)}
                 >
                   <Camera className="mr-2 h-5 w-5" />
-                  Rasmga olish
+                  {t('seller.takePhoto')}
                 </Button>
                 <Button
                   type="button"
@@ -442,7 +414,7 @@ export function AddProduct() {
                   onClick={() => triggerFileInput(false)}
                 >
                   <ImageIcon className="mr-2 h-5 w-5" />
-                  Galereya
+                  {t('seller.gallery')}
                 </Button>
               </div>
             </div>
@@ -452,41 +424,41 @@ export function AddProduct() {
         {/* 2. Asosiy ma'lumotlar */}
         <section className="space-y-3">
           <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider ml-1">
-            Asosiy ma'lumotlar
+            {t('seller.mainInfo')}
           </h2>
           <Card className="p-6 dark:bg-gray-800 dark:border-gray-700 space-y-5">
             <div>
-              <Label className="mb-2 block text-sm font-medium">Mahsulot kodi (Artikul)</Label>
+              <Label className="mb-2 block text-sm font-medium">{t('seller.productCodeArtikul')}</Label>
               <Input
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                placeholder="Masalan: L-100"
+                placeholder={`${t('common.forExample')}: L-100`}
                 className="h-12 rounded-xl"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="mb-2 block text-sm font-medium">Kategoriya</Label>
+                <Label className="mb-2 block text-sm font-medium">{t('common.category')}</Label>
                 <Select value={category} onValueChange={(v) => setCategory(v as Category)}>
                   <SelectTrigger className="h-12 rounded-xl">
-                    <SelectValue />
+                    <SelectValue placeholder={t('common.category')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Gilamlar">Gilamlar</SelectItem>
-                    <SelectItem value="Metrajlar">Metrajlar</SelectItem>
-                    <SelectItem value="Ovalniy">Ovalniy</SelectItem>
-                    <SelectItem value="Kovrik">Kovrik</SelectItem>
+                    <SelectItem value="Gilamlar">{t('product.carpets')}</SelectItem>
+                    <SelectItem value="Metrajlar">{t('product.meters')}</SelectItem>
+                    <SelectItem value="Ovalniy">{t('product.oval')}</SelectItem>
+                    <SelectItem value="Kovrik">{t('product.rugs')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label className="mb-2 block text-sm font-medium">Filial</Label>
+                <Label className="mb-2 block text-sm font-medium">{t('common.branch')}</Label>
                 {user?.role === "admin" ? (
                   <Select value={branchId} onValueChange={setBranchId}>
                     <SelectTrigger className="h-12 rounded-xl">
-                      <SelectValue placeholder="Tanlang" />
+                      <SelectValue placeholder={t('seller.selectBranch')} />
                     </SelectTrigger>
                     <SelectContent>
                       {branches.map((b) => (
@@ -505,7 +477,7 @@ export function AddProduct() {
             </div>
 
             <div>
-              <Label className="mb-2 block text-sm font-medium">Kolleksiya</Label>
+              <Label className="mb-2 block text-sm font-medium">{t('common.collection')}</Label>
               <div className="space-y-3">
                 <Select
                   value={isCustomCollection ? "custom" : collection}
@@ -519,7 +491,7 @@ export function AddProduct() {
                   }}
                 >
                   <SelectTrigger className="h-12 rounded-xl">
-                    <SelectValue placeholder="Kolleksiyani tanlang" />
+                    <SelectValue placeholder={t('seller.selectCollection')} />
                   </SelectTrigger>
                   <SelectContent>
                     {collections.map((c) => (
@@ -527,7 +499,7 @@ export function AddProduct() {
                         {c.name}
                       </SelectItem>
                     ))}
-                    <SelectItem value="custom">Boshqa... (Qo'lda kiritish)</SelectItem>
+                    <SelectItem value="custom">{t('common.other')}... ({t('seller.manualEntry')})</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -538,7 +510,7 @@ export function AddProduct() {
                       setCustomCollection(e.target.value);
                       setCollection(e.target.value);
                     }}
-                    placeholder="Kolleksiya nomini kiriting..."
+                    placeholder={t('seller.enterCollectionName')}
                     className="h-12 rounded-xl"
                   />
                 )}
@@ -550,12 +522,12 @@ export function AddProduct() {
         {/* 3. Tavsifi (Dona vs Metr) */}
         <section className="space-y-3">
           <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider ml-1">
-            Xarakteristikalar
+            {t('seller.characteristics')}
           </h2>
           <Card className="p-6 dark:bg-gray-800 dark:border-gray-700 space-y-5">
-            <div>
+            <div className="space-y-4">
               <Label className="mb-3 block text-sm font-medium text-muted-foreground italic">
-                Sotish usuli
+                {t('seller.salesMethod')}
               </Label>
               <RadioGroup value={type} onValueChange={(v) => setType(v as ProductType)} className="flex gap-4">
                 <div className="flex-1">
@@ -564,8 +536,8 @@ export function AddProduct() {
                     htmlFor="type-unit"
                     className="flex flex-col items-center justify-center rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-blue-600 [&:has([data-state=checked])]:border-blue-600 transition-all cursor-pointer"
                   >
-                    <span className="font-bold">Dona</span>
-                    <span className="text-[10px] text-muted-foreground">Tayyor o'lchamlar</span>
+                    <span className="font-bold">{t('seller.unitType')}</span>
+                    <span className="text-[10px] text-muted-foreground">{t('seller.readySizes')}</span>
                   </Label>
                 </div>
                 <div className="flex-1">
@@ -574,8 +546,8 @@ export function AddProduct() {
                     htmlFor="type-meter"
                     className="flex flex-col items-center justify-center rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-blue-600 [&:has([data-state=checked])]:border-blue-600 transition-all cursor-pointer"
                   >
-                    <span className="font-bold">Metr</span>
-                    <span className="text-[10px] text-muted-foreground">Rulonli (kesib beriladi)</span>
+                    <span className="font-bold">{t('seller.meterType')}</span>
+                    <span className="text-[10px] text-muted-foreground">{t('seller.rollType')}</span>
                   </Label>
                 </div>
               </RadioGroup>
@@ -586,7 +558,7 @@ export function AddProduct() {
               <div className="space-y-5">
                 <div>
                   <Label className="mb-2 block text-sm font-medium">
-                    Mavjud o'lchamlar (masalan: 2x3)
+                    {t('seller.readySizes')} ({t('seller.availableSizesInput')})
                   </Label>
                   <div className="flex space-x-2">
                     <Input
@@ -599,7 +571,7 @@ export function AddProduct() {
                       type="number"
                       value={sizeQuantityInput}
                       onChange={(e) => setSizeQuantityInput(e.target.value)}
-                      placeholder="Soni"
+                      placeholder={t('common.quantityShort')}
                       className="h-12 w-24 rounded-xl text-center"
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
@@ -637,7 +609,7 @@ export function AddProduct() {
                           className="flex items-center py-1.5 px-3 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-100 rounded-lg group"
                         >
                           <span className="font-bold mr-1">{s.size}</span>
-                          <span className="text-[10px] opacity-70">({s.quantity} dona)</span>
+                          <span className="text-[10px] opacity-70">({s.quantity} {t('common.unit')})</span>
                           <X
                             className="ml-2 h-3.5 w-3.5 cursor-pointer text-blue-400 hover:text-red-500 transition-colors"
                             onClick={(e: React.MouseEvent) => {
@@ -651,7 +623,7 @@ export function AddProduct() {
                   )}
                 </div>
                 <div>
-                  <Label className="mb-2 block text-sm font-medium">Ombordagi mavjud soni</Label>
+                  <Label className="mb-2 block text-sm font-medium">{t('seller.stockQuantity')}</Label>
                   <div className="relative">
                     <Input
                       type="number"
@@ -670,7 +642,7 @@ export function AddProduct() {
               <div className="space-y-5">
                 <div>
                   <Label className="mb-2 block text-sm font-medium">
-                    Rulonlarni qo'shing (Eni x Bo'yi)
+                    {t('seller.addRolls')} (Eni x Bo'yi)
                   </Label>
                   <div className="flex space-x-2">
                     <div className="flex-1">
@@ -679,7 +651,7 @@ export function AddProduct() {
                         step="0.1"
                         value={sizeInput}
                         onChange={(e) => setSizeInput(e.target.value)}
-                        placeholder="Eni (m)"
+                        placeholder={`${t('product.width')} (${t('common.meter_short')})`}
                         className="h-12 w-full rounded-xl"
                       />
                     </div>
@@ -689,7 +661,7 @@ export function AddProduct() {
                         step="0.1"
                         value={sizeQuantityInput}
                         onChange={(e) => setSizeQuantityInput(e.target.value)}
-                        placeholder="Bo'yi (m)"
+                        placeholder={`${t('product.height')} (${t('common.meter_short')})`}
                         className="h-12 w-full rounded-xl"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
@@ -736,7 +708,7 @@ export function AddProduct() {
                           className="flex items-center py-1.5 px-3 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-100 rounded-lg group"
                         >
                           <span className="font-bold mr-1">{s.size}m</span>
-                          <span className="text-[10px] opacity-70">({s.quantity} rulon)</span>
+                          <span className="text-[10px] opacity-70">({s.quantity} {t('seller.roll')})</span>
                           <X
                             className="ml-2 h-3.5 w-3.5 cursor-pointer text-green-400 hover:text-red-500 transition-colors"
                             onClick={(e: React.MouseEvent) => {
@@ -752,7 +724,7 @@ export function AddProduct() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="mb-2 block text-sm font-medium">Umumiy uzunlik (m)</Label>
+                    <Label className="mb-2 block text-sm font-medium">{t('seller.totalLength')}</Label>
                     <div className="relative">
                       <Input
                         type="number"
@@ -768,13 +740,13 @@ export function AddProduct() {
                     </div>
                   </div>
                   <div>
-                    <Label className="mb-2 block text-sm font-medium">Rulon eni (m)</Label>
+                    <Label className="mb-2 block text-sm font-medium">{t('seller.rollWidth')}</Label>
                     <Input
                       type="number"
                       step="0.1"
                       value={width}
                       onChange={(e) => setWidth(e.target.value)}
-                      placeholder="Masalan: 3"
+                      placeholder={`${t('common.forExample')}: 3`}
                       className="h-12 rounded-xl"
                     />
                   </div>
@@ -788,11 +760,11 @@ export function AddProduct() {
         <section className="space-y-3">
           <div className="flex justify-between items-end">
             <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider ml-1">
-              Narxlar
+              {t('seller.prices')}
             </h2>
             {pricePerM2 && (
               <span className="text-[10px] text-blue-600 font-bold bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded">
-                Narxi: {pricePerM2} so'm / m²
+                {t('seller.price')}: {pricePerM2} {t('common.currency')} / {t('common.meter_short')}²
               </span>
             )}
           </div>
@@ -828,21 +800,21 @@ export function AddProduct() {
             {/* Display Calculated Prices for Verification */}
             <div className="grid grid-cols-2 gap-4 pt-2">
               <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                <Label className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Xarid Narxi (Avto)</Label>
+                <Label className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('seller.buyPriceAuto')}</Label>
                 <div className="text-xl font-bold mt-1 text-slate-700 dark:text-slate-300">
                   ${buyPriceUsd || "0"}
                 </div>
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  Kolleksiya: ${collections.find(c => c.name === collection)?.buy_price_per_sqm || 0}/m²
+                  {t('common.collection')}: ${collections.find(c => c.name === collection)?.buy_price_per_sqm || 0}/m²
                 </p>
               </div>
               <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
-                <Label className="text-xs text-blue-600/70 dark:text-blue-400/70 uppercase font-bold tracking-wider">Sotish (Filialga)</Label>
+                <Label className="text-xs text-blue-600/70 dark:text-blue-400/70 uppercase font-bold tracking-wider">{t('seller.sellToBranch')}</Label>
                 <div className="text-xl font-bold mt-1 text-blue-600 dark:text-blue-400">
                   ${parseFloat(sellPrice || "0").toFixed(2)}
                 </div>
                 <p className="text-[10px] text-blue-500/70 mt-1">
-                  Kolleksiya: ${collections.find(c => c.name === collection)?.price_per_sqm || 0}/m²
+                  {t('common.collection')}: ${collections.find(c => c.name === collection)?.price_per_sqm || 0}/m²
                 </p>
               </div>
             </div>
@@ -858,7 +830,7 @@ export function AddProduct() {
           size="lg"
           disabled={isSaving}
         >
-          {isSaving ? "Saqlanmoqda..." : (isEditMode ? "Tahrirlashni saqlash" : "Mahsulotni yaratish")}
+          {isSaving ? `${t('common.saving')}...` : (isEditMode ? t('seller.saveEdit') : t('seller.createProduct'))}
         </Button>
       </div>
 

@@ -17,6 +17,7 @@ import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 import { useApp } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { BottomNav } from "../shared/BottomNav";
 import { DatePickerWithRange } from "../ui/date-range-picker";
 import { DateRange } from "react-day-picker";
@@ -31,6 +32,7 @@ export function AdminDashboard() {
     useState(false);
   const navigate = useNavigate();
   const { sales, branches, debts, exchangeRate } = useApp();
+  const { t } = useLanguage();
 
   // Helper to filter sales by period
   const getFilteredSales = () => {
@@ -182,7 +184,7 @@ export function AdminDashboard() {
                 : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
             >
-              Bugun
+              {t('common.today')}
             </button>
             <button
               onClick={() => setPeriod("week")}
@@ -191,7 +193,7 @@ export function AdminDashboard() {
                 : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
             >
-              Hafta
+              {t('common.week')}
             </button>
             <button
               onClick={() => setPeriod("month")}
@@ -200,7 +202,7 @@ export function AdminDashboard() {
                 : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
             >
-              Oy
+              {t('common.month')}
             </button>
             <button
               onClick={() => setPeriod("custom")}
@@ -209,7 +211,7 @@ export function AdminDashboard() {
                 : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
             >
-              Boshqa
+              {t('common.other')}
             </button>
           </div>
 
@@ -234,7 +236,7 @@ export function AdminDashboard() {
                 <div className="flex items-center space-x-2 mb-2">
                   <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-blue-100" />
                   <span className="text-xs md:text-sm font-medium text-blue-100/80">
-                    Jami savdo
+                    {t('admin.totalSales')}
                   </span>
                 </div>
                 <div className="text-xl md:text-3xl font-bold text-white tracking-tight">
@@ -242,7 +244,7 @@ export function AdminDashboard() {
                 </div>
               </div>
               <div className="mt-2 text-[10px] md:text-xs text-blue-100/60 font-medium uppercase tracking-wider">
-                {filteredSales.length} ta savdodan
+                {t('messages.salesCount').replace('{count}', filteredSales.length.toString())}
               </div>
             </div>
           </Card>
@@ -257,7 +259,7 @@ export function AdminDashboard() {
                 <div className="flex items-center space-x-2 mb-2">
                   <HandCoins className="h-4 w-4 md:h-5 md:w-5 text-indigo-100" />
                   <span className="text-xs md:text-sm font-medium text-indigo-100/80">
-                    Mening foydam
+                    {t('admin.myProfit')}
                   </span>
                 </div>
                 <div className="text-xl md:text-3xl font-bold text-white tracking-tight">
@@ -265,7 +267,7 @@ export function AdminDashboard() {
                 </div>
               </div>
               <div className="mt-2 text-[10px] md:text-xs text-indigo-100/60 font-medium uppercase tracking-wider">
-                Sof daromad
+                {t('admin.netProfit')}
               </div>
             </div>
           </Card>
@@ -280,7 +282,7 @@ export function AdminDashboard() {
                 <div className="flex items-center space-x-2 mb-2">
                   <DollarSign className="h-4 w-4 md:h-5 md:w-5 text-emerald-100" />
                   <span className="text-xs md:text-sm font-medium text-emerald-100/80">
-                    Sotuvchilar foydasi
+                    {t('admin.sellerProfits')}
                   </span>
                 </div>
                 <div className="text-xl md:text-3xl font-bold text-white tracking-tight">
@@ -288,7 +290,7 @@ export function AdminDashboard() {
                 </div>
               </div>
               <div className="mt-2 text-[10px] md:text-xs text-emerald-100/60 font-medium uppercase tracking-wider">
-                Umumiy filiallar
+                {t('admin.totalBranches')}
               </div>
             </div>
           </Card>
@@ -306,7 +308,7 @@ export function AdminDashboard() {
                 <div className="flex items-center space-x-2 mb-2">
                   <AlertCircle className="h-4 w-4 md:h-5 md:w-5 text-rose-100" />
                   <span className="text-xs md:text-sm font-medium text-rose-100/80">
-                    Qarzlar
+                    {t('nav.debts')}
                   </span>
                 </div>
                 <div className="text-xl md:text-3xl font-bold text-white tracking-tight">
@@ -315,11 +317,11 @@ export function AdminDashboard() {
               </div>
               <div className="mt-2 flex items-center justify-between">
                 <div className="text-[10px] md:text-xs text-rose-100/60 font-medium uppercase tracking-wider">
-                  {pendingDebts.length} ta qarzdor
+                  {t('messages.debtorsCount').replace('{count}', pendingDebts.length.toString())}
                 </div>
                 {overdueDebts.length > 0 && (
                   <Badge className="bg-white/20 text-white text-[9px] md:text-[10px] border-0 leading-tight">
-                    {overdueDebts.length} o'tgan
+                    {t('messages.overdueCount').replace('{count}', overdueDebts.length.toString())}
                   </Badge>
                 )}
               </div>
@@ -330,7 +332,7 @@ export function AdminDashboard() {
         {/* Branch Breakdown */}
         <div>
           <h3 className="text-sm font-bold text-muted-foreground mb-4 px-1 tracking-wider">
-            FILIALLAR BO'YICHA
+            {t('admin.byBranch')}
           </h3>
           <div className="space-y-4">
             {branchData.map((branch, index) => (
@@ -357,7 +359,7 @@ export function AdminDashboard() {
                         {branch.name}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        Savdolar hisoboti
+                        {t('admin.salesReport')}
                       </div>
                     </div>
                   </div>
@@ -377,7 +379,7 @@ export function AdminDashboard() {
                               backgroundColor: "#6366f110",
                             }}
                           >
-                            Sklad: +{formatCurrency(branch.adminProfit, "USD")}
+                            {t('admin.warehouse')}: +{formatCurrency(branch.adminProfit, "USD")}
                           </Badge>
                         )}
                         {branch.profit > 0 && (
@@ -390,7 +392,7 @@ export function AdminDashboard() {
                               backgroundColor: "#22c55e10",
                             }}
                           >
-                            Filial: +{formatCurrency(branch.profit * exchangeRate, "UZS")}
+                            {t('admin.branch')}: +{formatCurrency(branch.profit * exchangeRate, "UZS")}
                           </Badge>
                         )}
                       </div>

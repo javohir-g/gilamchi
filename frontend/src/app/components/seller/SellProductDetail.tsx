@@ -7,6 +7,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { useApp, PaymentType } from '../../context/AppContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'sonner';
 
 import {
@@ -21,6 +22,7 @@ export function SellProductDetail() {
   const { productId } = useParams();
   const navigate = useNavigate();
   const { products, user, addSale, exchangeRate } = useApp();
+  const { t } = useLanguage();
 
   const product = products.find((p) => p.id === productId);
 
@@ -93,7 +95,7 @@ export function SellProductDetail() {
   }, [product, width]);
 
   if (!product) {
-    return <div>Mahsulot topilmadi</div>;
+    return <div>{t('messages.noData')}</div>;
   }
 
   const isCarpet = product.category === "Gilamlar";
@@ -122,12 +124,8 @@ export function SellProductDetail() {
     const saleQuantity = isUnit ? quantity : parseFloat(meters);
 
     if (saleQuantity <= 0 || saleQuantity > maxQuantity) {
-      toast.error('Noto\'g\'ri miqdor!');
+      toast.error(t('messages.enterQuantity'));
       return;
-    }
-
-    if (isCarpetOrMetraj && !selectedSize && (!width || !height)) {
-      // If it's a carpet but no size selected or entered (though here we should probably enforce selection if available)
     }
 
     const totalAmount = calculateTotal();
@@ -162,7 +160,7 @@ export function SellProductDetail() {
       exchange_rate: exchangeRate,
     });
 
-    toast.success('Mahsulot sotildi!');
+    toast.success(t('messages.orderSuccess'));
     navigate('/seller/home');
   };
 
@@ -195,7 +193,7 @@ export function SellProductDetail() {
           >
             <ArrowLeft className="h-6 w-6" />
           </Button>
-          <h1 className="text-xl">Sotish</h1>
+          <h1 className="text-xl">{t('seller.sell')}</h1>
         </div>
       </div>
 
@@ -220,7 +218,7 @@ export function SellProductDetail() {
                   : "text-gray-500 hover:text-gray-700"
                   }`}
               >
-                Sotish
+                {t('seller.sell')}
               </button>
               <button
                 onClick={() => setIsNasiya(true)}
@@ -229,7 +227,7 @@ export function SellProductDetail() {
                   : "text-gray-500 hover:text-gray-700"
                   }`}
               >
-                Nasiya
+                {t('debt.nasiyaSale')}
               </button>
             </div>
           </div>
@@ -238,7 +236,7 @@ export function SellProductDetail() {
         {/* Size Selection */}
         {(isCarpetOrMetraj || (product.availableSizes && product.availableSizes.length > 0)) && (
           <Card className="p-6 space-y-3">
-            <Label className="text-lg">O'lchamni tanlang</Label>
+            <Label className="text-lg">{t('seller.selectSize')}</Label>
             <Select
               value={selectedSize}
               onValueChange={(val) => {
@@ -253,7 +251,7 @@ export function SellProductDetail() {
               }}
             >
               <SelectTrigger className="h-14 text-xl">
-                <SelectValue placeholder="O'lchamni tanlang" />
+                <SelectValue placeholder={t('seller.selectSize')} />
               </SelectTrigger>
               <SelectContent>
                 {product.availableSizes?.map((s) => {
@@ -261,30 +259,30 @@ export function SellProductDetail() {
                   const sizeQty = typeof s === 'string' ? product.quantity : s.quantity;
                   return (
                     <SelectItem key={sizeName} value={sizeName}>
-                      {sizeName} ({sizeQty} dona)
+                      {sizeName} ({sizeQty} {t('common.unit')})
                     </SelectItem>
                   );
                 })}
-                <SelectItem value="other">Boshqa olcham</SelectItem>
+                <SelectItem value="other">{t('seller.otherSize')}</SelectItem>
               </SelectContent>
             </Select>
             {area > 0 && selectedSize !== "other" && (
               <div className="text-sm text-gray-500">
-                Maydon: {area.toFixed(2)} m²
+                {t('seller.area')}: {area.toFixed(2)} m²
               </div>
             )}
           </Card>
         )}
 
-        {/* Manual Size Input for Carpet/Metraj if "Boshqa olcham" selected or no sizes available */}
+        {/* Manual Size Input */}
         {isCarpetOrMetraj && (selectedSize === "other" || !product.availableSizes || product.availableSizes.length === 0) && (
           <Card className="p-6">
             <Label className="mb-3 block text-lg">
-              O'lchamni kiriting {isMetraj && `(Eni: ${product.width}m)`}
+              {t('seller.enterSize')} {isMetraj && `(${t('product.width')}: ${product.width}m)`}
             </Label>
             <div className="flex items-center space-x-4">
               <div className="flex-1">
-                <Label className="text-xs text-gray-400 mb-1 block">Eni (m)</Label>
+                <Label className="text-xs text-gray-400 mb-1 block">{t('product.width')}</Label>
                 <Input
                   type="number"
                   value={width}
@@ -292,12 +290,12 @@ export function SellProductDetail() {
                   className="h-14 text-center text-2xl"
                   min="0.1"
                   step="0.1"
-                  placeholder="Eni"
+                  placeholder={t('product.width')}
                   readOnly={isMetraj && !!product.width}
                 />
               </div>
               <div className="flex-1">
-                <Label className="text-xs text-gray-400 mb-1 block">Bo'yi (m)</Label>
+                <Label className="text-xs text-gray-400 mb-1 block">{t('product.height')}</Label>
                 <Input
                   type="number"
                   value={height}
@@ -305,13 +303,13 @@ export function SellProductDetail() {
                   className="h-14 text-center text-2xl"
                   min="0.1"
                   step="0.1"
-                  placeholder="Bo'yi"
+                  placeholder={t('product.height')}
                 />
               </div>
             </div>
             {area > 0 && (
               <div className="mt-3 text-sm text-gray-500 font-medium">
-                Maydon: {area.toFixed(2)} m²
+                {t('seller.area')}: {area.toFixed(2)} m²
               </div>
             )}
           </Card>
@@ -320,7 +318,7 @@ export function SellProductDetail() {
         {/* Quantity/Meters */}
         <Card className="p-6">
           <Label className="mb-4 block text-lg">
-            {isUnit ? 'Miqdor' : 'Metr'}
+            {isUnit ? t('seller.quantity') : t('product.meter')}
           </Label>
 
           {isUnit ? (
@@ -357,7 +355,7 @@ export function SellProductDetail() {
                 step="0.1"
               />
               <p className="text-sm text-gray-500">
-                Qoldiq: {product.remainingLength} metr
+                {t('seller.baseWidth')}: {product.remainingLength} {t('common.meter')}
               </p>
             </div>
           )}
@@ -366,7 +364,7 @@ export function SellProductDetail() {
         {/* Price */}
         <Card className="p-6">
           <Label className="mb-4 block text-lg">
-            Sotish narxi {!isUnit && '(metr uchun)'}
+            {t('seller.soldPrice')} {!isUnit && t('seller.perMeter')}
           </Label>
           <Input
             type="number"
@@ -378,25 +376,25 @@ export function SellProductDetail() {
 
         {/* Payment Type */}
         <Card className="p-6">
-          <Label className="mb-4 block text-lg">To'lov turi</Label>
+          <Label className="mb-4 block text-lg">{t('seller.salesMethod')}</Label>
           <RadioGroup value={paymentType} onValueChange={(v) => setPaymentType(v as PaymentType)}>
             <div className="space-y-3">
               <div className="flex items-center space-x-3 rounded-lg border-2 border-gray-200 p-4">
                 <RadioGroupItem value="cash" id="cash" />
                 <Label htmlFor="cash" className="flex-1 cursor-pointer text-lg">
-                  Naqd pul
+                  {t('common.cash')}
                 </Label>
               </div>
               <div className="flex items-center space-x-3 rounded-lg border-2 border-gray-200 p-4">
                 <RadioGroupItem value="card" id="card" />
                 <Label htmlFor="card" className="flex-1 cursor-pointer text-lg">
-                  Karta
+                  {t('common.card')}
                 </Label>
               </div>
               <div className="flex items-center space-x-3 rounded-lg border-2 border-gray-200 p-4">
                 <RadioGroupItem value="transfer" id="transfer" />
                 <Label htmlFor="transfer" className="flex-1 cursor-pointer text-lg">
-                  O'tkazma
+                  {t('common.transfer')}
                 </Label>
               </div>
             </div>
@@ -405,7 +403,7 @@ export function SellProductDetail() {
 
         {/* Total */}
         <Card className="border-2 border-blue-200 bg-blue-50 p-6">
-          <div className="mb-2 text-sm text-gray-600">Jami summa</div>
+          <div className="mb-2 text-sm text-gray-600">{t('common.total')}</div>
           <div className="text-3xl text-blue-600">
             {formatCurrency(calculateTotal())}
           </div>
@@ -419,7 +417,7 @@ export function SellProductDetail() {
           className="h-14 w-full bg-green-600 hover:bg-green-700"
           size="lg"
         >
-          Sotishni tasdiqlash
+          {t('common.confirm')}
         </Button>
       </div>
     </div>

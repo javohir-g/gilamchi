@@ -10,11 +10,13 @@ import {
   useApp,
   Payment,
 } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { toast } from "sonner";
 
 export function Checkout() {
   const navigate = useNavigate();
   const { basket, completeOrder, collections, exchangeRate } = useApp();
+  const { t } = useLanguage();
 
   // Redirect if basket is empty
   useEffect(() => {
@@ -87,7 +89,7 @@ export function Checkout() {
     const total = cash + card;
 
     if (total <= 0) {
-      toast.error(isNasiya ? "Boshlang'ich to'lovni kiriting!" : "Sotilgan narxni kiriting!");
+      toast.error(isNasiya ? t('messages.enterInitialPayment') : t('messages.enterSoldPrice'));
       return;
     }
 
@@ -129,12 +131,12 @@ export function Checkout() {
     setIsSaving(true);
     completeOrder(payments, total / exchangeRate, false)
       .then(() => {
-        toast.success("Buyurtma muvaffaqiyatli yakunlandi!");
+        toast.success(t('messages.orderSuccess'));
         navigate("/seller/home");
       })
       .catch((err: any) => {
         console.error("Order completion failed:", err);
-        toast.error("Xatolik yuz berdi!");
+        toast.error(t('messages.error'));
       })
       .finally(() => {
         setIsSaving(false);
@@ -157,7 +159,7 @@ export function Checkout() {
             <ArrowLeft className="h-6 w-6 dark:text-white" />
           </Button>
           <h1 className="text-2xl dark:text-white">
-            Sotishni yakunlash
+            {t('seller.completeSale')}
           </h1>
         </div>
       </div>
@@ -175,7 +177,7 @@ export function Checkout() {
                   : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
                   }`}
               >
-                Sotish
+                {t('seller.sell')}
               </button>
               <button
                 onClick={() => setIsNasiya(true)}
@@ -184,7 +186,7 @@ export function Checkout() {
                   : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
                   }`}
               >
-                Nasiya
+                {t('debt.nasiyaSale')}
               </button>
             </div>
 
@@ -192,7 +194,7 @@ export function Checkout() {
             <div className="flex gap-4">
               <div className="flex-1">
                 <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Jami summa
+                  {t('common.total')}
                 </Label>
                 <div className="text-xl font-semibold text-gray-700 dark:text-gray-300 mt-1">
                   {formatCurrency(calculatedTotal * exchangeRate)}
@@ -201,7 +203,7 @@ export function Checkout() {
               {isNasiya && (
                 <div className="flex-1">
                   <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Kelishilgan narx
+                    {t('debt.agreedPrice')}
                   </Label>
                   <Input
                     type="text"
@@ -219,7 +221,7 @@ export function Checkout() {
                 // Nasiya mode: Single "Boshlang'ich to'lov" input
                 <>
                   <Label className="text-lg font-semibold dark:text-white mb-3 block">
-                    Boshlang&apos;ich to&apos;lov{" "}
+                    {t('debt.initialPayment')}{" "}
                     <span className="text-red-500">*</span>
                   </Label>
                   <Input
@@ -231,21 +233,21 @@ export function Checkout() {
                     min="0"
                   />
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                    Qolgan qarz: {formatCurrency(Math.max(0, parseFormattedNumber(agreedPrice) - parseFormattedNumber(cashAmount)))}
+                    {t('debt.remainingDebt')} {formatCurrency(Math.max(0, parseFormattedNumber(agreedPrice) - parseFormattedNumber(cashAmount)))}
                   </p>
                 </>
               ) : (
                 // Regular sale mode: Cash + Card inputs
                 <>
                   <Label className="text-lg font-semibold dark:text-white mb-3 block">
-                    Sotilgan narx{" "}
+                    {t('seller.soldPrice')}{" "}
                     <span className="text-red-500">*</span>
                   </Label>
                   <div className="space-y-4">
                     {/* Cash Input */}
                     <div>
                       <Label className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 block">
-                        Naqd
+                        {t('common.cash')}
                       </Label>
                       <Input
                         type="text"
@@ -262,7 +264,7 @@ export function Checkout() {
                     {/* Card/Transfer Input */}
                     <div>
                       <Label className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 block">
-                        Karta/O&apos;tkazma
+                        {t('debt.cardAndTransfer')}
                       </Label>
                       <Input
                         type="text"
@@ -280,7 +282,7 @@ export function Checkout() {
                     <div className="pt-3 border-t dark:border-gray-600">
                       <div className="flex justify-between items-center">
                         <Label className="text-base font-medium text-gray-700 dark:text-gray-300">
-                          Jami sotilgan:
+                          {t('seller.totalSold')}
                         </Label>
                         <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                           {formatCurrency(sellerTotal)}
@@ -303,7 +305,7 @@ export function Checkout() {
                   }`}
               >
                 <div className="text-sm mb-1">
-                  {profit > 0 ? "🎉 Foyda (markup)" : "⚠️ Zarar (discount)"}
+                  {profit > 0 ? `🎉 ${t('admin.profit')} (markup)` : `⚠️ ${t('seller.discount')}`}
                 </div>
                 <div className="text-2xl font-bold mb-3">
                   {profit > 0 ? "+" : ""}
@@ -324,7 +326,7 @@ export function Checkout() {
             className="h-14 flex-1 text-base dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
             size="lg"
           >
-            Bekor qilish
+            {t('common.cancel')}
           </Button>
           <Button
             onClick={handleComplete}
@@ -332,7 +334,7 @@ export function Checkout() {
             size="lg"
             disabled={!isValid || isSaving}
           >
-            {isSaving ? "Yakunlanmoqda..." : "✓ Yakunlash"}
+            {isSaving ? t('common.loading') : `✓ ${t('seller.finish')}`}
           </Button>
         </div>
       </div>

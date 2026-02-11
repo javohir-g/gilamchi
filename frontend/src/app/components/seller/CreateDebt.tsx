@@ -6,6 +6,7 @@ import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useApp, BasketItem, Debt, Payment } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { toast } from "sonner";
 
 interface LocationState {
@@ -20,6 +21,7 @@ export function CreateDebt() {
   const navigate = useNavigate();
   const location = useLocation();
   const { addDebt, user, clearBasket, completeOrder, exchangeRate } = useApp();
+  const { t } = useLanguage();
 
   const state = location.state as LocationState | null;
 
@@ -85,17 +87,17 @@ export function CreateDebt() {
   const handleSaveDebt = () => {
     // Validation
     if (!debtorName.trim()) {
-      toast.error("Qarzdor ismini kiriting!");
+      toast.error(t('messages.enterDebtorName'));
       return;
     }
 
     if (!phoneNumber.trim()) {
-      toast.error("Telefon raqamini kiriting!");
+      toast.error(t('messages.enterPhone'));
       return;
     }
 
     if (!orderDetails.trim()) {
-      toast.error("Buyurtma ma'lumotlarini kiriting!");
+      toast.error(t('messages.enterOrderDetails'));
       return;
     }
 
@@ -105,7 +107,7 @@ export function CreateDebt() {
     // All amounts sent to completeOrder and for debt creation should be in UZS.
 
     if (remainingUZS <= 0) {
-      toast.error("Qarz summasi 0 dan katta bo'lishi kerak!");
+      toast.error(t('messages.debtMustBePositive'));
       return;
     }
 
@@ -147,11 +149,11 @@ export function CreateDebt() {
 
       addDebt(debt);
       clearBasket();
-      toast.success("Hammasi muvaffaqiyatli saqlandi!");
+      toast.success(t('messages.saveSuccess'));
       navigate("/seller/home");
     }).catch((err: any) => {
       console.error("Order completion failed:", err);
-      toast.error("Xatolik yuz berdi!");
+      toast.error(t('messages.error'));
     }).finally(() => {
       setIsSaving(false);
     });
@@ -169,7 +171,7 @@ export function CreateDebt() {
           >
             <ArrowLeft className="h-6 w-6 dark:text-white" />
           </Button>
-          <h1 className="text-2xl dark:text-white">Qarzga yozish</h1>
+          <h1 className="text-2xl dark:text-white">{t('seller.createDebt')}</h1>
         </div>
       </div>
 
@@ -178,12 +180,12 @@ export function CreateDebt() {
         {/* Order Summary Card */}
         <Card className="p-6 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950 dark:border-orange-800 border-2 border-orange-100">
           <h3 className="font-semibold text-lg mb-4 dark:text-white">
-            Buyurtma xulosasi
+            {t('debt.orderDetails')}
           </h3>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-gray-600 dark:text-gray-400">
-                Jami narx:
+                {t('debt.totalAmount')}:
               </span>
               <span className="font-semibold dark:text-white">
                 {formatCurrency(totalAmount * exchangeRate)}
@@ -191,7 +193,7 @@ export function CreateDebt() {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-600 dark:text-gray-400">
-                To'langan:
+                {t('debt.paidAmount')}:
               </span>
               <span className="font-semibold text-green-600 dark:text-green-400">
                 {formatCurrency(paidAmount * exchangeRate)}
@@ -200,7 +202,7 @@ export function CreateDebt() {
             <div className="pt-3 border-t dark:border-orange-700">
               <div className="flex justify-between items-center">
                 <span className="text-gray-700 dark:text-gray-300 font-medium">
-                  Qarz:
+                  {t('debt.debts')}:
                 </span>
                 <span className="text-xl font-bold text-red-600 dark:text-red-400">
                   {formatCurrency(remainingAmount * exchangeRate)}
@@ -217,7 +219,7 @@ export function CreateDebt() {
             <div>
               <Label className="text-base font-semibold dark:text-white mb-3 flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Qarzdor ismi{" "}
+                {t('debt.debtorName')}{" "}
                 <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -225,7 +227,7 @@ export function CreateDebt() {
                 value={debtorName}
                 onChange={(e) => setDebtorName(e.target.value)}
                 className="h-14 text-lg dark:bg-gray-700 dark:text-white border-2"
-                placeholder="Masalan: Ali Karimov"
+                placeholder={t('debt.exampleName')}
               />
             </div>
 
@@ -233,7 +235,7 @@ export function CreateDebt() {
             <div>
               <Label className="text-base font-semibold dark:text-white mb-3 flex items-center gap-2">
                 <Phone className="h-5 w-5" />
-                Telefon raqami{" "}
+                {t('debt.phoneNumber')}{" "}
                 <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -241,7 +243,7 @@ export function CreateDebt() {
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 className="h-14 text-lg dark:bg-gray-700 dark:text-white border-2"
-                placeholder="Masalan: +998 90 123 45 67"
+                placeholder={t('debt.examplePhone')}
               />
             </div>
 
@@ -249,14 +251,14 @@ export function CreateDebt() {
             <div>
               <Label className="text-base font-semibold dark:text-white mb-3 flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Buyurtma ma'lumotlari{" "}
+                {t('debt.orderDetails')}{" "}
                 <span className="text-red-500">*</span>
               </Label>
               <textarea
                 value={orderDetails}
                 onChange={(e) => setOrderDetails(e.target.value)}
                 className="w-full h-24 px-4 py-3 text-base rounded-lg border-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 resize-none"
-                placeholder="Masalan: Isfahan Carpet (3×4), Joynamoz (2x)"
+                placeholder={t('debt.orderDetails')}
               />
             </div>
 
@@ -264,7 +266,7 @@ export function CreateDebt() {
             <div>
               <Label className="text-base font-semibold dark:text-white mb-3 flex items-center gap-2">
                 <DollarSign className="h-5 w-5" />
-                To'lanmagan summa{" "}
+                {t('debt.remainingAmount')}{" "}
                 <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -275,7 +277,7 @@ export function CreateDebt() {
                 placeholder="0"
               />
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                Avtomatik hisoblangan: {formatCurrency(remainingAmount * exchangeRate)}
+                {t('debt.autoCalculated')} {formatCurrency(remainingAmount * exchangeRate)}
               </p>
             </div>
 
@@ -283,7 +285,7 @@ export function CreateDebt() {
             <div>
               <Label className="text-base font-semibold dark:text-white mb-3 flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
-                To'lov muddati{" "}
+                {t('debt.paymentDeadline')}{" "}
                 <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -300,7 +302,7 @@ export function CreateDebt() {
         {/* Order Items Preview */}
         <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
           <h3 className="font-semibold text-lg mb-4 dark:text-white">
-            Sotilgan mahsulotlar
+            {t('nav.products')}
           </h3>
           <div className="space-y-3">
             {basketItems.map((item) => (
@@ -341,7 +343,7 @@ export function CreateDebt() {
             className="h-14 flex-1 text-base dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
             size="lg"
           >
-            Bekor qilish
+            {t('common.cancel')}
           </Button>
           <Button
             onClick={handleSaveDebt}
@@ -350,7 +352,7 @@ export function CreateDebt() {
             disabled={isSaving}
           >
             <Save className="h-5 w-5 mr-2" />
-            {isSaving ? "Saqlanmoqda..." : "Qarzni saqlash"}
+            {isSaving ? t('common.loading') : t('common.save')}
           </Button>
         </div>
       </div>

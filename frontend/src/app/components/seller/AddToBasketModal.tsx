@@ -4,6 +4,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Product, BasketItem, useApp } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 import {
   Select,
   SelectContent,
@@ -24,6 +25,7 @@ export function AddToBasketModal({
   onClose,
 }: AddToBasketModalProps) {
   const { collections, exchangeRate } = useApp();
+  const { t } = useLanguage();
   const isUnit = product.type === "unit";
   const isCarpet = product.category === "Gilamlar";
   const isMetraj = product.category === "Metrajlar";
@@ -46,7 +48,7 @@ export function AddToBasketModal({
       const parts = sizeStr.split(/×|x/);
       if (parts.length !== 2) return true;
 
-      const [w, h] = parts.map((p) => p.trim());
+      const [w, h] = parts.map((p: string) => p.trim());
 
       // If user selected a specific size dropdown, we keep it visible
       if (selectedSize === sizeStr) return true;
@@ -159,7 +161,7 @@ export function AddToBasketModal({
     const item: BasketItem = {
       id: `b${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Unique ID
       productId: product.id,
-      productName: product.code || "Unknown",
+      productName: product.code || t('debt.unknown'),
       category: product.category,
       type: product.type,
       quantity: qty,
@@ -210,7 +212,7 @@ export function AddToBasketModal({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
           <h2 className="text-xl dark:text-white">
-            Savatga qo'shish
+            {t('seller.addToBasket')}
           </h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-6 w-6 dark:text-white" />
@@ -235,8 +237,8 @@ export function AddToBasketModal({
               </p>
               {!isCarpetOrMetraj && (
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Qoldiq: {maxQuantity}{" "}
-                  {isUnit ? "dona" : "metr"}
+                  {t('product.inStock')}: {maxQuantity}{" "}
+                  {isUnit ? t('common.unit') : t('common.meter')}
                 </p>
               )}
             </div>
@@ -246,7 +248,7 @@ export function AddToBasketModal({
           {isMetraj && (
             <div className="space-y-3">
               <Label className="text-base font-bold dark:text-white">
-                Rulonni tanlang
+                {t('seller.selectRoll')}
               </Label>
               <div className="flex flex-wrap gap-2">
                 {product.availableSizes?.map((s: any, idx: number) => {
@@ -272,7 +274,7 @@ export function AddToBasketModal({
                         {w}m
                       </span>
                       <span className="text-[10px] text-gray-500 font-medium">
-                        {l.toFixed(1)}m qoldi
+                        {t('seller.lengthLeft').replace('{count}', l.toFixed(1))}
                       </span>
                     </button>
                   );
@@ -291,10 +293,10 @@ export function AddToBasketModal({
                       }`}
                   >
                     <span className={`text-lg font-black ${width === product.width.toString() ? "text-blue-600 dark:text-blue-400" : "dark:text-white"}`}>
-                      {product.width}m
+                      {product.width}{t('common.meterShort')}
                     </span>
                     <span className="text-[10px] text-gray-500 font-medium">
-                      Asosiy eni
+                      {t('seller.baseWidth')}
                     </span>
                   </button>
                 )}
@@ -306,12 +308,12 @@ export function AddToBasketModal({
           {(isCarpetOrMetraj || isUnit) && (
             <div className="space-y-4 pt-2 border-t dark:border-gray-700">
               <Label className="block text-lg dark:text-white font-bold">
-                {isMetraj ? "Sotiladigan uzunlikni kiring" : "O'lchamni kiriting"}
+                {isMetraj ? t('seller.enterLength') : t('seller.enterSize')}
               </Label>
 
               <div className="flex items-center space-x-4">
                 <div className="flex-1">
-                  <Label className="text-xs text-gray-400 mb-1 block">Eni (m)</Label>
+                  <Label className="text-xs text-gray-400 mb-1 block">{t('product.width')}</Label>
                   <Input
                     type="number"
                     value={width}
@@ -322,12 +324,12 @@ export function AddToBasketModal({
                     className="h-12 text-center text-xl dark:bg-gray-700 dark:text-white font-bold"
                     min="0.1"
                     step="0.1"
-                    placeholder="Eni"
+                    placeholder={t('product.width')}
                     readOnly={isMetraj && (!!product.width || (product.availableSizes && product.availableSizes.length > 0))}
                   />
                 </div>
                 <div className="flex-1">
-                  <Label className="text-xs text-gray-400 mb-1 block">Bo'yi (m) {isMetraj && selectedSize && `(Maks: ${maxQuantity}m)`}</Label>
+                  <Label className="text-xs text-gray-400 mb-1 block">{t('product.height')} {isMetraj && selectedSize && `(${t('common.max')}: ${maxQuantity}${t('common.meterShort')})`}</Label>
                   <Input
                     type="number"
                     value={height}
@@ -339,7 +341,7 @@ export function AddToBasketModal({
                     min="0.1"
                     max={isMetraj ? maxQuantity : undefined}
                     step="0.1"
-                    placeholder="Bo'yi"
+                    placeholder={t('product.height')}
                   />
                 </div>
               </div>
@@ -348,7 +350,7 @@ export function AddToBasketModal({
               {isUnit && product.availableSizes && product.availableSizes.length > 0 && (
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Skladda mavjud o'lchamlar:
+                    {t('seller.availableSizesStock')}
                   </Label>
                   <div className="flex flex-wrap gap-2">
                     {filteredSizes.map((s) => {
@@ -371,7 +373,7 @@ export function AddToBasketModal({
                             {sizeName}
                           </span>
                           <span className="text-[10px] text-gray-500">
-                            {sizeQty} ta qoldi
+                            {t('seller.left').replace('{count}', sizeQty.toString())}
                           </span>
                         </button>
                       );
@@ -382,7 +384,7 @@ export function AddToBasketModal({
 
               {area > 0 && (
                 <div className="mt-1 text-base text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-900/10 p-3 rounded-xl flex justify-between items-center">
-                  <span>Umumiy maydon:</span>
+                  <span>{t('seller.totalArea')}</span>
                   <span>{area.toFixed(2)} m²</span>
                 </div>
               )}
@@ -393,7 +395,7 @@ export function AddToBasketModal({
           {(isUnit || isCarpet) && (
             <div className="pt-2 border-t dark:border-gray-700">
               <Label className="mb-4 block text-lg dark:text-white font-bold">
-                {isCarpet ? "Soni (dona)" : "Miqdor"}
+                {isCarpet ? t('seller.quantityUnit') : t('seller.quantity')}
               </Label>
               <div className="flex items-center justify-between">
                 <Button
@@ -433,7 +435,7 @@ export function AddToBasketModal({
           {!isCarpetOrMetraj && (
             <div className="pt-2 border-t dark:border-gray-700">
               <Label className="mb-3 block text-lg font-bold dark:text-white">
-                Narx {!isUnit && "(metr uchun)"}
+                {t('seller.price')} {!isUnit && t('seller.perMeter')}
               </Label>
               <Input
                 type="number"
@@ -455,7 +457,7 @@ export function AddToBasketModal({
             size="lg"
             disabled={isCarpetOrMetraj && (!width || !height)}
           >
-            Savatga qo'shish
+            {t('seller.addToBasket')}
           </Button>
         </div>
       </div>

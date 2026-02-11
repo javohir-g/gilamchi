@@ -12,11 +12,13 @@ import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { useApp } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { Badge } from "../ui/badge";
 
 export function Debts() {
   const navigate = useNavigate();
   const { debts, user, exchangeRate } = useApp();
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
 
   // Filter debts by branch and search query
@@ -85,7 +87,7 @@ export function Debts() {
     if (debt.status === "paid") {
       return (
         <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-          ✓ To'langan
+          ✓ {t('debt.paid')}
         </Badge>
       );
     }
@@ -95,14 +97,14 @@ export function Debts() {
     if (isOverdue) {
       return (
         <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-          ⚠️ Muddati o'tgan
+          ⚠️ {t('debt.overdue')}
         </Badge>
       );
     }
 
     return (
       <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
-        ⏳ Kutilmoqda
+        ⏳ {t('debt.pending')}
       </Badge>
     );
   };
@@ -133,7 +135,7 @@ export function Debts() {
           >
             <ArrowLeft className="h-6 w-6 dark:text-white" />
           </Button>
-          <h1 className="text-2xl dark:text-white">Qarzlar</h1>
+          <h1 className="text-2xl dark:text-white">{t('common.debts')}</h1>
         </div>
       </div>
 
@@ -143,7 +145,7 @@ export function Debts() {
           {/* Pending */}
           <Card className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 border-orange-200 dark:border-orange-800">
             <div className="text-xs text-orange-700 dark:text-orange-400 mb-1">
-              Kutilmoqda
+              {t('debt.pending')}
             </div>
             <div className="font-bold text-orange-900 dark:text-orange-300">
               {pendingDebts.length}
@@ -156,7 +158,7 @@ export function Debts() {
           {/* Paid */}
           <Card className="p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800">
             <div className="text-xs text-green-700 dark:text-green-400 mb-1">
-              To'langan
+              {t('debt.paid')}
             </div>
             <div className="font-bold text-green-900 dark:text-green-300">
               {paidDebts.length}
@@ -172,7 +174,7 @@ export function Debts() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           <Input
             type="text"
-            placeholder="Qarzdor yoki mahsulot qidirish..."
+            placeholder={t('debt.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 h-12 dark:bg-gray-800 dark:text-white"
@@ -189,10 +191,10 @@ export function Debts() {
               />
             </div>
             <h3 className="mb-2 text-xl text-gray-900 dark:text-white">
-              Qarzlar yo'q
+              {t('messages.noDebtsFound')}
             </h3>
             <p className="text-center text-gray-500 dark:text-gray-400 mb-8 max-w-sm">
-              Hozircha hech qanday qarz mavjud emas
+              {t('messages.noDebtsDesc')}
             </p>
           </div>
         ) : (
@@ -259,7 +261,7 @@ export function Debts() {
                         className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 text-white font-medium"
                         size="sm"
                       >
-                        Qarzni to'lash
+                        {t('debt.payDebt')}
                       </Button>
                     )}
                   </div>

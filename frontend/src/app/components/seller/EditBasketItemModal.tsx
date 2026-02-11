@@ -4,6 +4,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { BasketItem, Product, useApp } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 import {
   Select,
   SelectContent,
@@ -26,6 +27,7 @@ export function EditBasketItemModal({
   onClose,
 }: EditBasketItemModalProps) {
   const { exchangeRate } = useApp();
+  const { t } = useLanguage();
   const isUnit = product.type === "unit";
   const isCarpet = product.category === "Gilamlar";
   const isMetraj = product.category === "Metrajlar";
@@ -192,7 +194,7 @@ export function EditBasketItemModal({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
           <h2 className="text-xl dark:text-white">
-            Mahsulotni o'zgartirish
+            {t('seller.editProduct')}
           </h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-6 w-6 dark:text-white" />
@@ -217,8 +219,8 @@ export function EditBasketItemModal({
               </p>
               {!isCarpetOrMetraj && (
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Qoldiq: {maxQuantity}{" "}
-                  {isUnit ? "dona" : "metr"}
+                  {t('product.inStock')}: {maxQuantity}{" "}
+                  {isUnit ? t('common.unit') : t('common.meter')}
                 </p>
               )}
             </div>
@@ -227,7 +229,7 @@ export function EditBasketItemModal({
           {/* Size Selection */}
           {(isCarpetOrMetraj || (product.availableSizes && product.availableSizes.length > 0)) && (
             <div className="space-y-3">
-              <Label className="text-lg dark:text-white">O'lchamni tanlang</Label>
+              <Label className="text-lg dark:text-white">{t('seller.selectSize')}</Label>
               <Select
                 value={selectedSize}
                 onValueChange={(val) => {
@@ -240,7 +242,7 @@ export function EditBasketItemModal({
                 }}
               >
                 <SelectTrigger className="h-12 text-lg dark:bg-gray-700 dark:text-white">
-                  <SelectValue placeholder="O'lchamni tanlang" />
+                  <SelectValue placeholder={t('seller.selectSize')} />
                 </SelectTrigger>
                 <SelectContent>
                   {product.availableSizes?.map((s: any) => {
@@ -248,11 +250,11 @@ export function EditBasketItemModal({
                     const sizeQty = typeof s === 'string' ? product.quantity : s.quantity;
                     return (
                       <SelectItem key={sizeName} value={sizeName}>
-                        {sizeName} ({sizeQty} dona)
+                        {sizeName} ({sizeQty} {t('common.unit')})
                       </SelectItem>
                     );
                   })}
-                  <SelectItem value="other">Boshqa olcham</SelectItem>
+                  <SelectItem value="other">{t('seller.otherSize')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -262,11 +264,11 @@ export function EditBasketItemModal({
           {isCarpetOrMetraj && (selectedSize === "other" || !product.availableSizes || product.availableSizes.length === 0) && (
             <div className="space-y-3">
               <Label className="block text-lg dark:text-white">
-                O'lchamni kiriting {isMetraj && `(Eni: ${product.width}m)`}
+                {t('seller.enterSize')} {isMetraj && `(${t('product.width')}: ${product.width}${t('common.meterShort')})`}
               </Label>
               <div className="flex items-center space-x-4">
                 <div className="flex-1">
-                  <Label className="text-xs text-gray-400 mb-1 block">Eni (m)</Label>
+                  <Label className="text-xs text-gray-400 mb-1 block">{t('product.width')}</Label>
                   <Input
                     type="number"
                     value={width}
@@ -274,12 +276,12 @@ export function EditBasketItemModal({
                     className="h-12 text-center text-xl dark:bg-gray-700 dark:text-white"
                     min="0.1"
                     step="0.1"
-                    placeholder="Eni"
+                    placeholder={t('product.width')}
                     readOnly={isMetraj && !!product.width}
                   />
                 </div>
                 <div className="flex-1">
-                  <Label className="text-xs text-gray-400 mb-1 block">Bo'yi (m)</Label>
+                  <Label className="text-xs text-gray-400 mb-1 block">{t('product.height')}</Label>
                   <Input
                     type="number"
                     value={height}
@@ -287,13 +289,13 @@ export function EditBasketItemModal({
                     className="h-12 text-center text-xl dark:bg-gray-700 dark:text-white"
                     min="0.1"
                     step="0.1"
-                    placeholder="Bo'yi"
+                    placeholder={t('product.height')}
                   />
                 </div>
               </div>
               {area > 0 && (
                 <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 font-medium">
-                  Maydon: {area.toFixed(2)} m²
+                  {t('seller.area')}: {area.toFixed(2)} m²
                 </div>
               )}
             </div>
@@ -304,10 +306,10 @@ export function EditBasketItemModal({
             <div>
               <Label className="mb-5 block text-lg dark:text-white">
                 {isCarpet
-                  ? "Soni (dona)"
+                  ? t('seller.quantityUnit')
                   : isUnit
-                    ? "Miqdor"
-                    : "Metr"}
+                    ? t('seller.quantity')
+                    : t('common.meter')}
               </Label>
               {isUnit || isCarpet ? (
                 <div className="flex items-center justify-between">
@@ -359,7 +361,7 @@ export function EditBasketItemModal({
           {!isCarpetOrMetraj && (
             <div>
               <Label className="mb-3 block text-lg dark:text-white">
-                Narx {!isUnit && "(metr uchun)"}
+                {t('seller.price')} {!isUnit && t('seller.perMeter')}
               </Label>
               <Input
                 type="number"
@@ -381,7 +383,7 @@ export function EditBasketItemModal({
             size="lg"
             disabled={isCarpetOrMetraj && (!width || !height)}
           >
-            Saqlash
+            {t('common.save')}
           </Button>
         </div>
       </div>

@@ -14,6 +14,7 @@ import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { useApp, Sale } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { BottomNav } from "../shared/BottomNav";
 import {
   Dialog,
@@ -34,7 +35,8 @@ interface Order {
 
 export function SellerHome() {
   const navigate = useNavigate();
-  const { user, sales, branches, isAdminViewingAsSeller, exchangeRate } = useApp();
+  const { user, sales, branches, isAdminViewingAsSeller, exchangeRate, expenses, debts, staffMembers } = useApp();
+  const { t } = useLanguage();
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
 
   const userBranch = branches.find((b) => b.id === user?.branchId);
@@ -80,7 +82,7 @@ export function SellerHome() {
     .reduce((sum, s) => sum + s.amount, 0);
 
   // Calculate today's branch expenses
-  const todayBranchExpenses = useApp().expenses
+  const todayBranchExpenses = expenses
     .filter(e =>
       e.branchId === userBranch?.id &&
       isToday(e.date) &&
@@ -105,7 +107,7 @@ export function SellerHome() {
   orderMap.forEach((orderSales, orderId) => {
     const totalAmount = orderSales.reduce((sum, s) => sum + s.amount, 0);
     const paymentTypes = [...new Set(orderSales.map((s) => s.paymentType))];
-    const isNasiya = orderSales.some(s => s.is_nasiya);
+    const isNasiya = orderSales.some(s => s.isNasiya);
 
     operations.push({
       id: orderId,
@@ -114,14 +116,14 @@ export function SellerHome() {
       totalAmount,
       date: orderSales[0].date,
       paymentTypes: paymentTypes.map((pt) =>
-        pt === "cash" ? "Naqd" : pt === "card" ? "Karta" : "O'tkazma",
+        pt === "cash" ? t('common.cash') : pt === "card" ? t('common.card') : t('common.transfer'),
       ),
       isNasiya
     });
   });
 
   // Add debt payments
-  useApp().debts.forEach(debt => {
+  debts.forEach(debt => {
     debt.paymentHistory?.forEach(payment => {
       // Ensure we only show payments recorded by this seller/branch today if needed
       const isOurBranch = isAdminViewingAsSeller
@@ -183,12 +185,12 @@ export function SellerHome() {
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <div>
             <div className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-1">
-              {userBranch?.name || "Filial nomi"}
+              {userBranch?.name || t('common.branch')}
             </div>
             <h1 className="text-2xl font-bold text-foreground">{user?.name}</h1>
           </div>
           <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 border-0 px-3 py-1 font-semibold">
-            Sotuvchi
+            {t('common.seller')}
           </Badge>
         </div>
       </div>
@@ -203,7 +205,7 @@ export function SellerHome() {
           <div className="relative z-10 mb-4">
             <div className="flex items-center gap-1.5 mb-1">
               <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">KASSA</span>
+              <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">{t('seller.cashRegister')}</span>
             </div>
             <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 leading-none">
               {formatCurrency((cashSalesToday + debtPaymentsToday + cardTransferSalesToday) * exchangeRate, "UZS")}
@@ -212,15 +214,15 @@ export function SellerHome() {
 
           <div className="grid grid-cols-2 gap-4 relative z-10 pt-3 border-t border-gray-100 dark:border-gray-700">
             <div>
-              <div className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">Naqd</div>
+              <div className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">{t('common.cash')}</div>
               <div className="text-sm font-bold text-gray-900 dark:text-white leading-none">
                 {formatCurrency((cashSalesToday + debtPaymentsToday) * exchangeRate, "UZS")}
               </div>
-              <div className="text-[8px] text-gray-400 italic mt-1.5 leading-none">Sotuv + Qarz</div>
+              <div className="text-[8px] text-gray-400 italic mt-1.5 leading-none">{t('seller.salesAndDebt')}</div>
             </div>
 
             <div>
-              <div className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">Karta / O'tkazma</div>
+              <div className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">{t('seller.cardAndTransfer')}</div>
               <div className="text-sm font-bold text-blue-600 dark:text-blue-400 leading-none">
                 {formatCurrency(cardTransferSalesToday * exchangeRate, "UZS")}
               </div>
@@ -243,7 +245,7 @@ export function SellerHome() {
                     <div className="flex items-center space-x-2">
                       <HandCoins className="h-4 w-4 text-emerald-100" />
                       <span className="text-xs font-bold text-emerald-100 uppercase tracking-wider">
-                        Filial foydasi
+                        {t('admin.branch')} {t('common.profit')}
                       </span>
                     </div>
                     <div className="text-lg font-black text-white">
@@ -254,14 +256,14 @@ export function SellerHome() {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Foyda taqsimoti</DialogTitle>
+                  <DialogTitle>{t('admin.profitDistribution')}</DialogTitle>
                 </DialogHeader>
                 <StaffProfitDistribution
-                  staffMembers={useApp().staffMembers}
+                  staffMembers={staffMembers}
                   branchId={userBranch?.id || ""}
                   totalSellerProfit={totalBranchProfit * exchangeRate}
                   totalBranchExpenses={todayBranchExpenses * exchangeRate}
-                  branchExpenses={useApp().expenses.filter(e => e.branchId === userBranch?.id && isToday(e.date))}
+                  branchExpenses={expenses.filter(e => e.branchId === userBranch?.id && isToday(e.date))}
                 />
               </DialogContent>
             </Dialog>
@@ -271,13 +273,13 @@ export function SellerHome() {
         {/* Recent Sales List */}
         <div>
           <h3 className="text-sm font-bold text-muted-foreground mb-4 px-1 tracking-wider uppercase">
-            Barcha buyurtmalar
+            {t('seller.allOrders')}
           </h3>
 
           <div className="space-y-3">
             {operations.length === 0 ? (
               <Card className="p-12 text-center text-muted-foreground bg-card rounded-2xl border border-border">
-                Bugun hali savdo yo'q
+                {t('messages.noSalesToday')}
               </Card>
             ) : (
               operations.map((op) => {
@@ -296,7 +298,7 @@ export function SellerHome() {
                           </div>
                           <div>
                             <div className="font-bold text-foreground">
-                              Qarz to'lovi: {op.debtorName}
+                              {t('debt.payment')}: {op.debtorName}
                             </div>
                             <div className="text-xs text-muted-foreground">
                               {new Date(op.date).toLocaleTimeString("uz-UZ", {
@@ -312,7 +314,7 @@ export function SellerHome() {
                             {formatCurrency(op.amount * exchangeRate)}
                           </div>
                           <Badge variant="outline" className="text-[10px] uppercase font-bold text-emerald-500 border-emerald-200">
-                            Qarz yopildi
+                            {t('debt.paid')}
                           </Badge>
                         </div>
                       </div>
@@ -351,12 +353,12 @@ export function SellerHome() {
                             <div className="flex flex-col">
                               <span className="font-bold text-lg text-foreground leading-tight">
                                 {isMultiProduct
-                                  ? `${order.sales.length} ta mahsulot`
+                                  ? t('seller.productsCount').replace('{count}', order.sales.length.toString())
                                   : order.sales[0].productName}
                               </span>
                               {order.isNasiya && (
                                 <span className="text-[10px] font-black text-orange-600 dark:text-orange-400 uppercase tracking-tighter">
-                                  NASIYA SAVDO
+                                  {t('debt.nasiyaSale')}
                                 </span>
                               )}
                             </div>
@@ -364,7 +366,7 @@ export function SellerHome() {
                           {!isMultiProduct && (
                             <div className="text-sm text-muted-foreground ml-13">
                               {order.sales[0].quantity}{" "}
-                              {order.sales[0].type === "unit" ? "dona" : "metr"}
+                              {order.sales[0].type === "unit" ? t('common.unit') : t('common.meter')}
                             </div>
                           )}
                         </div>
@@ -439,7 +441,7 @@ export function SellerHome() {
                                 </div>
                                 <div className="text-muted-foreground text-xs">
                                   {sale.quantity}{" "}
-                                  {sale.type === "unit" ? "dona" : "metr"}
+                                  {sale.type === "unit" ? t('common.unit') : t('common.meter')}
                                   {sale.area && ` • ${sale.area.toFixed(2)} m²`}
                                 </div>
                               </div>

@@ -10,12 +10,14 @@ import {
   ChevronDown,
   Check,
   TrendingUp,
+  Languages,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { useApp } from "../context/AppContext";
+import { useLanguage } from "../context/LanguageContext";
 import { BottomNav } from "./shared/BottomNav";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
@@ -46,6 +48,8 @@ export function Profile() {
     updateExchangeRate,
   } = useApp();
 
+  const { language, setLanguage, t } = useLanguage();
+
   const userBranch = branches.find((b) => b.id === user?.branchId);
 
   const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
@@ -55,6 +59,12 @@ export function Profile() {
 
   // Show account switcher only if user is admin or viewing as seller from admin
   const canSwitchAccounts = originalAdminUser || user?.role === "admin";
+
+  const toggleLanguage = () => {
+    const newLang = language === 'uz-latn' ? 'uz-cyrl' : 'uz-latn';
+    setLanguage(newLang);
+    toast.success(newLang === 'uz-latn' ? 'Lotin alifbosiga o\'tkazildi' : 'Кирилл алифбосига ўтказилди');
+  };
 
   const handleLogout = () => {
     setUser(null);
@@ -98,7 +108,7 @@ export function Profile() {
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <div className="bg-gradient-to-b from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-950 px-4 pb-12 pt-6 text-white shadow-lg">
-        <h1 className="mb-2 text-2xl">Profil</h1>
+        <h1 className="mb-2 text-2xl">{t('nav.profile')}</h1>
       </div>
 
       {/* User Info Card */}
@@ -124,8 +134,8 @@ export function Profile() {
               <div className="flex items-center space-x-2 mt-1">
                 <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 border">
                   {user?.role === "admin"
-                    ? "Direktor"
-                    : "Sotuvchi"}
+                    ? t('common.admin')
+                    : t('common.seller')}
                 </Badge>
               </div>
             </div>
@@ -137,9 +147,9 @@ export function Profile() {
       <Dialog open={isAccountSwitcherOpen} onOpenChange={setIsAccountSwitcherOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-center">Hisobni almashtirish</DialogTitle>
+            <DialogTitle className="text-center">{t('profile.switchAccount')}</DialogTitle>
             <DialogDescription className="text-center">
-              Hisobni tanlash uchun quyidagi variantlardan birini tanlang
+              {t('profile.switchAccountDesc')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 py-4">
@@ -161,7 +171,7 @@ export function Profile() {
                       {originalAdminUser?.name || user?.name}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      Direktor
+                      {t('common.admin')}
                     </div>
                   </div>
                 </div>
@@ -193,7 +203,7 @@ export function Profile() {
                         {branch.name}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        Sotuvchi
+                        {t('common.seller')}
                       </div>
                     </div>
                   </div>
@@ -209,14 +219,14 @@ export function Profile() {
 
       {/* Settings */}
       <div className="mt-6 px-4 space-y-3">
-        <h3 className="text-sm text-muted-foreground px-1">
-          SOZLAMALAR
+        <h3 className="text-sm text-muted-foreground px-1 uppercase">
+          {t('nav.settings')}
         </h3>
 
         <Card className="border border-border bg-card !gap-0">
           <button
             onClick={toggleTheme}
-            className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-accent"
+            className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-accent border-b dark:border-gray-700"
           >
             <div className="flex items-center space-x-3">
               {theme === "light" ? (
@@ -226,15 +236,27 @@ export function Profile() {
               )}
               <span className="text-card-foreground">
                 {theme === "light"
-                  ? "Yorqin rejim"
-                  : "Tungi rejim"}
+                  ? t('profile.lightMode')
+                  : t('profile.darkMode')}
+              </span>
+            </div>
+          </button>
+
+          <button
+            onClick={toggleLanguage}
+            className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-accent border-b dark:border-gray-700"
+          >
+            <div className="flex items-center space-x-3">
+              <Languages className="h-5 w-5 text-muted-foreground" />
+              <span className="text-card-foreground">
+                {language === 'uz-latn' ? 'Lotin' : 'Кирилл'}
               </span>
             </div>
             <Badge
               variant="secondary"
               className="bg-secondary text-secondary-foreground"
             >
-              {theme === "light" ? "On" : "On"}
+              {language === 'uz-latn' ? t('profile.latin') : t('profile.cyrillic')}
             </Badge>
           </button>
 
@@ -247,7 +269,7 @@ export function Profile() {
                 <div className="flex items-center space-x-3">
                   <Building2 className="h-5 w-5 text-muted-foreground" />
                   <span className="text-card-foreground">
-                    Filiallarni Boshqarish
+                    {t('profile.manageBranches')}
                   </span>
                 </div>
               </button>
@@ -259,7 +281,7 @@ export function Profile() {
                 <div className="flex items-center space-x-3">
                   <Users className="h-5 w-5 text-muted-foreground" />
                   <span className="text-card-foreground">
-                    Xodimlar ro'yxati
+                    {t('profile.staffList')}
                   </span>
                 </div>
               </button>
@@ -271,7 +293,7 @@ export function Profile() {
                 <div className="flex items-center space-x-3">
                   <TrendingUp className="h-5 w-5 text-muted-foreground" />
                   <span className="text-card-foreground">
-                    Valyuta kursi
+                    {t('admin.exchangeRate')}
                   </span>
                 </div>
                 <Badge variant="outline" className="font-bold text-blue-600 border-blue-200">
@@ -290,7 +312,7 @@ export function Profile() {
               <div className="flex items-center space-x-3">
                 <FileText className="h-5 w-5 text-muted-foreground" />
                 <span className="text-card-foreground">
-                  Qarzlar
+                  {t('nav.debts')}
                 </span>
               </div>
             </button>
@@ -301,7 +323,7 @@ export function Profile() {
               <div className="flex items-center space-x-3">
                 <Building className="h-5 w-5 text-muted-foreground" />
                 <span className="text-card-foreground">
-                  Filial
+                  {t('admin.branch')}
                 </span>
               </div>
               <span className="text-sm text-muted-foreground">
@@ -318,7 +340,7 @@ export function Profile() {
             onClick={handleLogout}
           >
             <LogOut className="mr-3 h-5 w-5" />
-            Chiqish
+            {t('auth.logout')}
           </Button>
         </Card>
       </div>

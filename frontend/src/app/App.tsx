@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from './components/ui/sonner';
 import { AppProvider, useApp } from './context/AppContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { LoginScreen } from './components/auth/LoginScreen';
 import { SellerHome } from './components/seller/SellerHome';
 import { SellProduct } from './components/seller/SellProduct';
@@ -315,9 +316,12 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <AppProvider>
-        <AppContent />
-      </AppProvider>
+      <LanguageProvider>
+        <AppProvider>
+          <AppRoutes />
+          <Toaster position="top-center" />
+        </AppProvider>
+      </LanguageProvider>
     </BrowserRouter>
   );
 }

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useApp } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 
 interface BottomNavProps {
   onCheckoutClick?: () => void;
@@ -21,6 +22,7 @@ export function BottomNav({ onCheckoutClick }: BottomNavProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, basket } = useApp();
+  const { t } = useLanguage();
 
   const isAdmin = user?.role === "admin";
   const baseRoute = isAdmin ? "/admin" : "/seller";
@@ -30,44 +32,44 @@ export function BottomNav({ onCheckoutClick }: BottomNavProps) {
     ? [
       {
         icon: Home,
-        label: "Asosiy",
+        label: t('nav.home'),
         path: "/admin/dashboard",
       },
       {
         icon: Calculator,
-        label: "Hisob",
+        label: t('admin.reports'),
         path: "/admin/hisob",
       },
       {
         icon: ShoppingCart,
-        label: "Ombor",
+        label: t('nav.inventory'),
         path: "/inventory",
       },
       {
         icon: FileText,
-        label: "Qarzlar",
+        label: t('nav.debts'),
         path: "/admin/debts",
       },
-      { icon: User, label: "Profil", path: "/profile" },
+      { icon: User, label: t('nav.profile'), path: "/profile" },
     ]
     : [
-      { icon: Home, label: "Asosiy", path: "/seller/home" },
+      { icon: Home, label: t('nav.home'), path: "/seller/home" },
       {
         icon: Wallet,
-        label: "Xarajat",
+        label: t('nav.expenses'),
         path: "/seller/add-expense",
       },
       {
         icon: isOnBasketPage ? CreditCard : ShoppingCart,
-        label: isOnBasketPage ? "To'lov" : "Savat",
+        label: isOnBasketPage ? t('seller.checkout') : t('seller.basket'),
         path: isOnBasketPage
           ? "/seller/checkout"
           : "/seller/basket",
         isFloating: true, // Mark this as the floating button
         showBadge: !isOnBasketPage, // Only show badge when not on basket page
       },
-      { icon: Package, label: "Ombor", path: "/inventory" },
-      { icon: User, label: "Profil", path: "/profile" },
+      { icon: Package, label: t('nav.inventory'), path: "/inventory" },
+      { icon: User, label: t('nav.profile'), path: "/profile" },
     ];
 
   const isActive = (path: string) =>

@@ -6,6 +6,7 @@ import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useApp } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { toast } from "sonner";
 import { BottomNav } from "../shared/BottomNav";
 
@@ -20,6 +21,7 @@ export function AddExpense() {
     deleteExpense,
     exchangeRate,
   } = useApp();
+  const { t } = useLanguage();
 
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
@@ -44,12 +46,12 @@ export function AddExpense() {
 
   const handleSave = async () => {
     if (!description || !amount) {
-      toast.error("Barcha maydonlarni to'ldiring!");
+      toast.error(t('messages.fillAllFields'));
       return;
     }
 
     if (parseFloat(amount) <= 0) {
-      toast.error("Summa musbat bo'lishi kerak!");
+      toast.error(t('messages.invalidAmount'));
       return;
     }
 
@@ -72,7 +74,7 @@ export function AddExpense() {
             new Date().toISOString(),
         };
         await updateExpense(editingId, updatedExpense);
-        toast.success("Xarajat yangilandi!");
+        toast.success(t('messages.expenseUpdated'));
         setEditingId(null);
       } else {
         // Add new expense
@@ -89,13 +91,13 @@ export function AddExpense() {
           date: new Date().toISOString(),
         };
         await addExpense(newExpense);
-        toast.success("Xarajat qo'shildi!");
+        toast.success(t('messages.expenseAdded'));
       }
 
       setDescription("");
       setAmount("");
     } catch (error) {
-      toast.error("Xatolik yuz berdi!");
+      toast.error(t('common.error'));
     } finally {
       setIsSaving(false);
     }
@@ -111,18 +113,18 @@ export function AddExpense() {
   };
 
   const handleDelete = async (expenseId: string) => {
-    if (confirm("Xarajatni o'chirishni xohlaysizmi?")) {
+    if (confirm(t('messages.confirmDeleteExpense'))) {
       setIsSaving(true);
       try {
         await deleteExpense(expenseId);
-        toast.success("Xarajat o'chirildi!");
+        toast.success(t('messages.expenseDeleted'));
         if (editingId === expenseId) {
           setDescription("");
           setAmount("");
           setEditingId(null);
         }
       } catch (error) {
-        toast.error("O'chirishda xatolik yuz berdi!");
+        toast.error(t('common.error'));
       } finally {
         setIsSaving(false);
       }
@@ -159,15 +161,8 @@ export function AddExpense() {
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
         <div className="flex items-center space-x-4 p-4">
-          {/* <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/seller/home")}
-          >
-            <ArrowLeft className="h-6 w-6 dark:text-white" />
-          </Button> */}
           <h1 className="text-xl dark:text-white">
-            Xarajat qo'shish
+            {t('seller.addExpense')}
           </h1>
         </div>
       </div>
@@ -178,7 +173,7 @@ export function AddExpense() {
           <Label
             className="mb-3 block dark:text-white"
           >
-            Xarajat turi
+            {t('seller.expenseType')}
           </Label>
           <div className="flex gap-2 mb-6">
             <button
@@ -188,7 +183,7 @@ export function AddExpense() {
                 : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-transparent"
                 }`}
             >
-              Filial xarajati
+              {t('seller.branchExpense')}
             </button>
             <button
               onClick={() => setCategory("staff")}
@@ -197,20 +192,20 @@ export function AddExpense() {
                 : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-transparent"
                 }`}
             >
-              Sotuvchi xarajati
+              {t('seller.sellerExpense')}
             </button>
           </div>
 
           {category === "staff" && (
             <div className="mb-4">
-              <Label htmlFor="staff" className="mb-2 block dark:text-white">Xodimni tanlang</Label>
+              <Label htmlFor="staff" className="mb-2 block dark:text-white">{t('seller.selectStaff')}</Label>
               <select
                 id="staff"
                 className="w-full h-12 p-3 border rounded-xl dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 value={staffId}
                 onChange={(e) => setStaffId(e.target.value)}
               >
-                <option value="">Xodimni tanlang</option>
+                <option value="">{t('seller.selectStaff')}</option>
                 {branchStaffMembers.map(s => (
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
@@ -222,13 +217,13 @@ export function AddExpense() {
             htmlFor="description"
             className="mb-2 block dark:text-white"
           >
-            Xarajat tavsifi
+            {t('seller.expenseDescription')}
           </Label>
           <Input
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Tushlik, Taksi, Kommunal..."
+            placeholder={t('seller.expensePlaceholder')}
             className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"
           />
 
@@ -237,7 +232,7 @@ export function AddExpense() {
             type="number"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="Summa"
+            placeholder={t('common.price')}
             className="h-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400 mt-4"
           />
 
@@ -248,7 +243,7 @@ export function AddExpense() {
                 className="h-14 flex-1 bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700"
                 size="lg"
               >
-                Bekor qilish
+                {t('common.cancel')}
               </Button>
             )}
             <Button
@@ -257,7 +252,7 @@ export function AddExpense() {
               size="lg"
               disabled={isSaving}
             >
-              {isSaving ? "Saqlanmoqda..." : (editingId ? "Yangilash" : "Xarajatni qo'shish")}
+              {isSaving ? t('common.loading') : (editingId ? t('common.save') : t('common.add'))}
             </Button>
           </div>
         </Card>
@@ -268,8 +263,7 @@ export function AddExpense() {
             <Wallet className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
             <div className="flex-1">
               <p className="text-sm text-blue-900 dark:text-blue-100">
-                Ushbu xarajat kassadan olingan pul hisoblanadi
-                va kunlik hisobotda ko'rsatiladi.
+                {t('messages.expenseDisclaimer')}
               </p>
             </div>
           </div>
@@ -279,7 +273,7 @@ export function AddExpense() {
         {myExpenses.length > 0 && (
           <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
             <h2 className="text-lg mb-4 dark:text-white">
-              Bugungi xarajatlarim
+              {t('seller.myExpensesToday')}
             </h2>
             <div className="space-y-3">
               {myExpenses.map((expense) => (
@@ -298,7 +292,7 @@ export function AddExpense() {
                       {formatCurrency(expense.amount * exchangeRate)}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {expense.category === "staff" ? `Sotuvchi (${staffMembers.find(s => s.id === expense.staffId)?.name || 'Noma\'lum'})` : "Filial"} • {new Date(
+                      {expense.category === "staff" ? `${t('auth.seller')} (${staffMembers.find(s => s.id === expense.staffId)?.name || t('debt.unknown')})` : t('admin.branch')} • {new Date(
                         expense.date,
                       ).toLocaleTimeString("uz-UZ", {
                         hour: "2-digit",

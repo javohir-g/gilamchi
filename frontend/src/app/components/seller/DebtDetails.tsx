@@ -16,6 +16,7 @@ import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useApp, DebtPayment } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { Badge } from "../ui/badge";
 import { toast } from "sonner";
 import {
@@ -30,6 +31,7 @@ export function DebtDetails() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { debts, makeDebtPayment, user, exchangeRate } = useApp();
+  const { t } = useLanguage();
 
   const debt = debts.find((d) => d.id === id);
 
@@ -70,9 +72,9 @@ export function DebtDetails() {
   };
 
   const formatDate = (dateString: string | undefined | null) => {
-    if (!dateString) return "No'malum";
+    if (!dateString) return t('common.unknown');
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Noto'g'ri sana";
+    if (isNaN(date.getTime())) return t('common.invalidDate');
     return new Intl.DateTimeFormat("uz-UZ", {
       day: "2-digit",
       month: "short",
@@ -83,9 +85,9 @@ export function DebtDetails() {
   };
 
   const formatDateShort = (dateString: string | undefined | null) => {
-    if (!dateString) return "No'malum";
+    if (!dateString) return t('common.unknown');
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Noto'g'ri sana";
+    if (isNaN(date.getTime())) return t('common.invalidDate');
     return new Intl.DateTimeFormat("uz-UZ", {
       day: "2-digit",
       month: "short",
@@ -97,16 +99,14 @@ export function DebtDetails() {
     const amount = parseFloat(paymentAmount);
 
     if (!amount || amount <= 0) {
-      toast.error("To'lov summasini kiriting!");
+      toast.error(t('messages.enterPaymentAmount'));
       return;
     }
 
     const amountUZS = amount; // Input is in UZS
 
     if (amountUZS > debt.remainingAmount) {
-      toast.error(
-        "To'lov summasi qarz summasidan oshmasligi kerak!",
-      );
+      toast.error(t('messages.paymentExceedsDebt'));
       return;
     }
 
@@ -126,14 +126,14 @@ export function DebtDetails() {
     setPaymentAmount("");
     setPaymentNote("");
     setShowPaymentModal(false);
-    toast.success("To'lov qabul qilindi!");
+    toast.success(t('messages.paymentAccepted'));
   };
 
   const getStatusBadge = () => {
     if (debt.status === "paid") {
       return (
         <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-          ✓ To'langan
+          ✓ {t('debt.paid')}
         </Badge>
       );
     }
@@ -168,7 +168,7 @@ export function DebtDetails() {
             <ArrowLeft className="h-6 w-6 dark:text-white" />
           </Button>
           <h1 className="text-2xl dark:text-white">
-            Qarz tafsilotlari
+            {t('debt.debtDetails')}
           </h1>
         </div>
       </div>
@@ -187,7 +187,7 @@ export function DebtDetails() {
                   {debt.debtorName}
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Qarzdor
+                  {t('debt.debtor')}
                 </p>
               </div>
             </div>
@@ -198,7 +198,7 @@ export function DebtDetails() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t dark:border-gray-700">
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                Kelishuv summasi
+                {t('debt.agreedPrice')}
               </p>
               <p className="font-semibold dark:text-white">
                 {formatCurrency(debt.totalAmount)}
@@ -206,7 +206,7 @@ export function DebtDetails() {
             </div>
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                Boshlang'ich to'lov
+                {t('debt.initialPayment')}
               </p>
               <p className="font-semibold text-blue-600 dark:text-blue-400">
                 {formatCurrency(debt.initial_payment || 0)}
@@ -214,7 +214,7 @@ export function DebtDetails() {
             </div>
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                To'langan (Jami)
+                {t('debt.paidTotal')}
               </p>
               <p className="font-semibold text-green-600 dark:text-green-400">
                 {formatCurrency(debt.paidAmount)}
@@ -222,7 +222,7 @@ export function DebtDetails() {
             </div>
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                Qolgan qarz
+                {t('debt.remainingDebt')}
               </p>
               <p className="text-xl font-bold text-red-600 dark:text-red-400">
                 {formatCurrency(debt.remainingAmount)}
@@ -236,7 +236,7 @@ export function DebtDetails() {
           <div className="flex items-center gap-2 mb-4">
             <FileText className="h-5 w-5 text-gray-600 dark:text-gray-400" />
             <h3 className="font-semibold dark:text-white">
-              Buyurtma ma'lumotlari
+              {t('debt.orderDetails')}
             </h3>
           </div>
           <p className="text-gray-700 dark:text-gray-300">
@@ -284,7 +284,7 @@ export function DebtDetails() {
                 <Phone className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                 <div>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Telefon raqami
+                    {t('debt.phoneNumber')}
                   </p>
                   <a
                     href={`tel:${debt.phoneNumber}`}
@@ -299,7 +299,7 @@ export function DebtDetails() {
               <Calendar className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  To'lov muddati
+                  {t('debt.paymentDeadline')}
                 </p>
                 <p className="font-semibold dark:text-white">
                   {formatDateShort(debt.paymentDeadline)}
@@ -310,7 +310,7 @@ export function DebtDetails() {
               <User className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Sotuvchi
+                  {t('common.seller')}
                 </p>
                 <p className="font-semibold dark:text-white">
                   {debt.sellerName}
@@ -321,7 +321,7 @@ export function DebtDetails() {
               <Calendar className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Yaratilgan sana
+                  {t('common.date')}
                 </p>
                 <p className="font-semibold dark:text-white">
                   {formatDateShort(debt.date)}
@@ -336,7 +336,7 @@ export function DebtDetails() {
           <div className="flex items-center gap-2 mb-4">
             <History className="h-5 w-5 text-gray-600 dark:text-gray-400" />
             <h3 className="font-semibold dark:text-white">
-              To'lov tarixi
+              {t('debt.paymentHistory')}
             </h3>
           </div>
 
@@ -344,7 +344,7 @@ export function DebtDetails() {
             <div className="text-center py-8">
               <Receipt className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
               <p className="text-gray-500 dark:text-gray-400">
-                Hali to'lovlar amalga oshirilmagan
+                {t('messages.noPaymentsYet')}
               </p>
             </div>
           ) : (
@@ -382,14 +382,14 @@ export function DebtDetails() {
             <div className="flex items-center gap-2 mb-4">
               <History className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               <h3 className="font-semibold dark:text-white">
-                Qarzdor tarixi
+                {t('debt.debtorHistory')}
               </h3>
               <Badge variant="secondary" className="ml-auto">
-                {debtorHistory.length} ta qarz
+                {t('debt.debtCount', { count: debtorHistory.length })}
               </Badge>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              {debt.debtorName} ning boshqa qarzlari
+              {t('debt.otherDebtsOf', { name: debt.debtorName })}
             </p>
 
             <div className="space-y-3">
@@ -413,11 +413,11 @@ export function DebtDetails() {
                       </span>
                       {historyDebt.status === "paid" ? (
                         <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                          ✓ To'langan
+                          ✓ {t('debt.paid')}
                         </Badge>
                       ) : (
                         <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
-                          ⏳ Kutilmoqda
+                          ⏳ {t('debt.pending')}
                         </Badge>
                       )}
                     </div>
@@ -426,14 +426,14 @@ export function DebtDetails() {
                     </p>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-gray-500 dark:text-gray-400">
-                        Jami:{" "}
+                        {t('common.total')}:{" "}
                         {formatCurrency(
                           historyDebt.totalAmount,
                         )}
                       </span>
                       {historyDebt.status !== "paid" && (
                         <span className="font-semibold text-red-600 dark:text-red-400">
-                          Qarz:{" "}
+                          {t('debt.remainingDebt')}:{" "}
                           {formatCurrency(
                             historyDebt.remainingAmount,
                           )}
@@ -456,7 +456,7 @@ export function DebtDetails() {
             size="lg"
           >
             <Wallet className="h-5 w-5 mr-2" />
-            Qarzni to'lash
+            {t('debt.payDebt')}
           </Button>
         </div>
       )}
@@ -469,10 +469,10 @@ export function DebtDetails() {
         <DialogContent className="dark:bg-gray-800 dark:border-gray-700 max-w-md">
           <DialogHeader>
             <DialogTitle className="dark:text-white text-xl">
-              To'lov qabul qilish
+              {t('debt.receivePayment')}
             </DialogTitle>
             <DialogDescription className="dark:text-gray-400">
-              Qarzni to'lash uchun summa va izoh kiriting
+              {t('debt.enterPaymentInfo')}
             </DialogDescription>
           </DialogHeader>
 
@@ -480,7 +480,7 @@ export function DebtDetails() {
             {/* Remaining Amount Display */}
             <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
               <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                Qolgan qarz
+                {t('debt.remainingDebt')}
               </p>
               <p className="text-2xl font-bold text-red-600 dark:text-red-400">
                 {formatCurrency(debt.remainingAmount)}
@@ -489,7 +489,7 @@ export function DebtDetails() {
 
             <div>
               <Label className="dark:text-white">
-                To'lov summasi{" "}
+                {t('debt.paidAmount')}{" "}
                 <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -505,20 +505,20 @@ export function DebtDetails() {
                 autoFocus
               />
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Maksimal: {formatCurrency(debt.remainingAmount)}
+                {t('common.total')}: {formatCurrency(debt.remainingAmount)}
               </p>
             </div>
 
             <div>
               <Label className="dark:text-white">
-                Izoh (ixtiyoriy)
+                {t('common.noteOptional')}
               </Label>
               <Input
                 type="text"
                 value={paymentNote}
                 onChange={(e) => setPaymentNote(e.target.value)}
                 className="h-12 dark:bg-gray-700 dark:text-white mt-2"
-                placeholder="Masalan: Naqd to'lov"
+                placeholder={t('debt.exampleNote')}
               />
             </div>
 
@@ -532,14 +532,14 @@ export function DebtDetails() {
                 }}
                 className="flex-1 h-12 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
               >
-                Bekor qilish
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={handleMakePayment}
                 className="flex-1 h-12 bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700"
               >
                 <DollarSign className="h-5 w-5 mr-1" />
-                Qabul qilish
+                {t('common.accept')}
               </Button>
             </div>
           </div>

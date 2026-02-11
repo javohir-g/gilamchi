@@ -11,6 +11,7 @@ import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { useApp, Sale } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { BottomNav } from "../shared/BottomNav";
 
 interface Order {
@@ -24,6 +25,7 @@ interface Order {
 export function DailySales() {
   const navigate = useNavigate();
   const { user, sales, isAdminViewingAsSeller, exchangeRate } = useApp();
+  const { t } = useLanguage();
   const [expandedOrders, setExpandedOrders] = useState<
     Set<string>
   >(new Set());
@@ -76,10 +78,10 @@ export function DailySales() {
       date: orderSales[0].date,
       paymentTypes: paymentTypes.map((pt) =>
         pt === "cash"
-          ? "Naqd"
+          ? t('common.cash')
           : pt === "card"
-            ? "Karta"
-            : "O'tkazma",
+            ? t('common.card')
+            : t('common.transfer'),
       ),
     });
   });
@@ -153,7 +155,7 @@ export function DailySales() {
             <ArrowLeft className="h-6 w-6 dark:text-white" />
           </Button>
           <h1 className="text-xl dark:text-white">
-            Bugungi savdolarim
+            {t('seller.myDailySales')}
           </h1>
         </div>
       </div>
@@ -165,13 +167,13 @@ export function DailySales() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="mb-1 text-sm text-blue-700 dark:text-blue-300">
-                  Jami summa
+                  {t('common.total')}
                 </div>
                 <div className="text-3xl text-blue-900 dark:text-blue-100">
                   {formatCurrency(totalAmount * exchangeRate)}
                 </div>
                 <div className="mt-1 text-sm text-blue-700 dark:text-blue-300">
-                  {orders.length} ta buyurtma
+                  {t('seller.orderCount', { count: orders.length })}
                 </div>
               </div>
               <div className="rounded-full bg-blue-200 dark:bg-blue-800 p-4">
@@ -185,7 +187,7 @@ export function DailySales() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="mb-1 text-sm text-emerald-700 dark:text-emerald-300">
-                    Filial foydasi
+                    {t('common.profit')}
                   </div>
                   <div className="text-3xl text-emerald-900 dark:text-emerald-100">
                     {formatCurrency(totalBranchProfit * exchangeRate)}
@@ -202,11 +204,11 @@ export function DailySales() {
         {/* Orders List */}
         <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
           <h3 className="mb-4 text-lg dark:text-white">
-            Barcha buyurtmalar
+            {t('seller.allOrders')}
           </h3>
           {orders.length === 0 ? (
             <p className="py-8 text-center text-gray-500 dark:text-gray-400">
-              Bugun hali savdo yo'q
+              {t('messages.noSalesToday')}
             </p>
           ) : (
             <div className="space-y-3">
@@ -232,17 +234,17 @@ export function DailySales() {
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <Package className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                            <span className="dark:text-white">
+                            <span className="dark:text-white flex items-center gap-2">
+                              <Package className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                               {isMultiProduct
-                                ? `${order.sales.length} ta mahsulot`
+                                ? t('seller.productCount', { count: order.sales.length })
                                 : order.sales[0].productName}
                             </span>
                           </div>
                           {!isMultiProduct && (
                             <div className="text-sm text-gray-500 dark:text-gray-400">
-                              Miqdor: {order.sales[0].type === "unit"
-                                ? `${order.sales[0].quantity} dona`
+                              {t('seller.quantity')}: {order.sales[0].type === "unit"
+                                ? `${order.sales[0].quantity} ${t('common.unit')}`
                                 : `${(order.sales[0].area || order.sales[0].quantity).toFixed(1)} m²`}
                             </div>
                           )}
@@ -252,13 +254,13 @@ export function DailySales() {
                             <Badge
                               key={idx}
                               variant={
-                                pt === "Naqd"
+                                pt === t('common.cash')
                                   ? "default"
-                                  : pt === "Karta"
+                                  : pt === t('common.card')
                                     ? "secondary"
                                     : "outline"
                               }
-                              className={`text-xs ${pt === "Naqd" ? "bg-green-600 hover:bg-green-700" : ""}`}
+                              className={`text-xs ${pt === t('common.cash') ? "bg-green-600 hover:bg-green-700" : ""}`}
                             >
                               {pt}
                             </Badge>
@@ -328,7 +330,7 @@ export function DailySales() {
                                 </div>
                                 <div className="text-gray-500 dark:text-gray-400">
                                   {sale.type === "unit"
-                                    ? `${sale.quantity} dona`
+                                    ? `${sale.quantity} ${t('common.unit')}`
                                     : `${(sale.area || sale.quantity).toFixed(1)} m²`}
                                 </div>
                               </div>
