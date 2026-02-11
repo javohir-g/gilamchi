@@ -31,6 +31,7 @@ export type Theme = "light" | "dark";
 export interface User {
   id: string;
   name: string;
+  fullName?: string;
   role: UserRole;
   branchId?: string;
   canAddProducts?: boolean;
