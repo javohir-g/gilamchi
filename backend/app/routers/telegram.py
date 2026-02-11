@@ -78,15 +78,20 @@ async def telegram_auth(init_data: str, db: Session = Depends(get_db)):
     str_id = str(telegram_id)
     int_id = int(telegram_id) if str_id.isdigit() else None
     
+    logger.info(f"Checking auth for ID: {telegram_id} (type: {type(telegram_id)}). str_id: {str_id}, int_id: {int_id}")
+    
     if int_id in ADMIN_IDS or str_id in ADMIN_IDS:
+        logger.info(f"ID {telegram_id} recognized as ADMIN")
         try:
-            user = db.query(User).filter(User.telegram_id == telegram_id).first()
+            # Force integer for DB query search
+            db_search_id = int_id if int_id is not None else telegram_id
+            user = db.query(User).filter(User.telegram_id == db_search_id).first()
             if not user:
-                logger.info(f"Admin with telegram_id {telegram_id} not found in DB, creating...")
+                logger.info(f"Admin with telegram_id {db_search_id} not found in DB, creating...")
                 # Auto-create admin if not exists
                 user = User(
-                    username=f"admin_{telegram_id}",
-                    telegram_id=telegram_id,
+                    username=f"admin_{db_search_id}",
+                    telegram_id=db_search_id,
                     full_name=user_data.get('first_name', 'Admin'),
                     role=UserRole.ADMIN
                 )
@@ -97,18 +102,22 @@ async def telegram_auth(init_data: str, db: Session = Depends(get_db)):
             access_token = create_access_token(data={"sub": user.username})
             return {"access_token": access_token, "token_type": "bearer"}
         except Exception as e:
-            logger.error(f"Database error during admin auth check: {str(e)}")
+            logger.error(f"Database error during admin auth check for ID {telegram_id}: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
     # 2. Check if user already exists in DB
     try:
-        user = db.query(User).filter(User.telegram_id == telegram_id).first()
+        db_search_id = int_id if int_id is not None else telegram_id
+        user = db.query(User).filter(User.telegram_id == db_search_id).first()
         if user:
+            logger.info(f"Found existing user {user.username} for telegram_id {db_search_id}")
             access_token = create_access_token(data={"sub": user.username})
             return {"access_token": access_token, "token_type": "bearer"}
     except Exception as e:
-        logger.error(f"Database error during user auth check: {str(e)}")
+        logger.error(f"Database error during user auth check for ID {telegram_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+    logger.warning(f"ID {telegram_id} is not an admin and not registered in DB")
 
     # 3. Not registered
     raise HTTPException(status_code=404, detail="NOT_REGISTERED")
