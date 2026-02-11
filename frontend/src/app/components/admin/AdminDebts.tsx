@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { useApp } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { Badge } from "../ui/badge";
 import { BottomNav } from "../shared/BottomNav";
 import { toast } from "sonner";
@@ -28,6 +29,7 @@ import { toast } from "sonner";
 export function AdminDebts() {
   const navigate = useNavigate();
   const { debts, branches, exchangeRate, deleteDebt } = useApp();
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterBranch, setFilterBranch] = useState("all");
 
@@ -40,9 +42,9 @@ export function AdminDebts() {
 
     try {
       await deleteDebt(debtId);
-      toast.success("Qarz o'chirildi");
+      toast.success(t('messages.deleteSuccess'));
     } catch (error) {
-      toast.error("Qarzni o'chirishda xatolik");
+      toast.error(t('messages.debtDeletionError'));
     }
   };
 

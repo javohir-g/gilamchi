@@ -31,12 +31,14 @@ import {
   AlertDialogTitle,
 } from "../ui/alert-dialog";
 import { useApp } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { toast } from "sonner";
 import { BottomNav } from "../shared/BottomNav";
 
 export function ManageSizes() {
   const navigate = useNavigate();
   const { products, renameSize, deleteSize } = useApp();
+  const { t } = useLanguage();
 
   const [selectedCollection, setSelectedCollection] = useState<string>("all");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -93,12 +95,12 @@ export function ManageSizes() {
 
   const handleAddSize = () => {
     if (!newSize.trim()) {
-      toast.error("O'lchamni kiriting!");
+      toast.error(t('messages.enterSize'));
       return;
     }
 
     if (sizes.includes(newSize)) {
-      toast.error("Bu o'lcham allaqachon mavjud!");
+      toast.error(t('messages.sizeAlreadyExists'));
       return;
     }
 
@@ -111,19 +113,19 @@ export function ManageSizes() {
 
   const handleEditSize = () => {
     if (!editSizeName.trim() || !selectedSize) {
-      toast.error("O'lchamni kiriting!");
+      toast.error(t('messages.enterSize'));
       return;
     }
 
     if (sizes.includes(editSizeName) && editSizeName !== selectedSize) {
-      toast.error("Bu o'lcham allaqachon mavjud!");
+      toast.error(t('messages.sizeAlreadyExists'));
       return;
     }
 
     const collectionFilter =
       selectedCollection === "all" ? undefined : selectedCollection;
     renameSize(selectedSize, editSizeName, collectionFilter);
-    toast.success("O'lcham o'zgartirildi!");
+    toast.success(t('messages.sizeUpdated'));
     setEditDialogOpen(false);
     setSelectedSize(null);
     setEditSizeName("");
@@ -145,7 +147,7 @@ export function ManageSizes() {
     const collectionFilter =
       selectedCollection === "all" ? undefined : selectedCollection;
     deleteSize(selectedSize, collectionFilter);
-    toast.success("O'lcham o'chirildi!");
+    toast.success(t('messages.sizeDeleted'));
     setDeleteDialogOpen(false);
     setSelectedSize(null);
   };

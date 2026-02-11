@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
 } from "../ui/alert-dialog";
 import { useApp } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { toast } from "sonner";
 import { BottomNav } from "../shared/BottomNav";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
@@ -31,6 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 export function ManageCollections() {
   const navigate = useNavigate();
   const { products, collections: ctxCollections, branches, fetchCollectionsForBranch, addCollection, updateCollection, deleteCollection: apiDeleteCollection, user } = useApp();
+  const { t } = useLanguage();
 
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -94,12 +96,12 @@ export function ManageCollections() {
 
   const handleAddCollection = async () => {
     if (!newCollectionName.trim()) {
-      toast.error("Kolleksiya nomini kiriting!");
+      toast.error(t('messages.enterCollectionName'));
       return;
     }
 
     if (collections.some(c => c.name === newCollectionName)) {
-      toast.error("Bu kolleksiya allaqachon mavjud!");
+      toast.error(t('messages.collectionAlreadyExists'));
       return;
     }
 
@@ -112,7 +114,7 @@ export function ManageCollections() {
         branch_id: user?.role === 'admin' ? selectedBranchId : user?.branchId
       });
 
-      toast.success("Kolleksiya qo'shildi!");
+      toast.success(t('messages.collectionAdded'));
       setNewCollectionName("");
       setCollectionPrice("");
       setCollectionBuyPrice("");
@@ -126,7 +128,7 @@ export function ManageCollections() {
 
   const handleEditCollection = async () => {
     if (!editCollectionName.trim() || !selectedCollectionId) {
-      toast.error("Kolleksiya nomini kiriting!");
+      toast.error(t('messages.enterCollectionName'));
       return;
     }
 
@@ -138,7 +140,7 @@ export function ManageCollections() {
         buy_price_per_sqm: collectionBuyPrice ? parseFloat(collectionBuyPrice) : undefined,
       });
 
-      toast.success("Kolleksiya yangilandi!");
+      toast.success(t('messages.collectionUpdated'));
       setEditDialogOpen(false);
       setSelectedCollectionId(null);
       setEditCollectionName("");
@@ -157,7 +159,7 @@ export function ManageCollections() {
     setIsSaving(true);
     try {
       await apiDeleteCollection(selectedCollectionId);
-      toast.success("Kolleksiya o'chirildi!");
+      toast.success(t('messages.collectionDeleted'));
       setDeleteDialogOpen(false);
       setSelectedCollectionId(null);
     } catch (error) {

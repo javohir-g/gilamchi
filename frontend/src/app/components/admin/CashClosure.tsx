@@ -7,12 +7,14 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Badge } from '../ui/badge';
 import { useApp } from '../../context/AppContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'sonner';
 
 export function CashClosure() {
   const { branchId } = useParams();
   const navigate = useNavigate();
   const { branches, sales } = useApp();
+  const { t } = useLanguage();
 
   const branch = branches.find((b) => b.id === branchId);
   const branchSales = sales.filter((s) => s.branchId === branchId);
@@ -32,12 +34,12 @@ export function CashClosure() {
 
   const handleClose = () => {
     if (!receivedCash) {
-      toast.error('Olingan naqd pulni kiriting!');
+      toast.error(t('messages.enterCashReceived'));
       return;
     }
 
     setIsClosed(true);
-    toast.success('Kunlik kassa yopildi!');
+    toast.success(t('messages.cashClosureCompleted'));
 
     setTimeout(() => {
       navigate('/admin/dashboard');
@@ -118,10 +120,10 @@ export function CashClosure() {
         {receivedCash && (
           <Card
             className={`p-6 ${difference === 0
-                ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800'
-                : difference > 0
-                  ? 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800'
-                  : 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
+              ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800'
+              : difference > 0
+                ? 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800'
+                : 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
               }`}
           >
             <div className="mb-2 flex items-center text-sm">
@@ -132,10 +134,10 @@ export function CashClosure() {
             </div>
             <div
               className={`text-3xl ${difference === 0
-                  ? 'text-green-700 dark:text-green-400'
-                  : difference > 0
-                    ? 'text-blue-700 dark:text-blue-400'
-                    : 'text-red-700 dark:text-red-400'
+                ? 'text-green-700 dark:text-green-400'
+                : difference > 0
+                  ? 'text-blue-700 dark:text-blue-400'
+                  : 'text-red-700 dark:text-red-400'
                 }`}
             >
               {difference > 0 ? '+' : ''}

@@ -158,7 +158,7 @@ export function AddProduct() {
         setPhoto(compressedImage);
       } catch (error) {
         console.error('Error compressing image:', error);
-        toast.error('Ошибка при обработке изображения');
+        toast.error(t('messages.imageProcessingError'));
       }
     }
   };
@@ -479,7 +479,7 @@ export function AddProduct() {
                   </Select>
                 ) : (
                   <div className="h-12 flex items-center px-3 bg-secondary/30 rounded-xl border border-border text-sm">
-                    {branches.find((b) => b.id === branchId)?.name || "Filial nomi"}
+                    {branches.find((b) => b.id === branchId)?.name || t('common.branch')}
                   </div>
                 )}
               </div>

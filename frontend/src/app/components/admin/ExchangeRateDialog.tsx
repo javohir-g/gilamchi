@@ -4,6 +4,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useApp } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { toast } from "sonner";
 import { TrendingUp } from "lucide-react";
 
@@ -14,6 +15,7 @@ interface ExchangeRateDialogProps {
 
 export function ExchangeRateDialog({ isOpen, onClose }: ExchangeRateDialogProps) {
     const { exchangeRate, updateExchangeRate } = useApp();
+    const { t } = useLanguage();
     const [newRate, setNewRate] = useState(exchangeRate.toString());
     const [isLoading, setIsLoading] = useState(false);
 
@@ -24,17 +26,17 @@ export function ExchangeRateDialog({ isOpen, onClose }: ExchangeRateDialogProps)
     const handleSave = async () => {
         const rate = parseFloat(newRate);
         if (!rate || rate <= 0) {
-            toast.error("Haqiqiy kursni kiriting!");
+            toast.error(t('messages.enterValidRate'));
             return;
         }
 
         try {
             setIsLoading(true);
             await updateExchangeRate(rate);
-            toast.success("Valyuta kursi muvaffaqiyatli yangilandi!");
+            toast.success(t('messages.exchangeRateUpdated'));
             onClose();
         } catch (error) {
-            toast.error("Xatolik yuz berdi");
+            toast.error(t('common.error'));
         } finally {
             setIsLoading(false);
         }
