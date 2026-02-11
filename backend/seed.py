@@ -28,24 +28,37 @@ def seed():
             db.refresh(branch)
         branches.append(branch)
     
-    # Ensure Admin Exists/Updated
-    admin_username = "admin"
-    admin_password = "admin"
-    admin = db.query(User).filter(User.username == admin_username).first()
-    if not admin:
-        print(f"Creating admin: {admin_username}")
-        admin = User(
-            username=admin_username,
-            password_hash=get_password_hash(admin_password),
-            role=UserRole.ADMIN,
-            can_add_products=True
-        )
-        db.add(admin)
-    else:
-        print(f"Updating admin password: {admin_username}")
-        admin.password_hash = get_password_hash(admin_password)
-        admin.role = UserRole.ADMIN
-        admin.can_add_products = True
+    # Ensure Specific Telegram Admins Exist/Updated
+    tg_admins = [
+        {"id": 947732542, "username": "admin_947732542"},
+        {"id": 6965037980, "username": "admin_6965037980"}
+    ]
+    
+    for tg_admin in tg_admins:
+        admin_user = db.query(User).filter(User.telegram_id == tg_admin["id"]).first()
+        if not admin_user:
+            # Also check by username as fallback
+            admin_user = db.query(User).filter(User.username == tg_admin["username"]).first()
+            
+        if not admin_user:
+            print(f"Creating Telegram admin: {tg_admin['username']}")
+            admin_user = User(
+                username=tg_admin["username"],
+                telegram_id=tg_admin["id"],
+                password_hash=get_password_hash(uuid.uuid4().hex), # Random password
+                role=UserRole.ADMIN,
+                can_add_products=True
+            )
+            db.add(admin_user)
+        else:
+            print(f"Ensuring Telegram admin is active and admin: {admin_user.username}")
+            admin_user.role = UserRole.ADMIN
+            admin_user.telegram_id = tg_admin["id"]
+            admin_user.deleted_at = None
+            admin_user.deleted_by = None
+            admin_user.can_add_products = True
+    
+    db.commit()
     
     # Ensure Sellers Exist/Updated
     for i, branch in enumerate(branches):
