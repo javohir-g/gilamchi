@@ -74,7 +74,11 @@ async def telegram_auth(init_data: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="No Telegram ID found")
 
     # 1. Check if it's a hardcoded admin
-    if telegram_id in ADMIN_IDS:
+    # Convert telegram_id to string and integer to be absolutely sure
+    str_id = str(telegram_id)
+    int_id = int(telegram_id) if str_id.isdigit() else None
+    
+    if int_id in ADMIN_IDS or str_id in ADMIN_IDS:
         user = db.query(User).filter(User.telegram_id == telegram_id).first()
         if not user:
             # Auto-create admin if not exists
