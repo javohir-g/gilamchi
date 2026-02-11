@@ -118,31 +118,43 @@ def generate_invitation_link(
     db: Session = Depends(get_db),
     current_user = Depends(get_admin_user)
 ):
-    token = secrets.token_urlsafe(16)
-    expires_at = datetime.now(timezone.utc) + timedelta(hours=invitation.expires_in_hours)
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"Generating invitation link for user: {current_user.username} (role: {current_user.role})")
+    logger.info(f"Invitation data: {invitation.dict()}")
     
-    db_invitation = InvitationLink(
-        token=token,
-        branch_id=invitation.branch_id,
-        role=invitation.role,
-        expires_at=expires_at,
-        username_hint=invitation.username_hint
-    )
-    db.add(db_invitation)
-    db.commit()
-    db.refresh(db_invitation)
-    
-    # URL construction - base bot URL can be in settings
-    from ..config import get_settings
-    settings = get_settings()
-    bot_url = f"https://t.me/{settings.telegram_bot_username}?start={token}"
-    
-    return InvitationResponse(
-        id=db_invitation.id,
-        token=db_invitation.token,
-        branch_id=db_invitation.branch_id,
-        role=db_invitation.role,
-        is_used=db_invitation.is_used,
-        expires_at=db_invitation.expires_at,
-        url=bot_url
-    )
+    try:
+        token = secrets.token_urlsafe(16)
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=invitation.expires_in_hours)
+        
+        db_invitation = InvitationLink(
+            token=token,
+            branch_id=invitation.branch_id,
+            role=invitation.role,
+            expires_at=expires_at,
+            username_hint=invitation.username_hint
+        )
+        db.add(db_invitation)
+        db.commit()
+        db.refresh(db_invitation)
+        
+        # URL construction - base bot URL can be in settings
+        from ..config import get_settings
+        settings = get_settings()
+        bot_url = f"https://t.me/{settings.telegram_bot_username}?start={token}"
+        
+        logger.info(f"Successfully generated link with token: {token[:5]}...")
+        
+        return InvitationResponse(
+            id=db_invitation.id,
+            token=db_invitation.token,
+            branch_id=db_invitation.branch_id,
+            role=db_invitation.role,
+            is_used=db_invitation.is_used,
+            expires_at=db_invitation.expires_at,
+            url=bot_url
+        )
+    except Exception as e:
+        logger.error(f"Error generating invitation link: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to generate link: {str(e)}")
