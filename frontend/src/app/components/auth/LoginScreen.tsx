@@ -17,6 +17,12 @@ export function LoginScreen() {
   const [loading, setLoading] = useState(false);
 
   React.useEffect(() => {
+    // Expand WebApp to fullscreen to prevent UI overlap
+    if (isReady && webApp) {
+      webApp.expand();
+      webApp.enableClosingConfirmation();
+    }
+
     if (isReady && webApp?.initData) {
       handleTelegramLogin();
     }
