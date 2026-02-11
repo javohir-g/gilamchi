@@ -169,8 +169,10 @@ export function LoginScreen() {
                   <p>Params: {new URLSearchParams(window.location.search).toString()}</p>
                   <p>StartParam (URL): {new URLSearchParams(window.location.search).get('start_param') || "None"}</p>
                   <p>StartParam (Session): {sessionStorage.getItem('start_param') || "None"}</p>
-                  <p>Unsafe: {webApp?.initDataUnsafe?.start_param || "None"}</p>
-                  <p>User ID (WebApp): {webApp?.initDataUnsafe?.user?.id || "None"}</p>
+                  <p>Unsafe Param: {webApp?.initDataUnsafe?.start_param || "None"}</p>
+                  <p>User ID: {webApp?.initDataUnsafe?.user?.id || "None"}</p>
+                  <p>InitData Length: {webApp?.initData?.length || 0}</p>
+                  <p>InitData Start: {webApp?.initData?.substring(0, 20) || "None"}...</p>
                 </div>
 
                 <Button
