@@ -79,27 +79,36 @@ async def telegram_auth(init_data: str, db: Session = Depends(get_db)):
     int_id = int(telegram_id) if str_id.isdigit() else None
     
     if int_id in ADMIN_IDS or str_id in ADMIN_IDS:
-        user = db.query(User).filter(User.telegram_id == telegram_id).first()
-        if not user:
-            # Auto-create admin if not exists
-            user = User(
-                username=f"admin_{telegram_id}",
-                telegram_id=telegram_id,
-                full_name=user_data.get('first_name', 'Admin'),
-                role=UserRole.ADMIN
-            )
-            db.add(user)
-            db.commit()
-            db.refresh(user)
-        
-        access_token = create_access_token(data={"sub": user.username})
-        return {"access_token": access_token, "token_type": "bearer"}
+        try:
+            user = db.query(User).filter(User.telegram_id == telegram_id).first()
+            if not user:
+                logger.info(f"Admin with telegram_id {telegram_id} not found in DB, creating...")
+                # Auto-create admin if not exists
+                user = User(
+                    username=f"admin_{telegram_id}",
+                    telegram_id=telegram_id,
+                    full_name=user_data.get('first_name', 'Admin'),
+                    role=UserRole.ADMIN
+                )
+                db.add(user)
+                db.commit()
+                db.refresh(user)
+            
+            access_token = create_access_token(data={"sub": user.username})
+            return {"access_token": access_token, "token_type": "bearer"}
+        except Exception as e:
+            logger.error(f"Database error during admin auth check: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
     # 2. Check if user already exists in DB
-    user = db.query(User).filter(User.telegram_id == telegram_id).first()
-    if user:
-        access_token = create_access_token(data={"sub": user.username})
-        return {"access_token": access_token, "token_type": "bearer"}
+    try:
+        user = db.query(User).filter(User.telegram_id == telegram_id).first()
+        if user:
+            access_token = create_access_token(data={"sub": user.username})
+            return {"access_token": access_token, "token_type": "bearer"}
+    except Exception as e:
+        logger.error(f"Database error during user auth check: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
     # 3. Not registered
     raise HTTPException(status_code=404, detail="NOT_REGISTERED")
