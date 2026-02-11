@@ -105,6 +105,12 @@ async def telegram_auth(init_data: str, db: Session = Depends(get_db)):
                 db.add(user)
                 db.commit()
                 db.refresh(user)
+            elif user.deleted_at:
+                logger.info(f"Reactivating deleted admin user: {user.username}")
+                user.deleted_at = None
+                user.deleted_by = None
+                db.commit()
+                db.refresh(user)
             
             access_token = create_access_token(data={"sub": user.username})
             return {"access_token": access_token, "token_type": "bearer"}
@@ -118,6 +124,12 @@ async def telegram_auth(init_data: str, db: Session = Depends(get_db)):
         user = db.query(User).filter(User.telegram_id == db_search_id).first()
         if user:
             logger.info(f"Found existing user {user.username} for telegram_id {db_search_id}")
+            if user.deleted_at:
+                logger.info(f"Reactivating deleted user: {user.username}")
+                user.deleted_at = None
+                user.deleted_by = None
+                db.commit()
+                db.refresh(user)
             access_token = create_access_token(data={"sub": user.username})
             return {"access_token": access_token, "token_type": "bearer"}
     except Exception as e:

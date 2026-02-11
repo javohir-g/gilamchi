@@ -27,8 +27,11 @@ def get_staff(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    # Query Users with role 'seller' or 'admin' (excluding the main admin if needed, or just all)
-    # We map User fields to StaffResponse fields
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"Fetching staff list. Filter branch_id: {branch_id}")
+    
+    # Query Users with role 'seller' or 'admin'
     from ..models.user import User
     
     query = db.query(User).filter(User.deleted_at == None)
@@ -37,16 +40,17 @@ def get_staff(
         query = query.filter(User.branch_id == branch_id)
         
     users = query.all()
+    logger.info(f"Found {len(users)} active users in DB")
     
     # Map users to StaffResponse interface
-    # StaffResponse expects: id, name, branch_id, is_active, created_at
     staff_list = []
     for user in users:
+        logger.debug(f"Mapping user: {user.username} (role: {user.role}, branch: {user.branch_id})")
         staff_list.append({
             "id": user.id,
-            "name": user.full_name or user.username, # Fallback to username if full_name is missing
+            "name": user.full_name or user.username,
             "branch_id": user.branch_id,
-            "is_active": True, # Users in this list are considered active since we filtered deleted_at
+            "is_active": True,
             "created_at": user.created_at,
             "updated_at": user.updated_at
         })
