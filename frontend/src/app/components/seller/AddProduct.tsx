@@ -81,6 +81,15 @@ export function AddProduct() {
   // Use local collections if available, otherwise use global
   const collections = localCollections.length > 0 ? localCollections : globalCollections;
 
+  // Auto-set type based on category
+  useEffect(() => {
+    if (category === "Metrajlar" && type !== "meter") {
+      setType("meter");
+    } else if (category === "Gilamlar" && type !== "unit") {
+      setType("unit");
+    }
+  }, [category]);
+
   // Auto-calculate total quantity or length based on sizes/rolls
   useEffect(() => {
     if (type === "unit" && availableSizes.length > 0) {
@@ -652,6 +661,24 @@ export function AddProduct() {
               </div>
             ) : (
               <div className="space-y-5">
+                <div>
+                  <Label className="mb-2 block text-sm font-medium">
+                    {t('product.width')} ({t('common.meter_short')})
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={width}
+                      onChange={(e) => setWidth(e.target.value)}
+                      placeholder="0.00"
+                      className="h-12 rounded-xl pl-10"
+                    />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      ↔️
+                    </div>
+                  </div>
+                </div>
                 <div>
                   <Label className="mb-2 block text-sm font-medium">
                     {t('seller.addRolls')}
