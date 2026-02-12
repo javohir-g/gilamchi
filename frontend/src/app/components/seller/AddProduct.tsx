@@ -211,6 +211,11 @@ export function AddProduct() {
           setSellPricePerMeter(productToEdit.sellPricePerMeter?.toString() || "");
         }
 
+        setCollection(productToEdit.collection || "");
+        setAvailableSizes(productToEdit.availableSizes || []);
+        setBuyPriceUsd(productToEdit.buyPriceUsd?.toString() || "");
+        setIsUsdPriced(productToEdit.isUsdPriced || false);
+
         if (productToEdit.branchId) {
           setBranchId(productToEdit.branchId.toString());
         }
