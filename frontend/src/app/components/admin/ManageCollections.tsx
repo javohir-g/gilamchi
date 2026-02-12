@@ -14,6 +14,13 @@ import {
   DialogDescription,
 } from "../ui/dialog";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -43,6 +50,7 @@ export function ManageCollections() {
   const [editCollectionName, setEditCollectionName] = useState("");
   const [collectionPrice, setCollectionPrice] = useState<string>("");
   const [collectionBuyPrice, setCollectionBuyPrice] = useState<string>("");
+  const [addBranchId, setAddBranchId] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
 
   // Collection Icons Map
@@ -111,7 +119,7 @@ export function ManageCollections() {
         name: newCollectionName,
         price_per_sqm: collectionPrice ? parseFloat(collectionPrice) : undefined,
         buy_price_per_sqm: collectionBuyPrice ? parseFloat(collectionBuyPrice) : undefined,
-        branch_id: user?.role === 'admin' ? selectedBranchId : user?.branchId
+        branchId: user?.role === 'admin' ? addBranchId : user?.branchId
       });
 
       toast.success(t('messages.collectionAdded'));
@@ -138,6 +146,7 @@ export function ManageCollections() {
         name: editCollectionName,
         price_per_sqm: collectionPrice ? parseFloat(collectionPrice) : undefined,
         buy_price_per_sqm: collectionBuyPrice ? parseFloat(collectionBuyPrice) : undefined,
+        branchId: user?.role === 'admin' ? addBranchId : undefined
       });
 
       toast.success(t('messages.collectionUpdated'));
@@ -171,6 +180,7 @@ export function ManageCollections() {
 
   const openEditDialog = (collection: any) => {
     setSelectedCollectionId(collection.id);
+    setAddBranchId(collection.branchId || selectedBranchId);
     setEditCollectionName(collection.name);
     setCollectionPrice(collection.price_per_sqm?.toString() || "");
     setCollectionBuyPrice(collection.buy_price_per_sqm?.toString() || "");
@@ -208,12 +218,14 @@ export function ManageCollections() {
           </div>
 
           <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => setAddDialogOpen(true)}
-            className="text-blue-600 dark:text-blue-400"
+            className="rounded-full h-12 px-6 shadow-md hover:shadow-lg transition-all"
+            onClick={() => {
+              setAddBranchId(selectedBranchId);
+              setAddDialogOpen(true);
+            }}
           >
-            <Plus className="h-6 w-6" />
+            <Plus className="h-6 w-6 mr-2" />
+            {t('admin.addCollection')}
           </Button>
         </div>
 
@@ -314,6 +326,23 @@ export function ManageCollections() {
                 className="h-12"
               />
             </div>
+            {user?.role === 'admin' && (
+              <div>
+                <Label className="mb-2 block">{t('admin.branch')}</Label>
+                <Select value={addBranchId} onValueChange={setAddBranchId}>
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder={t('admin.selectBranch')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {branches.map(branch => (
+                      <SelectItem key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <Label htmlFor="collection-buy-price" className="mb-2 block">
                 {t('seller.buyPrice')} ($/m²)
@@ -381,6 +410,23 @@ export function ManageCollections() {
                 className="h-12"
               />
             </div>
+            {user?.role === 'admin' && (
+              <div>
+                <Label className="mb-2 block">{t('admin.branch')}</Label>
+                <Select value={addBranchId} onValueChange={setAddBranchId}>
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder={t('admin.selectBranch')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {branches.map(branch => (
+                      <SelectItem key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <Label htmlFor="edit-collection-buy-price" className="mb-2 block">
                 Sotib olish narxi ($/m²)

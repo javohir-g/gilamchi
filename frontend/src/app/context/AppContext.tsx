@@ -186,7 +186,7 @@ export interface Collection {
   price_per_sqm?: number; // Primary selling price per m² (usually in USD)
   buy_price_per_sqm?: number; // Buying price per m² (usually in USD)
   price_usd_per_sqm?: number; // For backward compatibility
-  branch_id?: string;
+  branchId?: string;
 }
 
 interface AppContextType {
