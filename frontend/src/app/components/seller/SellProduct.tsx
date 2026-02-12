@@ -661,6 +661,19 @@ export function SellProduct() {
                               </span>
                             </div>
                           )}
+
+                          {(() => {
+                            const col = collections.find(c => c.name === product.collection);
+                            const rate = col?.price_per_sqm || col?.price_usd_per_sqm;
+                            if (rate && (product.category === "Gilamlar" || product.category === "Metrajlar")) {
+                              return (
+                                <div className="text-[10px] font-semibold text-green-600 dark:text-green-400 pt-1 border-t border-border/50 mt-1">
+                                  ${rate}/m²
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
                         </div>
                         <Button
                           onClick={(e) => {

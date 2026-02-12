@@ -1061,42 +1061,45 @@ export function Inventory() {
                         )
                       )}
 
-                      {(() => {
-                        const col = collections.find((c: any) => c.name === product.collection);
-                        const rate = col?.price_per_sqm || col?.price_usd_per_sqm;
-                        if (rate && (product.category === "Gilamlar" || product.category === "Metrajlar")) {
-                          return (
-                            <div className="text-xs font-semibold text-green-600 dark:text-green-400 pt-1 border-t border-border/50 mt-1">
-                              ${rate}/m²
-                            </div>
-                          );
-                        }
-                        return null;
-                      })()}
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">{t('product.inStock')}:</span>
-                          <span className="font-medium text-foreground">
-                            {product.type === "unit" ? (
-                              <>{product.quantity} {t('product.unit')}</>
-                            ) : (
-                              <>{product.remainingLength}/{product.totalLength} {t('common.meter_short')}</>
-                            )}
-                          </span>
+                      <div className="space-y-2">
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">{t('product.inStock')}:</span>
+                            <span className="font-medium text-foreground">
+                              {product.type === "unit" ? (
+                                <>{product.quantity} {t('product.unit')}</>
+                              ) : (
+                                <>{product.remainingLength}/{product.totalLength} {t('common.meter_short')}</>
+                              )}
+                            </span>
+                          </div>
+                          <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full ${progressColor} transition-all duration-300`}
+                              style={{ width: `${stockPercentage}%` }}
+                            />
+                          </div>
                         </div>
-                        <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full ${progressColor} transition-all duration-300`}
-                            style={{ width: `${stockPercentage}%` }}
-                          />
-                        </div>
-                      </div>
 
-                      <div className="text-blue-600 dark:text-blue-400 font-bold text-sm">
-                        {new Intl.NumberFormat("uz-UZ").format(product.sellPrice)} {t('common.currency')}
+                        <div className="pt-1 border-t border-border/50">
+                          {(() => {
+                            const col = collections.find((c: any) => c.name === product.collection);
+                            const rate = col?.price_per_sqm || col?.price_usd_per_sqm;
+                            if (rate && (product.category === "Gilamlar" || product.category === "Metrajlar")) {
+                              return (
+                                <div className="text-xs font-semibold text-green-600 dark:text-green-400">
+                                  ${rate}/m²
+                                </div>
+                              );
+                            }
+                            // Fallback for types that don't have a rate (like Ovalniy/Kovrik)
+                            return (
+                              <div className="text-blue-600 dark:text-blue-400 font-bold text-sm">
+                                {new Intl.NumberFormat("uz-UZ").format(product.sellPrice)} {t('common.currency')}
+                              </div>
+                            );
+                          })()}
+                        </div>
                       </div>
                     </div>
                   </div>
