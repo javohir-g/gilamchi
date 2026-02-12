@@ -105,7 +105,7 @@ export function ManageSizes() {
     }
 
     toast.info(
-      "Yangi o'lchamni mahsulot qo'shish yoki tahrirlashda qo'llang"
+      t('messages.useNewSizeInAddEdit')
     );
     setNewSize("");
     setAddDialogOpen(false);
@@ -137,7 +137,7 @@ export function ManageSizes() {
     const count = getSizeCount(selectedSize);
     if (count > 0) {
       toast.error(
-        `Bu o'lchamda ${count} ta mahsulot bor. Avval mahsulotlarni o'chiring yoki boshqa o'lchamga o'tkazing!`
+        t('messages.sizeInUse').replace('{count}', count.toString())
       );
       setDeleteDialogOpen(false);
       setSelectedSize(null);
@@ -177,7 +177,7 @@ export function ManageSizes() {
             <ChevronLeft className="h-6 w-6" />
           </Button>
           <h1 className="text-xl text-card-foreground flex-1">
-            O'lchamlarni boshqarish
+            {t('admin.manageSizes')}
           </h1>
           <Button
             size="icon"
@@ -193,14 +193,14 @@ export function ManageSizes() {
       {/* Filter */}
       <div className="p-4">
         <Label className="mb-2 block text-sm text-muted-foreground">
-          Kolleksiyani tanlang
+          {t('admin.selectCollection')}
         </Label>
         <Select value={selectedCollection} onValueChange={setSelectedCollection}>
           <SelectTrigger className="h-12 bg-input-background border-border">
-            <SelectValue placeholder="Barcha kolleksiyalar" />
+            <SelectValue placeholder={t('common.allCollections')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Barcha kolleksiyalar</SelectItem>
+            <SelectItem value="all">{t('common.allCollections')}</SelectItem>
             {collections.map((collection) => (
               <SelectItem key={collection} value={collection}>
                 {collection}
@@ -215,9 +215,9 @@ export function ManageSizes() {
         {sizes.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <Ruler className="h-16 w-16 mx-auto mb-4 opacity-50" />
-            <p>Hech qanday o'lcham topilmadi</p>
+            <p>{t('messages.noSizesFound')}</p>
             <p className="text-sm mt-2">
-              Mahsulot qo'shishda o'lchamlar yarating
+              {t('messages.createSizesOnAdd')}
             </p>
           </div>
         ) : (
@@ -235,7 +235,7 @@ export function ManageSizes() {
                         {size}
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        {count} ta mahsulot
+                        {count} {t('nav.products')}
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -268,20 +268,20 @@ export function ManageSizes() {
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Yangi o'lcham qo'shish</DialogTitle>
+            <DialogTitle>{t('admin.addSize')}</DialogTitle>
             <DialogDescription>
-              Mahsulot qo'shishda bu o'lchamni tanlay olasiz
+              {t('admin.addSizeDesc')}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Label htmlFor="new-size" className="mb-2 block">
-              O'lcham (masalan: 3×4)
+              {t('admin.sizeExampleLabel')}
             </Label>
             <Input
               id="new-size"
               value={newSize}
               onChange={(e) => setNewSize(e.target.value)}
-              placeholder="Masalan: 3×4, 2×3, 3.5×5..."
+              placeholder={`${t('common.forExample')}: 3×4, 2×3, 3.5×5...`}
               className="h-12"
             />
           </div>
@@ -293,9 +293,9 @@ export function ManageSizes() {
                 setNewSize("");
               }}
             >
-              Bekor qilish
+              {t('common.cancel')}
             </Button>
-            <Button onClick={handleAddSize}>Qo'shish</Button>
+            <Button onClick={handleAddSize}>{t('common.add')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -304,22 +304,22 @@ export function ManageSizes() {
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>O'lchamni o'zgartirish</DialogTitle>
+            <DialogTitle>{t('admin.editSize')}</DialogTitle>
             <DialogDescription>
               {selectedCollection === "all"
-                ? "Barcha kolleksiyalarda bu o'lcham yangilanadi"
-                : `Faqat "${selectedCollection}" kolleksiyasida bu o'lcham yangilanadi`}
+                ? t('admin.editSizeAllDesc')
+                : t('admin.editSizeOneDesc').replace('{collection}', selectedCollection)}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Label htmlFor="edit-size" className="mb-2 block">
-              Yangi o'lcham
+              {t('admin.newSize')}
             </Label>
             <Input
               id="edit-size"
               value={editSizeName}
               onChange={(e) => setEditSizeName(e.target.value)}
-              placeholder="O'lcham..."
+              placeholder={t('admin.sizePlaceholder')}
               className="h-12"
             />
           </div>
@@ -332,9 +332,9 @@ export function ManageSizes() {
                 setEditSizeName("");
               }}
             >
-              Bekor qilish
+              {t('common.cancel')}
             </Button>
-            <Button onClick={handleEditSize}>Saqlash</Button>
+            <Button onClick={handleEditSize}>{t('common.save')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -343,12 +343,12 @@ export function ManageSizes() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>O'lchamni o'chirish</AlertDialogTitle>
+            <AlertDialogTitle>{t('admin.deleteSize')}</AlertDialogTitle>
             <AlertDialogDescription>
-              "{selectedSize}" o'lchamini o'chirmoqchimisiz?{" "}
+              {t('messages.confirmDeleteSize').replace('{size}', selectedSize || '')}{" "}
               {selectedCollection === "all"
-                ? "Bu barcha kolleksiyalardan o'chiriladi."
-                : `Bu faqat "${selectedCollection}" kolleksiyasidan o'chiriladi.`}
+                ? t('messages.deleteSizeAllNote')
+                : t('messages.deleteSizeOneNote').replace('{collection}', selectedCollection)}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -358,13 +358,13 @@ export function ManageSizes() {
                 setSelectedSize(null);
               }}
             >
-              Bekor qilish
+              {t('common.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteSize}
               className="bg-red-600 hover:bg-red-700"
             >
-              O'chirish
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

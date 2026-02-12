@@ -63,7 +63,7 @@ export function Profile() {
   const toggleLanguage = () => {
     const newLang = language === 'uz-latn' ? 'uz-cyrl' : 'uz-latn';
     setLanguage(newLang);
-    toast.success(newLang === 'uz-latn' ? 'Lotin alifbosiga o\'tkazildi' : 'Кирилл алифбосига ўтказилди');
+    toast.success(t('messages.languageSwitched'));
   };
 
   const handleLogout = () => {
@@ -99,7 +99,7 @@ export function Profile() {
   const getCurrentAccountName = () => {
     if (isAdminViewingAsSeller && originalAdminUser) {
       const branch = branches.find((b) => b.id === user?.branchId);
-      return branch ? `${branch.name} (Sotuvchi)` : user?.name;
+      return branch ? `${branch.name} (${t('common.seller')})` : user?.name;
     }
     return user?.fullName || user?.name;
   };
@@ -249,7 +249,7 @@ export function Profile() {
             <div className="flex items-center space-x-3">
               <Languages className="h-5 w-5 text-muted-foreground" />
               <span className="text-card-foreground">
-                {language === 'uz-latn' ? 'Lotin' : 'Кирилл'}
+                {language === 'uz-latn' ? t('common.latin') : t('common.cyrillic')}
               </span>
             </div>
             <Badge
@@ -297,7 +297,7 @@ export function Profile() {
                   </span>
                 </div>
                 <Badge variant="outline" className="font-bold text-blue-600 border-blue-200">
-                  $1 = {exchangeRate} sum
+                  $1 = {exchangeRate} {t('common.currency')}
                 </Badge>
               </button>
             </>

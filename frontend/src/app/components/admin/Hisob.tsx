@@ -1,5 +1,6 @@
 import { BottomNav } from "../shared/BottomNav";
 import { useApp } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -28,6 +29,7 @@ type DateFilter = "today" | "week" | "month" | "custom";
 
 export function Hisob() {
   const { sales, products, branches } = useApp();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [dateFilter, setDateFilter] =
     useState<DateFilter>("today");
@@ -174,7 +176,7 @@ export function Hisob() {
                 : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
             >
-              Bugun
+              {t('common.today')}
             </button>
             <button
               onClick={() => setDateFilter("week")}
@@ -183,7 +185,7 @@ export function Hisob() {
                 : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
             >
-              Hafta
+              {t('common.week')}
             </button>
             <button
               onClick={() => setDateFilter("month")}
@@ -192,7 +194,7 @@ export function Hisob() {
                 : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
             >
-              Oy
+              {t('common.month')}
             </button>
             <button
               onClick={() => setDateFilter("custom")}
@@ -201,7 +203,7 @@ export function Hisob() {
                 : "bg-card text-card-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
             >
-              Boshqa
+              {t('common.other')}
             </button>
           </div>
 
@@ -222,14 +224,14 @@ export function Hisob() {
               <div className="flex items-center space-x-2 mb-2">
                 <TrendingUp className="h-5 w-5 text-indigo-100" />
                 <span className="text-sm font-medium text-indigo-100">
-                  Mening sof foydam (Admin)
+                  {t('admin.myNetProfit')}
                 </span>
               </div>
               <div className="text-3xl font-bold text-white">
                 {formatCurrency(filteredSales.reduce((sum, s) => sum + (s.admin_profit || 0), 0))}
               </div>
               <div className="text-sm text-indigo-100 mt-1">
-                {filteredSales.length} ta savdodan olingan ulush
+                {t('messages.shareFromSales').replace('{count}', filteredSales.length.toString())}
               </div>
             </div>
             <div className="bg-white/20 rounded-full p-3">
@@ -240,8 +242,8 @@ export function Hisob() {
 
         {/* Branch Breakdown */}
         <div>
-          <h3 className="text-sm font-bold text-muted-foreground mb-4 px-1 tracking-wider">
-            FILIALLAR BO'YICHA
+          <h3 className="text-sm font-bold text-muted-foreground mb-4 px-1 tracking-wider uppercase">
+            {t('admin.byBranch')}
           </h3>
           <div className="space-y-4">
             {branchProfits.map((bp, index) => (
@@ -286,10 +288,10 @@ export function Hisob() {
                       </div>
                       <div className="flex items-center space-x-2 mt-1">
                         <Badge variant="secondary" className="text-[10px] bg-blue-50 text-blue-600 border-blue-100">
-                          Men: {formatCurrency(bp.adminProfit)}
+                          {t('common.me')}: {formatCurrency(bp.adminProfit)}
                         </Badge>
                         <Badge variant="secondary" className="text-[10px] bg-emerald-50 text-emerald-600 border-emerald-100">
-                          Filial: {formatCurrency(bp.sellerProfit)}
+                          {t('common.branch')}: {formatCurrency(bp.sellerProfit)}
                         </Badge>
                       </div>
                     </div>
@@ -329,8 +331,8 @@ export function Hisob() {
         {/* Pie Chart */}
         {totalDirectorProfit > 0 && (
           <Card className="p-6 border border-border bg-card rounded-2xl">
-            <h3 className="mb-4 text-sm font-bold text-muted-foreground tracking-wider">
-              FOYDA TAQSIMOTI
+            <h3 className="mb-4 text-sm font-bold text-muted-foreground tracking-wider uppercase">
+              {t('admin.profitDistribution')}
             </h3>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>

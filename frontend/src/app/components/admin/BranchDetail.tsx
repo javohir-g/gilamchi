@@ -4,6 +4,7 @@ import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { useApp } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 import {
   PieChart,
   Pie,
@@ -19,11 +20,12 @@ export function BranchDetail() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { branches, sales, products, expenses, debts, staffMembers, exchangeRate } = useApp();
+  const { t } = useLanguage();
 
   const branch = branches.find((b) => b.id === branchId);
 
   if (!branch) {
-    return <div>Filial topilmadi</div>;
+    return <div>{t('messages.branchNotFound')}</div>;
   }
 
   // Get date filter from URL params
@@ -152,9 +154,9 @@ export function BranchDetail() {
 
   const getLabel = (base: string) => {
     switch (dateFilter) {
-      case "week": return "Haftalik " + base.toLowerCase();
-      case "month": return "Oylik " + base.toLowerCase();
-      default: return "Bugungi " + base.toLowerCase();
+      case "week": return t('common.weekLabel') + " " + base.toLowerCase();
+      case "month": return t('common.monthLabel') + " " + base.toLowerCase();
+      default: return t('common.todayLabel') + " " + base.toLowerCase();
     }
   };
 
@@ -190,7 +192,7 @@ export function BranchDetail() {
             <div className="relative z-10 mb-4">
               <div className="flex items-center gap-1.5 mb-1">
                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">KASSA</span>
+                <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">{t('seller.cashRegister')}</span>
               </div>
               <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 leading-none">
                 {formatCurrency((cashSales + totalDebtPaymentsInPeriod + cardTransferSales) * exchangeRate, "UZS")}
@@ -199,15 +201,15 @@ export function BranchDetail() {
 
             <div className="grid grid-cols-2 gap-4 relative z-10 pt-3 border-t border-gray-100 dark:border-gray-700">
               <div>
-                <div className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">Naqd</div>
+                <div className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">{t('common.cash')}</div>
                 <div className="text-sm font-bold text-gray-900 dark:text-white leading-none">
                   {formatCurrency((cashSales + totalDebtPaymentsInPeriod) * exchangeRate, "UZS")}
                 </div>
-                <div className="text-[8px] text-gray-400 italic mt-1.5 leading-none">Sotuv + Qarz</div>
+                <div className="text-[8px] text-gray-400 italic mt-1.5 leading-none">{t('seller.salesAndDebt')}</div>
               </div>
 
               <div>
-                <div className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">Karta / O'tkazma</div>
+                <div className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">{t('seller.cardAndTransfer')}</div>
                 <div className="text-sm font-bold text-blue-600 dark:text-blue-400 leading-none">
                   {formatCurrency(cardTransferSales * exchangeRate, "UZS")}
                 </div>
@@ -219,11 +221,11 @@ export function BranchDetail() {
         {/* Stats Grid 2x2 */}
         <div className="grid grid-cols-2 gap-4">
           <StatsDrillDownDialog
-            title="Mening foydam (Admin)"
+            title={t('admin.myProfit')}
             trigger={
               <Card className="p-4 bg-gradient-to-br from-indigo-500 to-indigo-600 border-0 shadow-lg shadow-indigo-500/20">
                 <div className="mb-1 text-[10px] uppercase tracking-wider text-indigo-100 font-bold">
-                  Mening foydam
+                  {t('admin.myProfit')}
                 </div>
                 <div className="text-xl font-bold text-white">
                   {formatCurrency(totalAdminProfit)}
@@ -234,11 +236,11 @@ export function BranchDetail() {
           />
 
           <StatsDrillDownDialog
-            title="Filial foydasi"
+            title={t('admin.branchProfit')}
             trigger={
               <Card className="p-4 bg-gradient-to-br from-emerald-500 to-emerald-600 border-0 shadow-lg shadow-emerald-500/20">
                 <div className="mb-1 text-[10px] uppercase tracking-wider text-emerald-100 font-bold">
-                  Filial foydasi
+                  {t('admin.branchProfit')}
                 </div>
                 <div className="text-xl font-bold text-white">
                   {formatCurrency(totalSellerProfit * exchangeRate, "UZS")}
@@ -249,11 +251,11 @@ export function BranchDetail() {
           />
 
           <StatsDrillDownDialog
-            title="Filial xarajatlari"
+            title={t('admin.branchExpenses')}
             trigger={
               <Card className="p-4 bg-gradient-to-br from-orange-500 to-orange-600 border-0 shadow-lg shadow-orange-500/20">
                 <div className="mb-1 text-[10px] uppercase tracking-wider text-orange-100 font-bold">
-                  Filial xarajatlari
+                  {t('admin.branchExpenses')}
                 </div>
                 <div className="text-xl font-bold text-white">
                   {formatCurrency(totalBranchExpenses * exchangeRate, "UZS")}
@@ -264,11 +266,11 @@ export function BranchDetail() {
           />
 
           <StatsDrillDownDialog
-            title="Sotuvchilar xarajati"
+            title={t('admin.staffExpenses')}
             trigger={
               <Card className="p-4 bg-gradient-to-br from-rose-500 to-rose-600 border-0 shadow-lg shadow-rose-500/20">
                 <div className="mb-1 text-[10px] uppercase tracking-wider text-rose-100 font-bold">
-                  Sotuvchilar xarajati
+                  {t('admin.staffExpenses')}
                 </div>
                 <div className="text-xl font-bold text-white">
                   {formatCurrency(totalStaffExpenses * exchangeRate, "UZS")}
@@ -292,7 +294,7 @@ export function BranchDetail() {
         <Card className="p-6 dark:bg-gray-800 dark:border-gray-700 overflow-hidden">
           <h3 className="mb-4 text-lg font-bold dark:text-white tracking-tight flex items-center gap-2">
             <Package className="h-5 w-5 text-blue-500" />
-            MAHSULOTLAR STATISTIKASI
+            {t('admin.productStats')}
           </h3>
 
           <div className="space-y-6">
@@ -300,10 +302,10 @@ export function BranchDetail() {
             <div>
               <div className="flex items-center justify-between mb-3 px-1">
                 <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                  Metrajli (Top m²)
+                  {t('admin.topMetered')}
                 </h4>
                 <Badge variant="outline" className="text-[8px] border-blue-200 text-blue-600">
-                  MAYDON BO'YIHA
+                  {t('admin.byArea')}
                 </Badge>
               </div>
               <div className="space-y-3">
@@ -331,7 +333,7 @@ export function BranchDetail() {
                     </div>
                   ))}
                 {branchSales.filter(s => s.type === 'meter').length === 0 && (
-                  <p className="text-xs text-center text-muted-foreground py-2">Metrajli mahsulotlar sotilmagan</p>
+                  <p className="text-xs text-center text-muted-foreground py-2">{t('messages.noMeteredSales')}</p>
                 )}
               </div>
             </div>
@@ -340,10 +342,10 @@ export function BranchDetail() {
             <div>
               <div className="flex items-center justify-between mb-3 px-1 border-t dark:border-gray-700 pt-4">
                 <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                  Tayyor (Top dona)
+                  {t('admin.topUnit')}
                 </h4>
                 <Badge variant="outline" className="text-[8px] border-emerald-200 text-emerald-600">
-                  DONA BO'YIHA
+                  {t('admin.byQuantity')}
                 </Badge>
               </div>
               <div className="space-y-3">
@@ -371,7 +373,7 @@ export function BranchDetail() {
                     </div>
                   ))}
                 {branchSales.filter(s => s.type === 'unit').length === 0 && (
-                  <p className="text-xs text-center text-muted-foreground py-2">Tayyor mahsulotlar sotilmagan</p>
+                  <p className="text-xs text-center text-muted-foreground py-2">{t('messages.noUnitSales')}</p>
                 )}
               </div>
             </div>
@@ -381,11 +383,11 @@ export function BranchDetail() {
         {/* Unified History List */}
         <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
           <h3 className="mb-4 text-lg font-bold dark:text-white tracking-tight">
-            AMAL HARAKATLAR TARIXI
+            {t('admin.operationalHistory')}
           </h3>
           {unifiedHistory.length === 0 ? (
             <p className="text-center text-gray-500 dark:text-gray-400 py-8">
-              Hali harakatlar yo'q
+              {t('messages.noOperationsYet')}
             </p>
           ) : (
             <div className="space-y-4">
@@ -418,10 +420,10 @@ export function BranchDetail() {
                           {item.entryType === "sale"
                             ? (item as any).productName
                             : item.entryType === "payment"
-                              ? `${(item as any).debtorName} (Qarz to'lovi)`
+                              ? `${(item as any).debtorName} (${t('debt.payment')})`
                               : (item as any).description}
                           {(item as any).isNasiya && (
-                            <Badge className="bg-orange-100 text-orange-600 border-orange-200 text-[8px] h-4 py-0">NASIYA</Badge>
+                            <Badge className="bg-orange-100 text-orange-600 border-orange-200 text-[8px] h-4 py-0">{t('seller.nasiyaSale')}</Badge>
                           )}
                         </div>
                         <div className="text-[10px] text-gray-400 uppercase tracking-tighter">
@@ -434,17 +436,17 @@ export function BranchDetail() {
                       <div className="mt-2 space-y-1">
                         <div className="text-xs text-gray-500 dark:text-gray-400">
                           {(item as any).type === "unit"
-                            ? `${(item as any).quantity} dona`
-                            : `${((item as any).area || (item as any).quantity).toFixed(1)} m²`}
+                            ? `${(item as any).quantity} ${t('common.unit')}`
+                            : `${((item as any).area || (item as any).quantity).toFixed(1)} ${t('common.meter_short')}²`}
                           {" "} • {" "}
-                          <span className="font-medium uppercase">{(item as any).paymentType}</span>
+                          <span className="font-medium uppercase">{(item as any).paymentType === 'cash' ? t('common.cash') : (item as any).paymentType === 'card' ? t('common.card') : t('common.transfer')}</span>
                         </div>
                         <div className="flex items-center space-x-3 text-[10px]">
                           <span className="text-indigo-600 dark:text-indigo-400 font-bold">
-                            MEN: {formatCurrency((item as any).admin_profit || 0, "USD")}
+                            {t('common.adminShort')}: {formatCurrency((item as any).admin_profit || 0, "USD")}
                           </span>
                           <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                            FILIAL: {formatCurrency(((item as any).seller_profit || 0) * exchangeRate, "UZS")}
+                            {t('common.branchShort')}: {formatCurrency(((item as any).seller_profit || 0) * exchangeRate, "UZS")}
                           </span>
                         </div>
                       </div>
@@ -453,11 +455,11 @@ export function BranchDetail() {
                     {item.entryType === "expense" && (
                       <div className="mt-1 flex gap-1">
                         <Badge variant="outline" className="text-[9px] uppercase border-orange-200 text-orange-600 bg-orange-50/50">
-                          {(item as any).category === "staff" ? "Sotuvchi xarajati" : "Filial xarajati"}
+                          {(item as any).category === "staff" ? t('admin.staffExpenses') : t('admin.branchExpenses')}
                         </Badge>
                         {(item as any).category === "staff" && (item as any).staffId && (
                           <Badge variant="outline" className="text-[9px] uppercase border-blue-200 text-blue-600 bg-blue-50/50">
-                            {staffMembers.find(s => s.id === (item as any).staffId)?.name || "Noma'lum"}
+                            {staffMembers.find(s => s.id === (item as any).staffId)?.name || t('common.unknown')}
                           </Badge>
                         )}
                       </div>

@@ -48,16 +48,16 @@ export function ExchangeRateDialog({ isOpen, onClose }: ExchangeRateDialogProps)
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <TrendingUp className="h-5 w-5 text-blue-600" />
-                        Valyuta kursini o'zgartirish
+                        {t('admin.editExchangeRate')}
                     </DialogTitle>
                     <DialogDescription>
-                        Tizimdagi barcha hisob-kitoblar uchun joriy valyuta kursini o'rnating.
+                        {t('admin.editExchangeRateDesc')}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                        <Label htmlFor="rate-input">Joriy kurs ($1 = ... sum)</Label>
+                        <Label htmlFor="rate-input">{t('admin.currentExchangeRate')}</Label>
                         <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">$1 = </span>
                             <Input
@@ -66,7 +66,7 @@ export function ExchangeRateDialog({ isOpen, onClose }: ExchangeRateDialogProps)
                                 value={newRate}
                                 onChange={(e) => setNewRate(e.target.value)}
                                 className="pl-10 pr-12 text-lg font-bold"
-                                placeholder="Kursni kiriting..."
+                                placeholder={t('admin.enterRatePlaceholder')}
                             />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">sum</span>
                         </div>
@@ -75,10 +75,10 @@ export function ExchangeRateDialog({ isOpen, onClose }: ExchangeRateDialogProps)
 
                 <DialogFooter className="sm:justify-end gap-2">
                     <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>
-                        Bekor qilish
+                        {t('common.cancel')}
                     </Button>
                     <Button onClick={handleSave} disabled={isLoading || parseFloat(newRate) === exchangeRate} className="bg-blue-600 hover:bg-blue-700">
-                        {isLoading ? "Saqlanmoqda..." : "Saqlash"}
+                        {isLoading ? t('common.saving') : t('common.save')}
                     </Button>
                 </DialogFooter>
             </DialogContent>

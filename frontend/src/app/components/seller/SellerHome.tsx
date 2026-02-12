@@ -358,7 +358,7 @@ export function SellerHome() {
                               </span>
                               {order.isNasiya && (
                                 <span className="text-[10px] font-black text-orange-600 dark:text-orange-400 uppercase tracking-tighter">
-                                  {t('debt.nasiyaSale')}
+                                  {t('seller.nasiyaSale')}
                                 </span>
                               )}
                             </div>

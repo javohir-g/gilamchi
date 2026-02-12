@@ -647,14 +647,14 @@ export function SellProduct() {
                           )}
                           {product.type === "unit" ? (
                             <div className="text-muted-foreground">
-                              {t('product.inStock')}:{" "}
+                              {t('seller.inStock')}:{" "}
                               <span className="font-medium text-card-foreground">
                                 {product.quantity} {t('common.unit')}
                               </span>
                             </div>
                           ) : (
                             <div className="text-muted-foreground">
-                              {t('product.inStock')}:{" "}
+                              {t('seller.inStock')}:{" "}
                               <span className="font-medium text-card-foreground">
                                 {product.remainingLength} {t('common.meter')}
                               </span>

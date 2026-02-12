@@ -36,7 +36,7 @@ export function AdminDebts() {
   const handleDeleteDebt = async (debtId: string, debtorName: string, e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (!confirm(`${debtorName}ning qarzini o'chirmoqchimisiz?`)) {
+    if (!confirm(t('messages.deleteConfirm'))) {
       return;
     }
 
@@ -96,9 +96,9 @@ export function AdminDebts() {
   };
 
   const formatDate = (dateString: string | undefined | null) => {
-    if (!dateString) return "No'malum";
+    if (!dateString) return t('common.unknown');
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Noto'g'ri sana";
+    if (isNaN(date.getTime())) return t('common.invalidDate');
     return new Intl.DateTimeFormat("uz-UZ", {
       day: "2-digit",
       month: "short",
@@ -110,7 +110,7 @@ export function AdminDebts() {
     if (debt.status === "paid") {
       return (
         <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-          ✓ To'langan
+          ✓ {t('debt.paid')}
         </Badge>
       );
     }
@@ -120,21 +120,21 @@ export function AdminDebts() {
     if (isOverdue) {
       return (
         <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-          ⚠️ Muddati o'tgan
+          ⚠️ {t('debt.overdue')}
         </Badge>
       );
     }
 
     return (
       <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
-        ⏳ Kutilmoqda
+        ⏳ {t('debt.pending')}
       </Badge>
     );
   };
 
   const getBranchName = (branchId: string) => {
     const branch = branches.find((b) => b.id === branchId);
-    return branch?.name || "Noma'lum filial";
+    return branch?.name || t('common.unknownBranch');
   };
 
   // Calculate total stats
@@ -163,7 +163,7 @@ export function AdminDebts() {
           >
             <ArrowLeft className="h-6 w-6" />
           </Button> */}
-          <h1 className="text-2xl text-card-foreground">Qarzlar</h1>
+          <h1 className="text-2xl text-card-foreground">{t('debt.debts')}</h1>
         </div>
       </div>
 
@@ -171,10 +171,10 @@ export function AdminDebts() {
         {/* Branch Filter */}
         <Select value={filterBranch} onValueChange={setFilterBranch}>
           <SelectTrigger className="h-12 bg-input-background border-border">
-            <SelectValue placeholder="Barcha filiallar" />
+            <SelectValue placeholder={t('seller.allBranches')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Barcha filiallar</SelectItem>
+            <SelectItem value="all">{t('seller.allBranches')}</SelectItem>
             {branches.map((branch) => (
               <SelectItem key={branch.id} value={branch.id}>
                 {branch.name}
@@ -188,7 +188,7 @@ export function AdminDebts() {
           {/* Pending */}
           <Card className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 border-orange-200 dark:border-orange-800">
             <div className="text-xs text-orange-700 dark:text-orange-400 mb-1">
-              Kutilmoqda
+              {t('debt.pending')}
             </div>
             <div className="font-bold text-orange-900 dark:text-orange-300">
               {pendingDebts.length}
@@ -201,7 +201,7 @@ export function AdminDebts() {
           {/* Paid */}
           <Card className="p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800">
             <div className="text-xs text-green-700 dark:text-green-400 mb-1">
-              To'langan
+              {t('debt.paid')}
             </div>
             <div className="font-bold text-green-900 dark:text-green-300">
               {paidDebts.length}
@@ -214,7 +214,7 @@ export function AdminDebts() {
           {/* Overdue */}
           <Card className="p-4 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 border-red-200 dark:border-red-800 col-span-2">
             <div className="text-xs text-red-700 dark:text-red-400 mb-1">
-              Muddati o'tgan
+              {t('debt.overdue')}
             </div>
             <div className="flex items-center justify-between">
               <div className="font-bold text-red-900 dark:text-red-300">
@@ -232,7 +232,7 @@ export function AdminDebts() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Qarzdor yoki mahsulot qidirish..."
+            placeholder={t('debt.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 h-12 bg-input-background border-border"
@@ -249,10 +249,10 @@ export function AdminDebts() {
               />
             </div>
             <h3 className="mb-2 text-xl text-card-foreground">
-              Qarzlar yo'q
+              {t('messages.noDebtsFound')}
             </h3>
             <p className="text-center text-muted-foreground mb-8 max-w-sm">
-              Hozircha hech qanday qarz mavjud emas
+              {t('messages.noDebtsDesc')}
             </p>
           </div>
         ) : (
@@ -332,7 +332,7 @@ export function AdminDebts() {
                         className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 text-white font-medium"
                         size="sm"
                       >
-                        Qarzni to'lash
+                        {t('debt.payDebt')}
                       </Button>
                     )}
                   </div>

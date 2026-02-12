@@ -198,11 +198,11 @@ export function ManageCollections() {
           </Button>
           <div className="flex-1">
             <h1 className="text-xl text-card-foreground">
-              Kolleksiyalarni boshqarish
+              {t('admin.manageCollections')}
             </h1>
             {user?.role === 'admin' && (
               <p className="text-xs text-muted-foreground">
-                {branches.find(b => b.id === selectedBranchId)?.name} filiali
+                {branches.find(b => b.id === selectedBranchId)?.name} {t('common.forBranch')}
               </p>
             )}
           </div>
@@ -242,9 +242,9 @@ export function ManageCollections() {
         {collections.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <Package className="h-16 w-16 mx-auto mb-4 opacity-50" />
-            <p>Hech qanday kolleksiya topilmadi</p>
+            <p>{t('messages.noCollectionsFound')}</p>
             <p className="text-sm mt-2">
-              Mahsulot qo'shishda kolleksiya yarating
+              {t('messages.createCollectionsOnAdd')}
             </p>
           </div>
         ) : (
@@ -263,7 +263,7 @@ export function ManageCollections() {
                         {collection.name}
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        {count} ta mahsulot • {collection.price_per_sqm || 0} $/m²
+                        {count} {t('nav.products')} • {collection.price_per_sqm || 0} $/m²
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -296,47 +296,47 @@ export function ManageCollections() {
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Yangi kolleksiya qo'shish</DialogTitle>
+            <DialogTitle>{t('admin.addCollection')}</DialogTitle>
             <DialogDescription>
-              Mahsulot qo'shishda bu kolleksiyani tanlay olasiz
+              {t('admin.addCollectionDesc')}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
             <div>
               <Label htmlFor="new-collection" className="mb-2 block">
-                Kolleksiya nomi
+                {t('admin.collectionName')}
               </Label>
               <Input
                 id="new-collection"
                 value={newCollectionName}
                 onChange={(e) => setNewCollectionName(e.target.value)}
-                placeholder="Masalan: Lara, Emili, Isfahan..."
+                placeholder={`${t('common.forExample')}: Lara, Emili, Isfahan...`}
                 className="h-12"
               />
             </div>
             <div>
               <Label htmlFor="collection-buy-price" className="mb-2 block">
-                Sotib olish narxi ($/m²)
+                {t('seller.buyPrice')} ($/m²)
               </Label>
               <Input
                 id="collection-buy-price"
                 type="number"
                 value={collectionBuyPrice}
                 onChange={(e) => setCollectionBuyPrice(e.target.value)}
-                placeholder="Masalan: 10"
+                placeholder={`${t('common.forExample')}: 10`}
                 className="h-12"
               />
             </div>
             <div>
               <Label htmlFor="collection-price" className="mb-2 block">
-                Sotish narxi ($/m²)
+                {t('seller.price')} ($/m²)
               </Label>
               <Input
                 id="collection-price"
                 type="number"
                 value={collectionPrice}
                 onChange={(e) => setCollectionPrice(e.target.value)}
-                placeholder="Masalan: 15"
+                placeholder={`${t('common.forExample')}: 15`}
                 className="h-12"
               />
             </div>
@@ -350,10 +350,10 @@ export function ManageCollections() {
               }}
               disabled={isSaving}
             >
-              Bekor qilish
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleAddCollection} disabled={isSaving}>
-              {isSaving ? "Saqlanmoqda..." : "Qo'shish"}
+              {isSaving ? t('common.saving') : t('common.add')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -363,21 +363,21 @@ export function ManageCollections() {
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Kolleksiya nomini o'zgartirish</DialogTitle>
+            <DialogTitle>{t('admin.editCollection')}</DialogTitle>
             <DialogDescription>
-              Bu kolleksiyaga tegishli barcha mahsulotlar yangilanadi
+              {t('admin.editCollectionDesc')}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
             <div>
               <Label htmlFor="edit-collection" className="mb-2 block">
-                Yangi nom
+                {t('common.newName')}
               </Label>
               <Input
                 id="edit-collection"
                 value={editCollectionName}
                 onChange={(e) => setEditCollectionName(e.target.value)}
-                placeholder="Kolleksiya nomi..."
+                placeholder={t('admin.collectionPlaceholder')}
                 className="h-12"
               />
             </div>
@@ -390,7 +390,7 @@ export function ManageCollections() {
                 type="number"
                 value={collectionBuyPrice}
                 onChange={(e) => setCollectionBuyPrice(e.target.value)}
-                placeholder="Masalan: 10"
+                placeholder={`${t('common.forExample')}: 10`}
                 className="h-12"
               />
             </div>
@@ -403,7 +403,7 @@ export function ManageCollections() {
                 type="number"
                 value={collectionPrice}
                 onChange={(e) => setCollectionPrice(e.target.value)}
-                placeholder="Masalan: 15"
+                placeholder={`${t('common.forExample')}: 15`}
                 className="h-12"
               />
             </div>
@@ -418,10 +418,10 @@ export function ManageCollections() {
               }}
               disabled={isSaving}
             >
-              Bekor qilish
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleEditCollection} disabled={isSaving}>
-              {isSaving ? "Saqlanmoqda..." : "Saqlash"}
+              {isSaving ? t('common.saving') : t('common.save')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -431,10 +431,9 @@ export function ManageCollections() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Kolleksiyani o'chirish</AlertDialogTitle>
+            <AlertDialogTitle>{t('admin.deleteCollection')}</AlertDialogTitle>
             <AlertDialogDescription>
-              "{selectedCollectionName}" kolleksiyasini o'chirmoqchimisiz? Bu
-              amalni bekor qilib bo'lmaydi.
+              {t('messages.confirmDeleteCollection').replace('{name}', selectedCollectionName || '')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -444,13 +443,13 @@ export function ManageCollections() {
                 setSelectedCollectionId(null);
               }}
             >
-              Bekor qilish
+              {t('common.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteCollection}
               className="bg-red-600 hover:bg-red-700"
             >
-              O'chirish
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

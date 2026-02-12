@@ -654,7 +654,7 @@ export function AddProduct() {
               <div className="space-y-5">
                 <div>
                   <Label className="mb-2 block text-sm font-medium">
-                    {t('seller.addRolls')} (Eni x Bo'yi)
+                    {t('seller.addRolls')}
                   </Label>
                   <div className="flex space-x-2">
                     <div className="flex-1">

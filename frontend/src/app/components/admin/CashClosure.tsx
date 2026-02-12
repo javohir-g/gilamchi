@@ -27,7 +27,7 @@ export function CashClosure() {
   const [isClosed, setIsClosed] = useState(false);
 
   if (!branch) {
-    return <div>Filial topilmadi</div>;
+    return <div>{t('messages.branchNotFound')}</div>;
   }
 
   const difference = parseFloat(receivedCash || '0') - expectedCash;
@@ -68,14 +68,14 @@ export function CashClosure() {
           >
             <ArrowLeft className="h-6 w-6 dark:text-white" />
           </Button>
-          <h1 className="text-xl dark:text-white">Kunlik kassani yopish</h1>
+          <h1 className="text-xl dark:text-white">{t('admin.closeCashRegister')}</h1>
         </div>
       </div>
 
       <div className="p-4 space-y-6">
         {/* Branch Info */}
         <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
-          <div className="mb-2 text-sm text-gray-500 dark:text-gray-400">Filial</div>
+          <div className="mb-2 text-sm text-gray-500 dark:text-gray-400">{t('common.branch')}</div>
           <div className="text-2xl dark:text-white">{branch.name}</div>
           <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
             {new Date().toLocaleDateString('uz-UZ', {
@@ -90,20 +90,20 @@ export function CashClosure() {
         <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
           <div className="mb-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
             <DollarSign className="mr-1 h-4 w-4" />
-            Kutilayotgan naqd pul
+            {t('admin.expectedCash')}
           </div>
           <div className="text-3xl text-blue-600 dark:text-blue-400">
             {formatCurrency(expectedCash)}
           </div>
           <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            Bugungi naqd to'lovlar yig'indisi
+            {t('admin.expectedCashDesc')}
           </div>
         </Card>
 
         {/* Received Cash Input */}
         <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
           <Label htmlFor="receivedCash" className="mb-4 block text-lg dark:text-white">
-            Qabul qilingan naqd pul
+            {t('admin.receivedCash')}
           </Label>
           <Input
             id="receivedCash"
@@ -129,7 +129,7 @@ export function CashClosure() {
             <div className="mb-2 flex items-center text-sm">
               <AlertCircle className="mr-1 h-4 w-4" />
               <span className={difference === 0 ? 'text-green-700 dark:text-green-400' : difference > 0 ? 'text-blue-700 dark:text-blue-400' : 'text-red-700 dark:text-red-400'}>
-                Farq
+                {t('admin.difference')}
               </span>
             </div>
             <div
@@ -145,16 +145,16 @@ export function CashClosure() {
             </div>
             <div className="mt-2 text-sm">
               {difference === 0 && (
-                <span className="text-green-700 dark:text-green-400">✓ Hisob to'g'ri</span>
+                <span className="text-green-700 dark:text-green-400">{t('messages.cashCorrect')}</span>
               )}
               {difference > 0 && (
                 <span className="text-blue-700 dark:text-blue-400">
-                  Ortiqcha {formatCurrency(difference)}
+                  {t('messages.cashSurplus').replace('{amount}', formatCurrency(difference))}
                 </span>
               )}
               {difference < 0 && (
                 <span className="text-red-700 dark:text-red-400">
-                  Kam {formatCurrency(Math.abs(difference))}
+                  {t('messages.cashShortage').replace('{amount}', formatCurrency(Math.abs(difference)))}
                 </span>
               )}
             </div>
@@ -165,7 +165,7 @@ export function CashClosure() {
         {isClosed && (
           <Card className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800 p-6 text-center">
             <Badge className="bg-green-600 text-lg px-4 py-2">
-              ✓ Yopildi
+              {t('common.closed')}
             </Badge>
             <div className="mt-4 text-green-700 dark:text-green-400">
               Kunlik kassa muvaffaqiyatli yopildi
@@ -181,7 +181,7 @@ export function CashClosure() {
             size="lg"
           >
             <DollarSign className="mr-2 h-5 w-5" />
-            Kunni yopish
+            {t('admin.closeDay')}
           </Button>
         )}
       </div>

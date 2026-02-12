@@ -4,12 +4,14 @@ import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { ArrowLeft, TrendingUp, Package, DollarSign } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 export function BranchProfitDetail() {
   const navigate = useNavigate();
   const { branchId } = useParams();
   const [searchParams] = useSearchParams();
   const { sales, products, branches } = useApp();
+  const { t } = useLanguage();
 
   const branch = branches.find((b) => b.id === branchId);
 
@@ -17,12 +19,12 @@ export function BranchProfitDetail() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="p-6 text-center">
-          <p className="text-muted-foreground">Filial topilmadi</p>
+          <p className="text-muted-foreground">{t('messages.branchNotFound')}</p>
           <Button
             onClick={() => navigate("/admin/hisob")}
             className="mt-4"
           >
-            Orqaga
+            {t('common.back')}
           </Button>
         </Card>
       </div>
@@ -175,18 +177,18 @@ export function BranchProfitDetail() {
   const getDateRangeText = () => {
     switch (dateFilter) {
       case "today":
-        return "Bugun";
+        return t('common.today');
       case "week":
-        return "Bu hafta";
+        return t('common.week');
       case "month":
-        return "Bu oy";
+        return t('common.month');
       case "custom":
         if (customStart && customEnd) {
           const start = new Date(customStart).toLocaleDateString("uz-UZ");
           const end = new Date(customEnd).toLocaleDateString("uz-UZ");
           return `${start} - ${end}`;
         }
-        return "Tanlangan sana";
+        return t('common.selectedDate');
       default:
         return "";
     }
@@ -222,7 +224,7 @@ export function BranchProfitDetail() {
             <div className="flex flex-col">
               <div className="flex items-center space-x-2 mb-2">
                 <TrendingUp className="h-4 w-4 text-white" />
-                <span className="text-xs text-blue-100">Mening foydam</span>
+                <span className="text-xs text-blue-100">{t('admin.myProfit')}</span>
               </div>
               <div className="text-xl font-bold text-white">
                 {formatCurrency(totalAdminProfit)}
@@ -233,7 +235,7 @@ export function BranchProfitDetail() {
             <div className="flex flex-col">
               <div className="flex items-center space-x-2 mb-2">
                 <DollarSign className="h-4 w-4 text-white" />
-                <span className="text-xs text-emerald-100">Filiallar foydasi</span>
+                <span className="text-xs text-emerald-100">{t('admin.sellerProfits')}</span>
               </div>
               <div className="text-xl font-bold text-white">
                 {formatCurrency(totalSellerProfit)}
@@ -245,12 +247,12 @@ export function BranchProfitDetail() {
         {/* Summary Card */}
         <Card className="p-4 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
           <div className="text-sm text-blue-900 dark:text-blue-100">
-            <p className="font-medium mb-2">Xulosa:</p>
+            <p className="font-medium mb-2">{t('common.summary')}:</p>
             <ul className="space-y-1 text-xs text-blue-700 dark:text-blue-200">
-              <li>• Jami {productProfits.length} xil mahsulot sotildi</li>
-              <li>• Jami {filteredSales.length} ta savdo amalga oshirildi</li>
+              <li>• {t('messages.summaryProductsSold').replace('{count}', productProfits.length.toString())}</li>
+              <li>• {t('messages.summarySalesCount').replace('{count}', filteredSales.length.toString())}</li>
               <li>
-                • Umumiy foyda: {formatCurrency(totalProfit)} (Mening: {formatCurrency(totalAdminProfit)}, Filiallar: {formatCurrency(totalSellerProfit)})
+                • {t('messages.summaryProfitCalc').replace('{total}', formatCurrency(totalProfit)).replace('{admin}', formatCurrency(totalAdminProfit)).replace('{seller}', formatCurrency(totalSellerProfit))}
               </li>
             </ul>
           </div>
@@ -258,15 +260,15 @@ export function BranchProfitDetail() {
 
         {/* Products Breakdown */}
         <div>
-          <h3 className="text-sm text-muted-foreground mb-3 px-1">
-            MAHSULOTLAR BO'YICHA FOYDA
+          <h3 className="text-sm text-muted-foreground mb-3 px-1 text-uppercase">
+            {t('admin.profitByProduct')}
           </h3>
 
           {productProfits.length === 0 ? (
             <Card className="p-8 text-center">
               <Package className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
               <p className="text-muted-foreground">
-                Bu davrda savdo amalga oshirilmagan
+                {t('messages.noSalesPeriod')}
               </p>
             </Card>
           ) : (
@@ -297,12 +299,12 @@ export function BranchProfitDetail() {
                             <Package className="h-3.5 w-3.5" />
                             <span>
                               {pp.product.type === "unit"
-                                ? `${pp.totalQuantity} dona`
+                                ? `${pp.totalQuantity} ${t('common.unit')}`
                                 : `${(pp.totalArea || pp.totalQuantity).toFixed(1)} m²`
-                              } sotildi
+                              } {t('common.sold')}
                             </span>
                             <span>•</span>
-                            <span>{pp.salesCount} ta savdo</span>
+                            <span>{pp.salesCount} {t('seller.orderCount').replace('{count}', pp.salesCount.toString())}</span>
                           </div>
                         </div>
                         <div className="text-right">
@@ -313,7 +315,7 @@ export function BranchProfitDetail() {
                             variant="outline"
                             className="text-[10px] mt-1 border-emerald-500 text-emerald-600 dark:text-emerald-400 bg-emerald-50/50"
                           >
-                            Filial foydasi
+                            {t('admin.branchProfit')}
                           </Badge>
                         </div>
                       </div>
@@ -322,7 +324,7 @@ export function BranchProfitDetail() {
                       <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border/50">
                         <div className="space-y-1">
                           <div className="text-xs text-muted-foreground">
-                            Zavod narxi
+                            {t('seller.buyPrice')}
                           </div>
                           <div className="text-sm font-medium text-card-foreground">
                             {formatCurrency(pp.product.buyPrice)}
@@ -330,7 +332,7 @@ export function BranchProfitDetail() {
                         </div>
                         <div className="space-y-1 text-right">
                           <div className="text-xs text-muted-foreground">
-                            Kassa narxi
+                            {t('seller.price')}
                           </div>
                           <div className="text-sm font-medium text-card-foreground">
                             {formatCurrency(pp.product.type === "unit" ? pp.product.sellPrice : (pp.product.sellPricePerMeter || 0))}
@@ -338,7 +340,7 @@ export function BranchProfitDetail() {
                         </div>
                         <div className="space-y-1">
                           <div className="text-xs text-muted-foreground">
-                            Sotilgan narxi (o'rt)
+                            {t('seller.soldPrice')} ({t('common.average')})
                           </div>
                           <div className="text-sm font-medium text-blue-600 dark:text-blue-400">
                             {formatCurrency(pp.totalAmount / (pp.totalArea || pp.totalQuantity || 1))}
@@ -346,7 +348,7 @@ export function BranchProfitDetail() {
                         </div>
                         <div className="space-y-1 text-right">
                           <div className="text-xs text-muted-foreground">
-                            O'rtacha foyda
+                            {t('admin.averageProfit')}
                           </div>
                           <div className="text-sm font-medium text-green-600 dark:text-green-400">
                             {formatCurrency(averageProfitPerUnit)}
@@ -363,8 +365,8 @@ export function BranchProfitDetail() {
 
         {/* Detailed Sales History */}
         <div>
-          <h3 className="text-sm text-muted-foreground mb-3 px-1">
-            YAQINDAGI SAVDOLAR
+          <h3 className="text-sm text-muted-foreground mb-3 px-1 uppercase">
+            {t('seller.recentSales')}
           </h3>
           <div className="space-y-3">
             {filteredSales.slice(0, 50).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((sale) => (
@@ -387,13 +389,13 @@ export function BranchProfitDetail() {
                 </div>
                 <div className="flex items-center space-x-4 text-xs">
                   <span className="text-muted-foreground">
-                    Men: <span className="text-blue-600">{formatCurrency(sale.admin_profit || 0)}</span>
+                    {t('common.me')}: <span className="text-blue-600">{formatCurrency(sale.admin_profit || 0)}</span>
                   </span>
                   <span className="text-muted-foreground">
-                    Filial: <span className="text-emerald-600">{formatCurrency(sale.seller_profit || 0)}</span>
+                    {t('common.branch')}: <span className="text-emerald-600">{formatCurrency(sale.seller_profit || 0)}</span>
                   </span>
                   <span className="text-muted-foreground">
-                    To'lov: <span className="font-medium uppercase">{sale.paymentType}</span>
+                    {t('common.payment')}: <span className="font-medium uppercase">{sale.paymentType === 'cash' ? t('common.cash') : sale.paymentType === 'card' ? t('common.card') : t('common.transfer')}</span>
                   </span>
                 </div>
               </Card>
