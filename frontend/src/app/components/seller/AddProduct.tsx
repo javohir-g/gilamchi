@@ -609,9 +609,19 @@ export function AddProduct() {
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           e.preventDefault();
-                          const qty = parseInt(sizeQuantityInput) || 1;
-                          if (sizeInput && !availableSizes.find(s => s.size === sizeInput)) {
-                            setAvailableSizes([...availableSizes, { size: sizeInput, quantity: qty }]);
+                          if (sizeInput) {
+                            const qty = parseInt(sizeQuantityInput) || 1;
+                            const existingIdx = availableSizes.findIndex(s => s.size === sizeInput);
+                            if (existingIdx !== -1) {
+                              const updated = [...availableSizes];
+                              updated[existingIdx] = {
+                                ...updated[existingIdx],
+                                quantity: updated[existingIdx].quantity + qty
+                              };
+                              setAvailableSizes(updated);
+                            } else {
+                              setAvailableSizes([...availableSizes, { size: sizeInput, quantity: qty }]);
+                            }
                             setSizeInput("");
                             setSizeQuantityInput("");
                           }
@@ -622,9 +632,19 @@ export function AddProduct() {
                       type="button"
                       className="h-12 w-12 rounded-xl bg-blue-600"
                       onClick={() => {
-                        const qty = parseInt(sizeQuantityInput) || 1;
-                        if (sizeInput && !availableSizes.find(s => s.size === sizeInput)) {
-                          setAvailableSizes([...availableSizes, { size: sizeInput, quantity: qty }]);
+                        if (sizeInput) {
+                          const qty = parseInt(sizeQuantityInput) || 1;
+                          const existingIdx = availableSizes.findIndex(s => s.size === sizeInput);
+                          if (existingIdx !== -1) {
+                            const updated = [...availableSizes];
+                            updated[existingIdx] = {
+                              ...updated[existingIdx],
+                              quantity: updated[existingIdx].quantity + qty
+                            };
+                            setAvailableSizes(updated);
+                          } else {
+                            setAvailableSizes([...availableSizes, { size: sizeInput, quantity: qty }]);
+                          }
                           setSizeInput("");
                           setSizeQuantityInput("");
                         }
@@ -637,7 +657,7 @@ export function AddProduct() {
                     <div className="flex flex-wrap gap-2 mt-4">
                       {availableSizes.map((s, idx) => (
                         <Badge
-                          key={s.size}
+                          key={`${s.size}-${idx}`}
                           variant="secondary"
                           className="flex items-center py-1.5 px-3 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-100 rounded-lg group"
                         >
@@ -714,10 +734,9 @@ export function AddProduct() {
                             const l = parseFloat(sizeQuantityInput);
                             if (w > 0 && l > 0) {
                               const sizeStr = `${w}x${l}`;
-                              if (!availableSizes.find(s => s.size === sizeStr)) {
-                                setAvailableSizes([...availableSizes, { size: sizeStr, initial_length: l, quantity: 1 }]);
-                                setSizeQuantityInput("");
-                              }
+                              // Duplicate metered rolls are allowed (separate tracking)
+                              setAvailableSizes([...availableSizes, { size: sizeStr, initial_length: l, quantity: 1 }]);
+                              setSizeQuantityInput("");
                             } else if (!(w > 0)) {
                               toast.error(t('messages.fillAllFields'));
                             }
@@ -733,10 +752,9 @@ export function AddProduct() {
                         const l = parseFloat(sizeQuantityInput);
                         if (w > 0 && l > 0) {
                           const sizeStr = `${w}x${l}`;
-                          if (!availableSizes.find(s => s.size === sizeStr)) {
-                            setAvailableSizes([...availableSizes, { size: sizeStr, initial_length: l, quantity: 1 }]);
-                            setSizeQuantityInput("");
-                          }
+                          // Duplicate metered rolls are allowed (separate tracking)
+                          setAvailableSizes([...availableSizes, { size: sizeStr, initial_length: l, quantity: 1 }]);
+                          setSizeQuantityInput("");
                         } else if (!(w > 0)) {
                           toast.error(t('messages.fillAllFields'));
                         }
@@ -749,7 +767,7 @@ export function AddProduct() {
                     <div className="flex flex-wrap gap-2 mt-4">
                       {availableSizes.map((s, idx) => (
                         <Badge
-                          key={s.size}
+                          key={`${s.size}-${idx}`}
                           variant="secondary"
                           className="flex items-center py-1.5 px-3 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-100 rounded-lg group"
                         >
