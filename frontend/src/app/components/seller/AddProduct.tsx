@@ -688,19 +688,9 @@ export function AddProduct() {
                 </div>
                 <div>
                   <Label className="mb-2 block text-sm font-medium">
-                    {t('seller.addRolls')}
+                    {t('seller.addRolls')} {width && `(${width}m x ...)`}
                   </Label>
                   <div className="flex space-x-2">
-                    <div className="flex-1">
-                      <Input
-                        type="number"
-                        step="0.1"
-                        value={sizeInput}
-                        onChange={(e) => setSizeInput(e.target.value)}
-                        placeholder={`${t('product.width')} (${t('common.meter_short')})`}
-                        className="h-12 w-full rounded-xl"
-                      />
-                    </div>
                     <div className="flex-1">
                       <Input
                         type="number"
@@ -712,15 +702,16 @@ export function AddProduct() {
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             e.preventDefault();
-                            const w = parseFloat(sizeInput);
+                            const w = parseFloat(width);
                             const l = parseFloat(sizeQuantityInput);
                             if (w > 0 && l > 0) {
                               const sizeStr = `${w}x${l}`;
                               if (!availableSizes.find(s => s.size === sizeStr)) {
                                 setAvailableSizes([...availableSizes, { size: sizeStr, initial_length: l, quantity: 1 }]);
-                                setSizeInput(width);
                                 setSizeQuantityInput("");
                               }
+                            } else if (!(w > 0)) {
+                              toast.error(t('messages.fillAllFields'));
                             }
                           }
                         }}
@@ -730,15 +721,16 @@ export function AddProduct() {
                       type="button"
                       className="h-12 w-12 rounded-xl bg-blue-600"
                       onClick={() => {
-                        const w = parseFloat(sizeInput);
+                        const w = parseFloat(width);
                         const l = parseFloat(sizeQuantityInput);
                         if (w > 0 && l > 0) {
                           const sizeStr = `${w}x${l}`;
                           if (!availableSizes.find(s => s.size === sizeStr)) {
                             setAvailableSizes([...availableSizes, { size: sizeStr, initial_length: l, quantity: 1 }]);
-                            setSizeInput(width);
                             setSizeQuantityInput("");
                           }
+                        } else if (!(w > 0)) {
+                          toast.error(t('messages.fillAllFields'));
                         }
                       }}
                     >
