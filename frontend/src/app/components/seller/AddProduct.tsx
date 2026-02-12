@@ -90,6 +90,13 @@ export function AddProduct() {
     }
   }, [category]);
 
+  // Sync sizeInput for metered rolls
+  useEffect(() => {
+    if (type === "meter" && width) {
+      setSizeInput(width);
+    }
+  }, [type, width]);
+
   // Auto-calculate total quantity or length based on sizes/rolls
   useEffect(() => {
     if (type === "unit" && availableSizes.length > 0) {
@@ -711,7 +718,7 @@ export function AddProduct() {
                               const sizeStr = `${w}x${l}`;
                               if (!availableSizes.find(s => s.size === sizeStr)) {
                                 setAvailableSizes([...availableSizes, { size: sizeStr, initial_length: l, quantity: 1 }]);
-                                setSizeInput("");
+                                setSizeInput(width);
                                 setSizeQuantityInput("");
                               }
                             }
@@ -729,7 +736,7 @@ export function AddProduct() {
                           const sizeStr = `${w}x${l}`;
                           if (!availableSizes.find(s => s.size === sizeStr)) {
                             setAvailableSizes([...availableSizes, { size: sizeStr, initial_length: l, quantity: 1 }]);
-                            setSizeInput("");
+                            setSizeInput(width);
                             setSizeQuantityInput("");
                           }
                         }
