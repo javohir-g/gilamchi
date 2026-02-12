@@ -77,17 +77,17 @@ export function ManageCollections() {
   const [selectedBranchId, setSelectedBranchId] = useState<string>(user?.branchId || "");
 
   // Update selectedBranchId when branches load if not set
-  useMemo(() => {
+  useEffect(() => {
     if (!selectedBranchId && branches.length > 0) {
       // Sort branches to ensure consisten order if needed, or just take first
       // Assuming branches are: Yangi Bozor, Hunarmandlar, Naymancha
       setSelectedBranchId(branches[0].id);
     }
-  }, [branches, selectedBranchId]);
+  }, [branches, selectedBranchId, setSelectedBranchId]);
 
   const [localCollections, setLocalCollections] = useState<any[]>([]);
 
-  useMemo(() => {
+  useEffect(() => {
     if (user?.role === 'admin' && selectedBranchId) {
       fetchCollectionsForBranch(selectedBranchId).then(setLocalCollections);
     } else {
@@ -128,6 +128,7 @@ export function ManageCollections() {
       setCollectionBuyPrice("");
       setAddDialogOpen(false);
     } catch (error) {
+      toast.error(t('messages.error'));
       console.error("Failed to add collection", error);
     } finally {
       setIsSaving(false);
@@ -156,6 +157,7 @@ export function ManageCollections() {
       setCollectionPrice("");
       setCollectionBuyPrice("");
     } catch (error) {
+      toast.error(t('messages.error'));
       console.error("Failed to update collection", error);
     } finally {
       setIsSaving(false);
