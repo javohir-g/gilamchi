@@ -122,7 +122,7 @@ export const uzCyrl = {
         rollType: "Рулонли (кесиб берилади)",
         availableSizesInput: "Мавжуд ўлчамлар (масалан: 2x3)",
         stockQuantity: "Омбордаги мавжуд сони",
-        addRolls: "Рулонларни қўшинг (Эни x Бўйи)",
+        addRolls: "Рулонларни қўшинг (Эни x Узунлиги)",
         totalLength: "Умумий узунлик (м)",
         rollWidth: "Рулон эни (м)",
         prices: "Нархлар",

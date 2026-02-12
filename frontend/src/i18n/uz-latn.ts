@@ -122,7 +122,7 @@ export const uzLatn = {
         rollType: "Rulonli (kesib beriladi)",
         availableSizesInput: "Mavjud o'lchamlar (masalan: 2x3)",
         stockQuantity: "Ombordagi mavjud soni",
-        addRolls: "Rulonlarni qo'shing (Eni x Bo'yi)",
+        addRolls: "Rulonlarni qo'shing (Eni x Uzunligi)",
         totalLength: "Umumiy uzunlik (m)",
         rollWidth: "Rulon eni (m)",
         prices: "Narxlar",
