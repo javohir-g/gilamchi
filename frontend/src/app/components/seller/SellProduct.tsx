@@ -424,11 +424,12 @@ export function SellProduct() {
                         </div>
                       )}
                       {(() => {
-                        const collection = collections.find(c => c.name === product.collection);
-                        if (collection?.price_usd_per_sqm && (product.category === "Gilamlar" || product.category === "Metrajlar")) {
+                        const col = collections.find(c => c.name === product.collection);
+                        const rate = col?.price_per_sqm || col?.price_usd_per_sqm;
+                        if (rate && (product.category === "Gilamlar" || product.category === "Metrajlar")) {
                           return (
                             <div className="text-xs font-semibold text-green-600 dark:text-green-400 pt-1 border-t border-border/50 mt-2">
-                              ${collection.price_usd_per_sqm}/m²
+                              ${rate}/m²
                             </div>
                           );
                         }

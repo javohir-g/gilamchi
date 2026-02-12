@@ -148,6 +148,8 @@ export const uzCyrl = {
         cashRegister: "КАССА",
         salesAndDebt: "Сотув + Қарз",
         cardAndTransfer: "Карта / Ўтказма",
+        buyPriceAuto: "Сотиб олиш нархи (АВТО)",
+        sellToBranch: "Филиалга сотиш нархи",
         productsCount: "{count} та маҳсулот",
         nasiyaSale: "НАСИЯ САВДО",
         searchPlaceholder: "Маҳсулот номи ёки коди...",
@@ -198,6 +200,7 @@ export const uzCyrl = {
         reports: "Ҳисоботлар",
         profit: "Фойда",
         cashClosure: "Касса ёпиш",
+        exchangeRate: "Валюта курси",
         addBranch: "Филиал қўшиш",
         addStaff: "Ходим қўшиш",
         branchName: "Филиал номи",
@@ -319,6 +322,8 @@ export const uzCyrl = {
     },
 
     product: {
+        add: "Маҳсулот қўшиш",
+        categories: "Категориялар",
         products: "Маҳсулотлар",
         code: "Код",
         name: "Номи",

@@ -148,6 +148,8 @@ export const uzLatn = {
         cashRegister: "KASSA",
         salesAndDebt: "Sotuv + Qarz",
         cardAndTransfer: "Karta / O'tkazma",
+        buyPriceAuto: "Sotib olish narxi (AVTO)",
+        sellToBranch: "Filialga sotish narxi",
         productsCount: "{count} ta mahsulot",
         nasiyaSale: "NASIYA SAVDO",
         searchPlaceholder: "Mahsulot nomi yoki kodi...",
@@ -198,6 +200,7 @@ export const uzLatn = {
         reports: "Hisobotlar",
         profit: "Foyda",
         cashClosure: "Kassa yopish",
+        exchangeRate: "Valyuta kursi",
         addBranch: "Filial qo'shish",
         addStaff: "Xodim qo'shish",
         branchName: "Filial nomi",
@@ -319,6 +322,8 @@ export const uzLatn = {
     },
 
     product: {
+        add: "Mahsulot qo'shish",
+        categories: "Kategoriyalar",
         products: "Mahsulotlar",
         code: "Kod",
         name: "Nomi",

@@ -87,15 +87,6 @@ export interface Sale {
   exchange_rate?: number;
 }
 
-export interface Collection {
-  id: string;
-  name: string;
-  icon?: string;
-  price_per_sqm?: number;
-  buy_price_per_sqm?: number;
-  price_usd_per_sqm?: number;
-  branch_id?: string;
-}
 
 export interface BasketItem {
   id: string; // Unique ID for this basket item
@@ -192,8 +183,10 @@ export interface Collection {
   id: string;
   name: string;
   icon?: string;
-  price_per_sqm?: number;
-  buy_price_per_sqm?: number;
+  price_per_sqm?: number; // Primary selling price per m² (usually in USD)
+  buy_price_per_sqm?: number; // Buying price per m² (usually in USD)
+  price_usd_per_sqm?: number; // For backward compatibility
+  branch_id?: string;
 }
 
 interface AppContextType {
