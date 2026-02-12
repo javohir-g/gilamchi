@@ -733,36 +733,6 @@ export function AddProduct() {
                     </div>
                   )}
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="mb-2 block text-sm font-medium">{t('seller.totalLength')}</Label>
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        step="0.1"
-                        value={totalLength}
-                        onChange={(e) => setTotalLength(e.target.value)}
-                        placeholder="0"
-                        className="h-12 rounded-xl pl-10"
-                      />
-                      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-bold">
-                        Σ
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="mb-2 block text-sm font-medium">{t('seller.rollWidth')}</Label>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      value={width}
-                      onChange={(e) => setWidth(e.target.value)}
-                      placeholder={`${t('common.forExample')}: 3`}
-                      className="h-12 rounded-xl"
-                    />
-                  </div>
-                </div>
               </div>
             )}
           </Card>
