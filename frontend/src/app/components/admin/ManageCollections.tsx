@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, Plus, Edit2, Trash2, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
