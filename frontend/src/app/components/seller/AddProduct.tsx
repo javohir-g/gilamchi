@@ -78,6 +78,9 @@ export function AddProduct() {
     }
   }, [branchId, fetchCollectionsForBranch]);
 
+  // Use local collections if available, otherwise use global
+  const collections = localCollections.length > 0 ? localCollections : globalCollections;
+
   // Auto-calculate total quantity or length based on sizes/rolls
   useEffect(() => {
     if (type === "unit" && availableSizes.length > 0) {
