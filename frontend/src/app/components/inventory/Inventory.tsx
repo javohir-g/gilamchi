@@ -1024,7 +1024,9 @@ export function Inventory() {
                         <div className="flex flex-wrap gap-1.5 mt-1">
                           {product.availableSizes.map((s: any, idx: number) => {
                             const sizeStr = typeof s === 'string' ? s : s.size;
+                            if (!sizeStr || !sizeStr.includes('x')) return null;
                             const [w, l] = sizeStr.split('x').map(parseFloat);
+                            if (isNaN(w) || isNaN(l)) return null;
 
                             return (
                               <div

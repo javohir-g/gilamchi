@@ -295,36 +295,72 @@ export function AppProvider({
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  const fetchData = useCallback(async () => {
+  // Keep a ref to user to avoid refresh functions depending on user state directly
+  // This breaks infinite loops where refresh functions -> fetchData -> useEffect dependency -> initAuth -> setUser -> user change -> loop
+  const userRef = React.useRef(user);
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+
+  const fetchSafe = useCallback(async (name: string, fn: () => Promise<any>, setter: (val: any) => void) => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
+      const data = await fn();
+      setter(data);
+      return data;
+    } catch (e) {
+      console.error(`Fetch failed for ${name}:`, e);
+      return null;
+    }
+  }, []);
 
-      const fetchSafe = async (fn: () => Promise<any>, setter: (val: any) => void) => {
-        try {
-          const data = await fn();
-          setter(data);
-        } catch (e) {
-          console.error(`Fetch failed:`, e);
-        }
-      };
+  const refreshProducts = useCallback(() => fetchSafe('products', () => productService.getAll(), setProducts), [fetchSafe]);
+  const refreshBranches = useCallback(() => fetchSafe('branches', () => branchService.getAll(), setBranches), [fetchSafe]);
+  const refreshSales = useCallback(() => fetchSafe('sales', () => salesService.getAll(), setSales), [fetchSafe]);
+  const refreshDebts = useCallback(() => fetchSafe('debts', () => debtService.getAll(), setDebts), [fetchSafe]);
+  const refreshExpenses = useCallback(() => fetchSafe('expenses', () => expenseService.getAll(), setExpenses), [fetchSafe]);
+  const refreshCollections = useCallback((branchId?: string) =>
+    fetchSafe('collections', () => collectionService.getAll(branchId || userRef.current?.branchId), setCollections),
+    [fetchSafe]
+  );
+  const refreshStaff = useCallback(() => fetchSafe('staff', () => staffService.getAll(), setStaffMembers), [fetchSafe]);
+  const refreshSettings = useCallback(() =>
+    fetchSafe('settings', () => settingsService.get(), (data) => setExchangeRate(data.exchange_rate)),
+    [fetchSafe]
+  );
 
+  const fetchData = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
       await Promise.all([
-        fetchSafe(() => productService.getAll(), setProducts),
-        fetchSafe(() => branchService.getAll(), setBranches),
-        fetchSafe(() => salesService.getAll(), setSales),
-        fetchSafe(() => debtService.getAll(), setDebts),
-        fetchSafe(() => expenseService.getAll(), setExpenses),
-        fetchSafe(() => collectionService.getAll(user?.branchId), setCollections),
-        fetchSafe(() => staffService.getAll(), setStaffMembers),
-        fetchSafe(() => settingsService.get(), (data) => setExchangeRate(data.exchange_rate))
+        refreshProducts(),
+        refreshBranches(),
+        refreshSales(),
+        refreshDebts(),
+        refreshExpenses(),
+        refreshCollections(),
+        refreshStaff(),
+        refreshSettings()
       ]);
     } catch (error) {
       console.error("Failed to fetch data", error);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [
+    refreshProducts,
+    refreshBranches,
+    refreshSales,
+    refreshDebts,
+    refreshExpenses,
+    refreshCollections,
+    refreshStaff,
+    refreshSettings
+  ]);
 
   const fetchCollectionsForBranch = async (branchId: string) => {
     try {
@@ -343,6 +379,8 @@ export function AppProvider({
         if (token) {
           const userData = await authService.getMe();
           setUser(userData);
+          // Call fetchData immediately after setting user. 
+          // Since fetchData is stable now (doesn't depend on user), this won't loop.
           fetchData();
         }
       } catch (error) {
@@ -353,7 +391,8 @@ export function AppProvider({
       }
     };
     initAuth();
-  }, [fetchData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
@@ -362,7 +401,7 @@ export function AppProvider({
   const addSale = async (sale: Sale) => {
     try {
       await salesService.create(sale);
-      await fetchData();
+      await refreshSales();
     } catch (error) {
       console.error("Failed to add sale", error);
     }
@@ -438,7 +477,7 @@ export function AppProvider({
   const addCollection = async (collection: Partial<Collection>) => {
     try {
       await collectionService.create(collection);
-      await fetchData();
+      await refreshCollections(collection.branchId);
     } catch (error) {
       console.error("Failed to add collection", error);
       throw error;
@@ -448,7 +487,7 @@ export function AppProvider({
   const updateCollection = async (id: string, updates: Partial<Collection>) => {
     try {
       await collectionService.update(id, updates);
-      await fetchData();
+      await refreshCollections(updates.branchId);
     } catch (error) {
       console.error("Failed to update collection", error);
       throw error;
@@ -458,7 +497,7 @@ export function AppProvider({
   const deleteCollection = async (id: string) => {
     try {
       await collectionService.delete(id);
-      await fetchData();
+      await refreshCollections();
     } catch (error) {
       console.error("Failed to delete collection", error);
       throw error;
@@ -468,7 +507,7 @@ export function AppProvider({
   const addStaffMember = async (data: Partial<StaffMember>) => {
     try {
       await staffService.create(data);
-      await fetchData();
+      await refreshStaff();
     } catch (error) {
       console.error("Failed to add staff member", error);
       throw error;
@@ -478,7 +517,7 @@ export function AppProvider({
   const updateStaffMember = async (id: string, updates: Partial<StaffMember>) => {
     try {
       await staffService.update(id, updates);
-      await fetchData();
+      await refreshStaff();
     } catch (error) {
       console.error("Failed to update staff member", error);
       throw error;
@@ -488,7 +527,7 @@ export function AppProvider({
   const deleteStaffMember = async (id: string) => {
     try {
       await staffService.delete(id);
-      await fetchData();
+      await refreshStaff();
     } catch (error) {
       console.error("Failed to delete staff member", error);
       throw error;
