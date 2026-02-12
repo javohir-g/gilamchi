@@ -635,7 +635,7 @@ export function AddProduct() {
                   </div>
                   {availableSizes.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-4">
-                      {availableSizes.map((s) => (
+                      {availableSizes.map((s, idx) => (
                         <Badge
                           key={s.size}
                           variant="secondary"
@@ -643,13 +643,16 @@ export function AddProduct() {
                         >
                           <span className="font-bold mr-1">{s.size}</span>
                           <span className="text-[10px] opacity-70">({s.quantity} {t('common.unit')})</span>
-                          <X
-                            className="ml-2 h-3.5 w-3.5 cursor-pointer text-blue-400 hover:text-red-500 transition-colors"
+                          <button
+                            type="button"
+                            className="ml-2 p-0.5 pointer-events-auto hover:bg-red-100 dark:hover:bg-red-900/40 rounded-full transition-colors text-blue-400 hover:text-red-500"
                             onClick={(e: React.MouseEvent) => {
                               e.stopPropagation();
-                              setAvailableSizes(availableSizes.filter((item) => item.size !== s.size));
+                              setAvailableSizes(availableSizes.filter((_, index) => index !== idx));
                             }}
-                          />
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
                         </Badge>
                       ))}
                     </div>
@@ -744,7 +747,7 @@ export function AddProduct() {
                   </div>
                   {availableSizes.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-4">
-                      {availableSizes.map((s) => (
+                      {availableSizes.map((s, idx) => (
                         <Badge
                           key={s.size}
                           variant="secondary"
@@ -752,13 +755,16 @@ export function AddProduct() {
                         >
                           <span className="font-bold mr-1">{s.size}m</span>
                           <span className="text-[10px] opacity-70">({s.quantity} {t('seller.roll')})</span>
-                          <X
-                            className="ml-2 h-3.5 w-3.5 cursor-pointer text-green-400 hover:text-red-500 transition-colors"
+                          <button
+                            type="button"
+                            className="ml-2 p-0.5 pointer-events-auto hover:bg-red-100 dark:hover:bg-red-900/40 rounded-full transition-colors text-green-400 hover:text-red-500"
                             onClick={(e: React.MouseEvent) => {
                               e.stopPropagation();
-                              setAvailableSizes(availableSizes.filter((item) => item.size !== s.size));
+                              setAvailableSizes(availableSizes.filter((_, index) => index !== idx));
                             }}
-                          />
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
                         </Badge>
                       ))}
                     </div>
@@ -858,6 +864,6 @@ export function AddProduct() {
           />
         )}
       </AnimatePresence>
-    </div>
+    </div >
   );
 }
