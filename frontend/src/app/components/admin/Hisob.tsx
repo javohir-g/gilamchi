@@ -119,6 +119,45 @@ export function Hisob() {
     0,
   );
 
+  // 1. Total Stock Value (Buy Price)
+  const totalStockValue = products.reduce((sum, p) => {
+    if (p.type === "meter") {
+      return sum + (p.buyPrice || 0) * (p.remainingLength || 0);
+    } else {
+      const qty = p.availableSizes
+        ? p.availableSizes.reduce((s: number, sz: any) => s + (sz.quantity || 0), 0)
+        : (p.quantity || 0);
+      return sum + (p.buyPrice || 0) * qty;
+    }
+  }, 0);
+
+  // 2. Total Potential Profit (Markup if all sold)
+  const totalPotentialProfit = products.reduce((sum, p) => {
+    if (p.type === "meter") {
+      const margin = (p.sellPricePerMeter || 0) - (p.buyPrice || 0);
+      return sum + margin * (p.remainingLength || 0);
+    } else {
+      const margin = (p.sellPrice || 0) - (p.buyPrice || 0);
+      const qty = p.availableSizes
+        ? p.availableSizes.reduce((s: number, sz: any) => s + (sz.quantity || 0), 0)
+        : (p.quantity || 0);
+      return sum + margin * qty;
+    }
+  }, 0);
+
+  // 3. Sold Stock Cost (Buy Price of items sold in period)
+  const soldStockCost = filteredSales.reduce((sum, sale) => {
+    const product = products.find(p => p.id === sale.productId);
+    if (!product) return sum;
+    let cost = 0;
+    if (sale.type === "meter" || product.type === "meter") {
+      cost = (product.buyPrice || 0) * (sale.length || sale.quantity || 0);
+    } else {
+      cost = (product.buyPrice || 0) * (sale.quantity || 1);
+    }
+    return sum + cost;
+  }, 0);
+
   // Profit breakdown by branch
   const branchProfits = branches.map((branch) => {
     const branchSales = filteredSales.filter(
@@ -217,28 +256,56 @@ export function Hisob() {
 
       <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
 
-        {/* Total Profit Card */}
-        <Card className="p-6 bg-gradient-to-br from-indigo-500 to-indigo-600 dark:from-indigo-700 dark:to-indigo-800 border-0 shadow-lg shadow-indigo-500/20">
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="flex items-center space-x-2 mb-2">
-                <TrendingUp className="h-5 w-5 text-indigo-100" />
-                <span className="text-sm font-medium text-indigo-100">
-                  {t('admin.myNetProfit')}
-                </span>
-              </div>
-              <div className="text-3xl font-bold text-white">
-                {formatCurrency(filteredSales.reduce((sum, s) => sum + (s.admin_profit || 0), 0))}
-              </div>
-              <div className="text-sm text-indigo-100 mt-1">
-                {t('messages.shareFromSales').replace('{count}', filteredSales.length.toString())}
+        {/* Financial Summary Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Card 1: Stock Value */}
+          <Card className="p-4 bg-gradient-to-br from-indigo-500 to-indigo-600 border-0 shadow-lg shadow-indigo-500/20 text-white">
+            <div className="flex flex-col space-y-1">
+              <span className="text-xs font-medium text-indigo-100 uppercase tracking-wider">
+                {t('admin.stockValue')}
+              </span>
+              <div className="text-xl md:text-2xl font-bold truncate">
+                {formatCurrency(totalStockValue)}
               </div>
             </div>
-            <div className="bg-white/20 rounded-full p-3">
-              <DollarSign className="h-6 w-6 text-white" />
+          </Card>
+
+          {/* Card 3: Sold Stock Cost (Linked to Card 1) */}
+          <Card className="p-4 bg-indigo-50 dark:bg-indigo-950 border border-indigo-100 dark:border-indigo-900 shadow-sm">
+            <div className="flex flex-col space-y-1">
+              <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
+                {t('admin.soldStockCost')}
+              </span>
+              <div className="text-xl md:text-2xl font-bold dark:text-white truncate">
+                {formatCurrency(soldStockCost)}
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+
+          {/* Card 2: Potential Profit */}
+          <Card className="p-4 bg-gradient-to-br from-emerald-500 to-emerald-600 border-0 shadow-lg shadow-emerald-500/20 text-white">
+            <div className="flex flex-col space-y-1">
+              <span className="text-xs font-medium text-emerald-100 uppercase tracking-wider">
+                {t('admin.potentialProfit')}
+              </span>
+              <div className="text-xl md:text-2xl font-bold truncate">
+                {formatCurrency(totalPotentialProfit)}
+              </div>
+            </div>
+          </Card>
+
+          {/* Card 4: Actual Profit (Linked to Card 2) */}
+          <Card className="p-4 bg-emerald-50 dark:bg-emerald-950 border border-emerald-100 dark:border-emerald-900 shadow-sm">
+            <div className="flex flex-col space-y-1">
+              <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                {t('admin.actualProfit')}
+              </span>
+              <div className="text-xl md:text-2xl font-bold dark:text-white truncate">
+                {formatCurrency(totalDirectorProfit)}
+              </div>
+            </div>
+          </Card>
+        </div>
 
         {/* Branch Breakdown */}
         <div>

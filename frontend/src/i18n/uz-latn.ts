@@ -269,6 +269,10 @@ export const uzLatn = {
         profitByProduct: "MAHSULOTLAR BO'YICHA FOYDA",
         averageProfit: "O'rtacha foyda",
         myNetProfit: "Mening sof foydam (Admin)",
+        stockValue: "Ombor (xarid)",
+        potentialProfit: "Kutilayotgan foyda",
+        soldStockCost: "Sotilgan (tannarx)",
+        actualProfit: "Haqiqiy foyda",
     },
 
     debt: {

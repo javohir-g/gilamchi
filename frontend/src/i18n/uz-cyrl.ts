@@ -273,6 +273,10 @@ export const uzCyrl = {
         profitByProduct: "МАҲСУЛОТЛАР БЎЙИЧА ФОЙДА",
         averageProfit: "Ўртача фойда",
         myNetProfit: "Менинг соф фойдам (Админ)",
+        stockValue: "Омбор (харид)",
+        potentialProfit: "Кутилаётган фойда",
+        soldStockCost: "Сотилган (таннарх)",
+        actualProfit: "Ҳақиқий фойда",
     },
 
     debt: {
