@@ -73,7 +73,7 @@ export function Checkout() {
         currency: "UZS",
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
-      }).format(amount);
+      }).format(Math.round(amount));
     }
     return new Intl.NumberFormat("en-US", {
       style: "currency",

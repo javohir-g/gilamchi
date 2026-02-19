@@ -116,24 +116,65 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
     db.add(product)
     
     from ..models.collection import Collection
+    from ..models.settings import Settings
+    from decimal import Decimal
     collection = db.query(Collection).filter(Collection.name == product.collection).first() if product.collection else None
 
-    # Profit calculation:
-    # Admin Profit = (Base Sell Price - Product.buy_price) * Metric (qty or area)
-    # Seller Profit = Sale.amount - (Base Sell Price * Metric)
-    # Total Profit = Sale.amount - (Product.buy_price * Metric)
-    
-    qty = float(sale.quantity)
-    area = float(sale.area) if sale.area else None
-    metric = area if area else qty
+    # Get exchange rate from settings for currency normalization
+    settings = db.query(Settings).first()
+    exchange_rate = Decimal(str(settings.exchange_rate if settings else 12200.0))
 
-    base_sell_price = float(product.sell_price)
-    buy_price = float(product.buy_price)
-    sale_amount = float(sale.amount or (base_sell_price * metric))
-    
-    admin_profit = (base_sell_price - buy_price) * metric
-    seller_profit = sale_amount - (base_sell_price * metric)
-    total_profit = sale_amount - (buy_price * metric)
+    # ─────────────────────────────────────────────────────────────────────────
+    # Profit calculation — ALL values normalized to USD for storage
+    # ─────────────────────────────────────────────────────────────────────────
+
+    # Normalize buy price to USD
+    raw_buy_price = Decimal(str(product.buy_price))
+    if product.is_usd_priced:
+        buy_price_usd = raw_buy_price
+    else:
+        buy_price_usd = raw_buy_price / exchange_rate
+
+    qty = Decimal(str(sale.quantity))
+
+    if product.type == ProductType.METER:
+        # Metraj products: length is the primary metric for cost and sell_price_per_meter
+        # sell_price_per_meter is stored in USD per linear meter (calculated in AddProduct.tsx)
+        length_d = Decimal(str(sale.length)) if sale.length else qty
+        metric_for_standard_price = length_d
+        
+        base_sell_price_usd = Decimal(str(product.sell_price_per_meter or product.sell_price or 0))
+    else:
+        # Unit products: quantity (or area) is the metric
+        metric_for_standard_price = Decimal(str(sale.area)) if sale.area else qty
+        
+        # sell_price can be USD or UZS
+        raw_sell_price = Decimal(str(product.sell_price))
+        if product.is_usd_priced:
+            base_sell_price_usd = raw_sell_price
+        else:
+            base_sell_price_usd = raw_sell_price / exchange_rate
+
+    # Standard costs and sell values in USD
+    total_buy_cost_usd = buy_price_usd * metric_for_standard_price
+    standard_sell_usd = base_sell_price_usd * metric_for_standard_price
+
+    # Actual sale amount (Frontend sends USD for Sale.amount)
+    if sale.amount:
+        sale_amount_usd = Decimal(str(sale.amount))
+    else:
+        sale_amount_usd = standard_sell_usd
+
+    # Profit breakdown in USD
+    admin_profit  = standard_sell_usd - total_buy_cost_usd
+    seller_profit = sale_amount_usd - standard_sell_usd
+    total_profit  = sale_amount_usd - total_buy_cost_usd
+
+    # Data to store (USD)
+    sale_amount = float(sale_amount_usd)
+
+
+
 
     new_sale = Sale(
         product_id=sale.product_id,

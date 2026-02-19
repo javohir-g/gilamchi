@@ -22,11 +22,11 @@ class Product(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     collection: Mapped[str | None] = mapped_column(String, index=True, nullable=True)
     type: Mapped[ProductType] = mapped_column(SQLEnum(ProductType))
     
-    buy_price: Mapped[float] = mapped_column(DECIMAL(15, 2))
-    buy_price_usd: Mapped[float | None] = mapped_column(DECIMAL(15, 2), nullable=True)
+    buy_price: Mapped[float] = mapped_column(DECIMAL(18, 6))
+    buy_price_usd: Mapped[float | None] = mapped_column(DECIMAL(18, 6), nullable=True)
     is_usd_priced: Mapped[bool] = mapped_column(default=False)
-    sell_price: Mapped[float] = mapped_column(DECIMAL(15, 2))
-    sell_price_per_meter: Mapped[float | None] = mapped_column(DECIMAL(15, 2), nullable=True)
+    sell_price: Mapped[float] = mapped_column(DECIMAL(18, 6))
+    sell_price_per_meter: Mapped[float | None] = mapped_column(DECIMAL(18, 6), nullable=True)
     
     quantity: Mapped[int] = mapped_column(BigInteger, default=0)
     remaining_length: Mapped[float | None] = mapped_column(DECIMAL(10, 2), nullable=True)

@@ -11,44 +11,59 @@ settings = get_settings()
 # In production, use Alembic. For quick start/MVP, this is fine.
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(
-    title=settings.APP_NAME,
-    version=settings.APP_VERSION,
-    debug=settings.DEBUG
-)
+from contextlib import asynccontextmanager
+from .utils.bot_service import run_bot, stop_bot
 
-@app.on_event("startup")
-async def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     """
-    Действия при запуске приложения:
-    1. Загрузка CLIP модели в память (чтобы первый поиск был быстрым)
+    Lifespan handler for start and stop events.
     """
-    print("Startup: Preloading CLIP model...")
+    print("Startup: Preloading CLIP model and starting Telegram Bot...")
+    bot_task = None
     try:
         from .utils.image_embedding import get_model
-        # Запускаем в отдельном потоке, чтобы не блокировать startup (хотя для in-memory модели это быстро после скачивания)
         import asyncio
-        # Запускаем в фоне, чтобы не блокировать основной поток startup
-        # Создаем обертку для запуска синхронной функции в executor
         loop = asyncio.get_running_loop()
         
         async def preload_in_background():
             try:
-                # Run CPU-bound op in executor
                 await loop.run_in_executor(None, get_model)
                 print("Background: CLIP model preloaded successfully!")
             except Exception as e:
                 print(f"Background warning: Failed to preload CLIP model: {e}")
 
-        # Fire and forget background task
+        # Fire and forget CLIP preload
         asyncio.create_task(preload_in_background())
         
-        # Start the Telegram Bot in the background
-        asyncio.create_task(run_bot())
-        
+        # Start the Telegram Bot and keep the task reference
+        bot_task = asyncio.create_task(run_bot())
         print("Startup: CLIP model preload and Telegram Bot scheduled in background")
     except Exception as e:
-        print(f"Startup warning: Failed to preload CLIP model: {e}")
+        print(f"Startup warning: Initialization error: {e}")
+
+    yield  # Application is running
+
+    # Shutdown logic
+    print("Shutdown: Cleaning up background tasks...")
+    if bot_task:
+        bot_task.cancel()
+        try:
+            await bot_task
+        except asyncio.CancelledError:
+            pass
+    
+    # Ensure bot is stopped even if task cancellation didn't trigger it
+    await stop_bot()
+    print("Shutdown: Cleanup complete")
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    debug=settings.DEBUG,
+    lifespan=lifespan
+)
+
 
 origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",")]
 

@@ -19,7 +19,7 @@ class Sale(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     seller_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"))
     
     quantity: Mapped[float] = mapped_column(DECIMAL(10, 2)) # Can be length for metraj
-    amount: Mapped[float] = mapped_column(DECIMAL(15, 2)) # Total Sale Amount
+    amount: Mapped[float] = mapped_column(DECIMAL(18, 6)) # Total Sale Amount
     
     # New fields for square meter calculations
     width: Mapped[float | None] = mapped_column(DECIMAL(10, 2), nullable=True)
@@ -27,14 +27,14 @@ class Sale(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     area: Mapped[float | None] = mapped_column(DECIMAL(10, 2), nullable=True) # width * length * quantity
     
     payment_type: Mapped[PaymentType] = mapped_column(SQLEnum(PaymentType))
-    profit: Mapped[float] = mapped_column(DECIMAL(15, 2), default=0) # Total extra profit
-    admin_profit: Mapped[float] = mapped_column(DECIMAL(15, 2), default=0)
-    seller_profit: Mapped[float] = mapped_column(DECIMAL(15, 2), default=0)
+    profit: Mapped[float] = mapped_column(DECIMAL(18, 6), default=0) # Total extra profit
+    admin_profit: Mapped[float] = mapped_column(DECIMAL(18, 6), default=0)
+    seller_profit: Mapped[float] = mapped_column(DECIMAL(18, 6), default=0)
     
     date: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True)
     order_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
     is_nasiya: Mapped[bool] = mapped_column(default=False)
-    exchange_rate: Mapped[float] = mapped_column(DECIMAL(15, 2), default=12200.0)
+    exchange_rate: Mapped[float] = mapped_column(DECIMAL(18, 6), default=12200.0)
 
     # Relationships
     product = relationship("Product") # back_populates="sales" if defined there

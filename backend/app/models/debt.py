@@ -20,15 +20,15 @@ class Debt(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     branch_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("branches.id"))
     seller_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"))
     
-    total_amount: Mapped[float] = mapped_column(DECIMAL(15, 2))
-    initial_payment: Mapped[float] = mapped_column(DECIMAL(15, 2), default=0)
-    remaining_amount: Mapped[float] = mapped_column(DECIMAL(15, 2))
-    paid_amount: Mapped[float] = mapped_column(DECIMAL(15, 2), default=0)
+    total_amount: Mapped[float] = mapped_column(DECIMAL(18, 6))
+    initial_payment: Mapped[float] = mapped_column(DECIMAL(18, 6), default=0)
+    remaining_amount: Mapped[float] = mapped_column(DECIMAL(18, 6))
+    paid_amount: Mapped[float] = mapped_column(DECIMAL(18, 6), default=0)
     
     payment_deadline: Mapped[date_type] = mapped_column(Date) # Changed from DateTime to Date
     status: Mapped[DebtStatus] = mapped_column(SQLEnum(DebtStatus), default=DebtStatus.PENDING, index=True)
     order_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
-    exchange_rate: Mapped[float] = mapped_column(DECIMAL(15, 2), default=12200.0)
+    exchange_rate: Mapped[float] = mapped_column(DECIMAL(18, 6), default=12200.0)
 
     # Relationships
     branch = relationship("Branch", back_populates="debts")
@@ -39,12 +39,12 @@ class Payment(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     __tablename__ = "payments"
 
     debt_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("debts.id"))
-    amount: Mapped[float] = mapped_column(DECIMAL(15, 2))
+    amount: Mapped[float] = mapped_column(DECIMAL(18, 6))
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
     payment_date: Mapped[date_type] = mapped_column(DateTime, default=lambda: datetime.utcnow())
     
     recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"))
-    exchange_rate: Mapped[float] = mapped_column(DECIMAL(15, 2), default=12200.0)
+    exchange_rate: Mapped[float] = mapped_column(DECIMAL(18, 6), default=12200.0)
     
     # Relationships
     debt = relationship("Debt", back_populates="payments")

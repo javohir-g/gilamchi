@@ -44,8 +44,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await update.message.reply_text(message, reply_markup=reply_markup)
 
+# Global application instance to allow control from main.py
+application = None
+
 async def run_bot():
     """Start the bot in polling mode"""
+    global application
     print("Initializing Telegram bot...")
     
     if not settings.telegram_bot_token:
@@ -53,11 +57,12 @@ async def run_bot():
         return
 
     try:
-        print(f"Building application with token: {settings.telegram_bot_token[:10]}...")
-        application = ApplicationBuilder().token(settings.telegram_bot_token).build()
-        
-        start_handler = CommandHandler('start', start)
-        application.add_handler(start_handler)
+        if application is None:
+            print(f"Building application with token: {settings.telegram_bot_token[:10]}...")
+            application = ApplicationBuilder().token(settings.telegram_bot_token).build()
+            
+            start_handler = CommandHandler('start', start)
+            application.add_handler(start_handler)
         
         print("Initializing application handlers...")
         await application.initialize()
@@ -68,9 +73,32 @@ async def run_bot():
         
         print("Telegram bot is running and polling.")
         
-        # Keep running until cancelled
-        while True:
-            await asyncio.sleep(3600)
+        # In a background task, we don't need the while True if we manage lifecycle elsewhere,
+        # but for compatibility with current create_task(run_bot()) approach:
+        try:
+            while True:
+                await asyncio.sleep(3600)
+        except asyncio.CancelledError:
+            print("Telegram bot task cancelled, shutting down...")
+            await stop_bot()
+            
     except Exception as e:
         print(f"Failed to start Telegram bot background task: {e}")
+
+async def stop_bot():
+    """Stop the bot gracefully"""
+    global application
+    if application:
+        print("Stopping Telegram bot polling and application...")
+        try:
+            if application.updater and application.updater.running:
+                await application.updater.stop()
+            await application.stop()
+            await application.shutdown()
+            print("Telegram bot stopped gracefully.")
+        except Exception as e:
+            print(f"Error during Telegram bot shutdown: {e}")
+        finally:
+            application = None
+
 

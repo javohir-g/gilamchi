@@ -161,7 +161,10 @@ const toSale = (data: any): any => ({
   order_id: data.orderId,
   size: data.size,
   is_nasiya: data.isNasiya,
-  // Backend calculates profit, checks stock etc.
+  // Dimensions for area-based profit calculation (meter/carpet products)
+  width: data.width,
+  length: data.length,
+  area: data.area,
 });
 
 const fromCollection = (data: any): any => ({
