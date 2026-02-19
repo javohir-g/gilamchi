@@ -249,29 +249,6 @@ export function AdminDashboard() {
             </div>
           </Card>
 
-          {/* Admin Profit */}
-          <Card className="p-4 md:p-6 bg-gradient-to-br from-indigo-600 to-indigo-700 dark:from-indigo-800 dark:to-indigo-900 border-0 shadow-lg shadow-indigo-500/20 relative overflow-hidden group">
-            <div className="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform">
-              <HandCoins className="h-24 w-24 text-white" />
-            </div>
-            <div className="relative z-10 flex flex-col h-full justify-between">
-              <div>
-                <div className="flex items-center space-x-2 mb-2">
-                  <HandCoins className="h-4 w-4 md:h-5 md:w-5 text-indigo-100" />
-                  <span className="text-xs md:text-sm font-medium text-indigo-100/80">
-                    {t('admin.myProfit')}
-                  </span>
-                </div>
-                <div className="text-xl md:text-3xl font-bold text-white tracking-tight">
-                  {formatCurrency(totalAdminProfit, "USD")}
-                </div>
-              </div>
-              <div className="mt-2 text-[10px] md:text-xs text-indigo-100/60 font-medium uppercase tracking-wider">
-                {t('admin.netProfit')}
-              </div>
-            </div>
-          </Card>
-
           {/* Branch Profits */}
           <Card className="p-4 md:p-6 bg-gradient-to-br from-emerald-600 to-emerald-700 dark:from-emerald-800 dark:to-emerald-900 border-0 shadow-lg shadow-emerald-500/20 relative overflow-hidden group">
             <div className="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform">
@@ -291,39 +268,6 @@ export function AdminDashboard() {
               </div>
               <div className="mt-2 text-[10px] md:text-xs text-emerald-100/60 font-medium uppercase tracking-wider">
                 {t('admin.totalBranches')}
-              </div>
-            </div>
-          </Card>
-
-          {/* Debts Card */}
-          <Card
-            className="p-4 md:p-6 bg-gradient-to-br from-rose-600 to-rose-700 dark:from-rose-800 dark:to-rose-900 border-0 shadow-lg shadow-rose-500/20 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 relative overflow-hidden group"
-            onClick={() => navigate("/admin/debts")}
-          >
-            <div className="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform text-white">
-              <AlertCircle className="h-24 w-24" />
-            </div>
-            <div className="relative z-10 flex flex-col h-full justify-between">
-              <div>
-                <div className="flex items-center space-x-2 mb-2">
-                  <AlertCircle className="h-4 w-4 md:h-5 md:w-5 text-rose-100" />
-                  <span className="text-xs md:text-sm font-medium text-rose-100/80">
-                    {t('nav.debts')}
-                  </span>
-                </div>
-                <div className="text-xl md:text-3xl font-bold text-white tracking-tight">
-                  {formatCurrency(totalDebtAmount, "UZS")}
-                </div>
-              </div>
-              <div className="mt-2 flex items-center justify-between">
-                <div className="text-[10px] md:text-xs text-rose-100/60 font-medium uppercase tracking-wider">
-                  {t('messages.debtorsCount').replace('{count}', pendingDebts.length.toString())}
-                </div>
-                {overdueDebts.length > 0 && (
-                  <Badge className="bg-white/20 text-white text-[9px] md:text-[10px] border-0 leading-tight">
-                    {t('messages.overdueCount').replace('{count}', overdueDebts.length.toString())}
-                  </Badge>
-                )}
               </div>
             </div>
           </Card>

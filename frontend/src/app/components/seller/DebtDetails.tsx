@@ -258,6 +258,11 @@ export function DebtDetails() {
                   />
                   <div className="flex-1">
                     <p className="font-medium dark:text-white">
+                      {item.collection && (
+                        <span className="text-muted-foreground font-normal text-xs mr-1">
+                          {item.collection} -
+                        </span>
+                      )}
                       {item.productName}
                     </p>
                     {item.width && item.height && item.area && (

@@ -338,7 +338,14 @@ export function BranchProfitDetail() {
                 <Card key={sale.id} className="p-4 border border-border bg-card">
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <div className="font-medium text-card-foreground">{sale.productName}</div>
+                      <div className="font-medium text-card-foreground">
+                        {sale.productName}
+                        {saleProduct?.collection && (
+                          <span className="text-muted-foreground ml-1.5 font-normal text-xs">
+                            ({saleProduct.collection})
+                          </span>
+                        )}
+                      </div>
                       <div className="text-[10px] text-muted-foreground mt-1 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full w-fit">
                         {new Date(sale.date).toLocaleString("uz-UZ")}
                       </div>

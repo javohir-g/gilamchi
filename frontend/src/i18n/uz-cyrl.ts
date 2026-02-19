@@ -276,7 +276,7 @@ export const uzCyrl = {
         stockValue: "Омбор (харид)",
         potentialProfit: "Кутилаётган фойда",
         soldStockCost: "Сотилган (таннарх)",
-        actualProfit: "Ҳақиқий фойда",
+        actualProfit: "Менинг фойдам",
     },
 
     debt: {

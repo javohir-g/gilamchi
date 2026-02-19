@@ -39,10 +39,11 @@ export function CreateDebt() {
     // Auto-generate order details from basket items
     return basketItems
       .map((item) => {
+        const productInfo = `${item.collection ? `${item.collection} - ` : ""}${item.productName}`;
         if (item.width && item.height && item.area) {
-          return `${item.productName} (${item.width}×${item.height})`;
+          return `${productInfo} [${item.width}×${item.height}]`;
         }
-        return `${item.productName} (${item.quantity}x)`;
+        return `${productInfo} (${item.quantity}x)`;
       })
       .join(", ");
   });
@@ -318,6 +319,7 @@ export function CreateDebt() {
                 />
                 <div className="flex-1">
                   <p className="font-medium dark:text-white">
+                    {item.collection ? `${item.collection} - ` : ""}
                     {item.productName}
                   </p>
                   {item.width && item.height && item.area && (

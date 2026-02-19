@@ -28,7 +28,7 @@ import { DateRange } from "react-day-picker";
 type DateFilter = "today" | "week" | "month" | "custom";
 
 export function Hisob() {
-  const { sales, products, branches, fetchData } = useApp();
+  const { sales, products, branches, fetchData, debts } = useApp();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [dateFilter, setDateFilter] =
@@ -98,21 +98,116 @@ export function Hisob() {
 
   const filteredSales = getFilteredSales();
 
-  // Calculate director's profit for each sale
-  // Director's profit = Total Sale Amount - Total Cost
-  const calculateDirectorProfit = (sale: (typeof sales)[0]) => {
-    // Each sale record already has admin_profit calculated in the backend
-    // adminProfit = (Standard Price - Buy Price) * Quantity
-    return sale.adminProfit || 0;
+  // Conservative Profit Calculation Logic (Cost-First Recognition)
+  // Logic: Profit is only recognized AFTER the total purchase cost of the items in an order is covered by payments.
+
+  // 1. Group all data by Order
+  const getConservativeProfit = (targetSales = sales, targetDebts = debts) => {
+    // We need ALL sales and ALL debts to calculate cumulative flow, even if filtering for a small period
+    const orderData = new Map<string, {
+      totalCost: number;
+      potentialProfit: number;
+      payments: { amount: number; date: Date }[];
+    }>();
+
+    // Group Sales by Order to find Cost and Potential Profit
+    targetSales.forEach(sale => {
+      const orderId = sale.orderId || sale.id;
+      if (!orderData.has(orderId)) {
+        orderData.set(orderId, { totalCost: 0, potentialProfit: 0, payments: [] });
+      }
+      const data = orderData.get(orderId)!;
+
+      const product = products.find(p => p.id === sale.productId);
+      if (product) {
+        let cost = 0;
+        if (sale.type === "meter" || product.type === "meter") {
+          cost = (product.buyPrice || 0) * (sale.length || sale.quantity || 0);
+        } else {
+          cost = (product.buyPrice || 0) * (sale.quantity || 1);
+        }
+        data.totalCost += cost;
+        data.potentialProfit += sale.adminProfit || 0;
+      }
+
+      // If it's NOT a Nasiya sale, the payment happens immediately
+      if (!sale.isNasiya) {
+        data.payments.push({ amount: sale.amount, date: new Date(sale.date) });
+      }
+    });
+
+    // Add Debt Initial Payments and Payment History
+    targetDebts.forEach(debt => {
+      const orderId = debt.orderId;
+      if (!orderId || !orderData.has(orderId)) return;
+      const data = orderData.get(orderId)!;
+
+      // Initial Payment
+      if (debt.initialPayment > 0) {
+        data.payments.push({ amount: debt.initialPayment, date: new Date(debt.date) });
+      }
+
+      // Subsequent Payments
+      debt.paymentHistory?.forEach(p => {
+        data.payments.push({ amount: p.amount, date: new Date(p.date) });
+      });
+    });
+
+    // Calculate profit recognized within the filtered range
+    let totalRecognizedProfit = 0;
+
+    // Filter boundaries
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let filterStart = new Date(0); // Default to beginning of time
+    let filterEnd = new Date(today.getTime() + 86400000); // Default to end of today
+
+    if (dateFilter === "week") {
+      const day = today.getDay();
+      const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+      filterStart = new Date(today);
+      filterStart.setDate(diff);
+      filterStart.setHours(0, 0, 0, 0);
+    } else if (dateFilter === "month") {
+      filterStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    } else if (dateFilter === "custom" && dateRange?.from) {
+      filterStart = new Date(dateRange.from);
+      filterStart.setHours(0, 0, 0, 0);
+      filterEnd = dateRange.to ? new Date(dateRange.to) : new Date(filterStart);
+      filterEnd.setHours(23, 59, 59, 999);
+    } else if (dateFilter === "today") {
+      filterStart = today;
+    }
+
+    orderData.forEach(data => {
+      // Sort payments by date to calculate cumulative flow
+      const sortedPayments = [...data.payments].sort((a, b) => a.date.getTime() - b.date.getTime());
+
+      let cumulativePaidPrior = 0;
+      let cumulativePaidAfter = 0;
+
+      sortedPayments.forEach(p => {
+        if (p.date < filterStart) {
+          cumulativePaidPrior += p.amount;
+        }
+        if (p.date <= filterEnd) {
+          cumulativePaidAfter += p.amount;
+        }
+      });
+
+      // Recognized Profit = max(0, totalPaid - totalCost), capped at potentialProfit
+      const recognizedPrior = Math.min(data.potentialProfit, Math.max(0, cumulativePaidPrior - data.totalCost));
+      const recognizedAfter = Math.min(data.potentialProfit, Math.max(0, cumulativePaidAfter - data.totalCost));
+
+      totalRecognizedProfit += (recognizedAfter - recognizedPrior);
+    });
+
+    return totalRecognizedProfit;
   };
 
-  // Total director's profit from all sales
-  const totalDirectorProfit = filteredSales.reduce(
-    (sum, sale) => sum + calculateDirectorProfit(sale),
-    0,
-  );
+  const totalDirectorProfit = getConservativeProfit();
 
-  // 1. Total Stock Value (Buy Price)
+  // 1. Total Stock Value (Buy Price) - Current value in warehouse
   const totalStockValue = products.reduce((sum, p) => {
     if (p.type === "meter") {
       return sum + (p.buyPrice || 0) * (p.remainingLength || 0);
@@ -151,37 +246,31 @@ export function Hisob() {
     return sum + cost;
   }, 0);
 
-  // Profit breakdown by branch
+  // Profit breakdown by branch (using the same conservative logic)
   const branchProfits = branches.map((branch) => {
-    const branchSales = filteredSales.filter(
-      (s) => s.branchId === branch.id,
-    );
-    const profit = branchSales.reduce(
-      (sum, sale) => sum + calculateDirectorProfit(sale),
-      0,
-    );
-    const adminProfit = branchSales.reduce(
-      (sum, sale) => sum + (sale.adminProfit || 0),
-      0,
-    );
-    const sellerProfit = branchSales.reduce(
-      (sum, sale) => sum + (sale.sellerProfit || 0),
-      0,
-    );
+    const branchSales = sales.filter(s => s.branchId === branch.id);
+    const branchDebts = debts.filter(d => d.branchId === branch.id);
+
+    // We pass filtered sets to calculate branch-specific recognized profit
+    const profit = getConservativeProfit(branchSales, branchDebts);
+
+    // For specific UI cards, we still count sales in period
+    const salesInPeriod = filteredSales.filter(s => s.branchId === branch.id);
+
     return {
       branchId: branch.id,
       branchName: branch.name,
       profit,
-      adminProfit,
-      sellerProfit,
-      salesCount: branchSales.length,
+      adminProfit: profit, // In conservative mode, "Mening foydam" IS the recognized profit
+      sellerProfit: salesInPeriod.reduce((sum, s) => sum + (s.sellerProfit || 0), 0),
+      salesCount: salesInPeriod.length,
     };
   });
 
   // Data for pie chart
   const pieData = branchProfits.map((bp, index) => ({
     name: bp.branchName,
-    value: bp.profit,
+    value: Math.max(0, bp.profit),
     color: ["#3b82f6", "#22c55e", "#f59e0b"][index % 3], // blue, green, orange
   }));
 

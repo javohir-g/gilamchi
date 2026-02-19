@@ -428,7 +428,16 @@ export function BranchDetail() {
                       <div>
                         <div className="font-bold dark:text-white flex items-center gap-2">
                           {item.entryType === "sale"
-                            ? (item as any).productName
+                            ? (
+                              <>
+                                {(item as any).productName}
+                                {products.find(p => p.id === (item as any).productId)?.collection && (
+                                  <span className="text-muted-foreground font-normal text-xs">
+                                    ({products.find(p => p.id === (item as any).productId)?.collection})
+                                  </span>
+                                )}
+                              </>
+                            )
                             : item.entryType === "payment"
                               ? `${(item as any).debtorName} (${t('debt.payment')})`
                               : (item as any).description}

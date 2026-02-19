@@ -272,7 +272,7 @@ export const uzLatn = {
         stockValue: "Ombor (xarid)",
         potentialProfit: "Kutilayotgan foyda",
         soldStockCost: "Sotilgan (tannarx)",
-        actualProfit: "Haqiqiy foyda",
+        actualProfit: "Mening foydam",
     },
 
     debt: {

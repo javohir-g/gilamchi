@@ -58,7 +58,7 @@ def read_products(
     limit: int = 10000, 
     branch_id: Optional[str] = None,
     category: Optional[str] = None,
-    collection: Optional[str] = None,
+    collection: Optional[str] = None, 
     db: Session = Depends(get_db), 
     current_user = Depends(get_current_user)
 ):
