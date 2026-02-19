@@ -12,7 +12,7 @@ import {
   X,
   ChevronRight,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   PieChart,
@@ -28,12 +28,19 @@ import { DateRange } from "react-day-picker";
 type DateFilter = "today" | "week" | "month" | "custom";
 
 export function Hisob() {
-  const { sales, products, branches } = useApp();
+  const { sales, products, branches, fetchData } = useApp();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [dateFilter, setDateFilter] =
     useState<DateFilter>("today");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+
+  // Periodic refresh for live updates
+  useEffect(() => {
+    fetchData(); // Fetch on mount
+    const interval = setInterval(fetchData, 60000); // Refresh every minute
+    return () => clearInterval(interval);
+  }, [fetchData]);
 
   // Filter sales by date
   const getFilteredSales = () => {
@@ -94,23 +101,9 @@ export function Hisob() {
   // Calculate director's profit for each sale
   // Director's profit = Total Sale Amount - Total Cost
   const calculateDirectorProfit = (sale: (typeof sales)[0]) => {
-    const product = products.find(
-      (p) => p.id === sale.productId,
-    );
-    if (!product) return sale.profit || 0; // Fallback to extra profit if product not found
-
-    let cost = 0;
-    if (sale.type === "meter" || product.type === "meter") {
-      // For meter products, linear length is the basis for cost (buyPrice is per meter)
-      const length = sale.length || sale.quantity || 0;
-      cost = (product.buyPrice || 0) * length;
-    } else {
-      // For unit products (unit quantity)
-      cost = (product.buyPrice || 0) * (sale.quantity || 1);
-    }
-
-    // Profit = (What customer paid) - (What we paid for it)
-    return sale.amount - cost;
+    // Each sale record already has admin_profit calculated in the backend
+    // adminProfit = (Standard Price - Buy Price) * Quantity
+    return sale.adminProfit || 0;
   };
 
   // Total director's profit from all sales
@@ -168,11 +161,11 @@ export function Hisob() {
       0,
     );
     const adminProfit = branchSales.reduce(
-      (sum, sale) => sum + (sale.admin_profit || 0),
+      (sum, sale) => sum + (sale.adminProfit || 0),
       0,
     );
     const sellerProfit = branchSales.reduce(
-      (sum, sale) => sum + (sale.seller_profit || 0),
+      (sum, sale) => sum + (sale.sellerProfit || 0),
       0,
     );
     return {
@@ -192,7 +185,15 @@ export function Hisob() {
     color: ["#3b82f6", "#22c55e", "#f59e0b"][index % 3], // blue, green, orange
   }));
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: "USD" | "UZS" = "USD") => {
+    if (currency === "UZS") {
+      return new Intl.NumberFormat("uz-UZ", {
+        style: "currency",
+        currency: "UZS",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(Math.round(amount));
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",

@@ -55,7 +55,7 @@ def compute_clip_embedding_background(product_id: str, image_data: bytes):
 @router.get("/", response_model=List[ProductResponse])
 def read_products(
     skip: int = 0, 
-    limit: int = 100, 
+    limit: int = 10000, 
     branch_id: Optional[str] = None,
     category: Optional[str] = None,
     collection: Optional[str] = None,

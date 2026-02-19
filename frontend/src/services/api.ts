@@ -99,7 +99,7 @@ const fromProduct = (data: any): any => ({
   pricePerSquareMeter: data.price_per_sqm,
   buyPricePerSquareMeter: data.buy_price_per_sqm,
   availableSizes: data.available_sizes,
-  similarity_percentage: data.similarity_percentage
+  similarityPercentage: data.similarity_percentage
 });
 
 const toProduct = (data: any): any => ({
@@ -143,8 +143,8 @@ const fromSale = (data: any): any => ({
   orderId: data.order_id,
   type: data.product?.type || "unit", // Nested info
   profit: data.profit,
-  admin_profit: data.admin_profit,
-  seller_profit: data.seller_profit,
+  adminProfit: data.admin_profit,
+  sellerProfit: data.seller_profit,
   width: data.width,
   length: data.length,
   area: data.area,
@@ -171,9 +171,9 @@ const fromCollection = (data: any): any => ({
   id: data.id,
   name: data.name,
   icon: data.icon,
-  price_per_sqm: data.price_per_sqm,
-  buy_price_per_sqm: data.buy_price_per_sqm,
-  price_usd_per_sqm: data.price_usd_per_sqm,
+  pricePerSqm: data.price_per_sqm,
+  buyPricePerSqm: data.buy_price_per_sqm,
+  priceUsdPerSqm: data.price_usd_per_sqm,
   branchId: data.branch_id,
 });
 
@@ -187,9 +187,9 @@ const fromStaff = (data: any): any => ({
 const toCollection = (data: any): any => ({
   name: data.name,
   icon: data.icon,
-  price_per_sqm: data.price_per_sqm,
-  buy_price_per_sqm: data.buy_price_per_sqm,
-  price_usd_per_sqm: data.price_usd_per_sqm,
+  price_per_sqm: data.pricePerSqm,
+  buy_price_per_sqm: data.buyPricePerSqm,
+  price_usd_per_sqm: data.priceUsdPerSqm,
   branch_id: data.branchId,
 });
 
@@ -199,7 +199,7 @@ const fromDebt = (data: any): any => ({
   phoneNumber: data.phone_number,
   orderDetails: data.order_details,
   totalAmount: data.total_amount,
-  initial_payment: data.initial_payment,
+  initialPayment: data.initial_payment,
   paidAmount: data.paid_amount,
   remainingAmount: data.remaining_amount,
   paymentDeadline: data.payment_deadline,
@@ -223,7 +223,7 @@ const toDebt = (data: any): any => ({
   order_details: data.orderDetails,
   total_amount: data.totalAmount,
   paid_amount: data.paidAmount,
-  initial_payment: data.initial_payment,
+  initial_payment: data.initialPayment,
   payment_deadline: data.paymentDeadline, // expected ISO string
   branch_id: data.branchId,
   seller_id: data.sellerId,
@@ -449,8 +449,9 @@ export const settingsService = {
     const response = await api.get('settings/');
     return response.data;
   },
-  update: async (data: { exchange_rate: number }) => {
-    const response = await api.patch('settings/', data);
+  update: async (data: { exchangeRate: number }) => {
+    const payload = { exchange_rate: data.exchangeRate };
+    const response = await api.patch('settings/', payload);
     return response.data;
   }
 };
@@ -467,8 +468,14 @@ export const telegramService = {
 };
 
 export const invitationService = {
-  generateLink: async (data: { branch_id?: string; role?: string; expires_in_hours?: number; username_hint?: string }) => {
-    const response = await api.post('staff/generate-link', data);
+  generateLink: async (data: { branchId?: string; role?: string; expires_in_hours?: number; username_hint?: string }) => {
+    const payload = {
+      branch_id: data.branchId,
+      role: data.role,
+      expires_in_hours: data.expires_in_hours,
+      username_hint: data.username_hint
+    };
+    const response = await api.post('staff/generate-link', payload);
     return response.data;
   }
 };

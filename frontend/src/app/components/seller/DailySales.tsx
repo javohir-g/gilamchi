@@ -97,8 +97,8 @@ export function DailySales() {
     0,
   );
 
-  const totalBranchProfit = todaySales.reduce(
-    (sum, sale) => sum + (sale.seller_profit || 0),
+  const totalSellerProfit = todaySales.reduce(
+    (sum, s) => sum + (s.sellerProfit || 0),
     0,
   );
 
@@ -182,7 +182,7 @@ export function DailySales() {
             </div>
           </Card>
 
-          {totalBranchProfit > 0 && (
+          {totalSellerProfit > 0 && (
             <Card className="border-2 border-emerald-200 dark:border-emerald-800 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950 dark:to-emerald-900 p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -190,7 +190,7 @@ export function DailySales() {
                     {t('common.profit')}
                   </div>
                   <div className="text-3xl text-emerald-900 dark:text-emerald-100">
-                    {formatCurrency(totalBranchProfit * exchangeRate)}
+                    {formatCurrency(totalSellerProfit * exchangeRate)}
                   </div>
                 </div>
                 <div className="rounded-full bg-emerald-200 dark:bg-emerald-800 p-4">
@@ -299,7 +299,7 @@ export function DailySales() {
                           </div>
                           {(() => {
                             const branchProfit = order.sales.reduce(
-                              (sum, sale) => sum + (sale.seller_profit || 0),
+                              (sum, sale) => sum + (sale.sellerProfit || 0),
                               0,
                             );
                             if (branchProfit > 0) {
@@ -333,14 +333,28 @@ export function DailySales() {
                                     ? `${sale.quantity} ${t('common.unit')}`
                                     : `${(sale.area || sale.quantity).toFixed(1)} m²`}
                                 </div>
+                                <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-border/50">
+                                  <div className="space-y-1">
+                                    <div className="text-[10px] text-muted-foreground uppercase font-semibold">Director Profit</div>
+                                    <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                                      {formatCurrency(sale.adminProfit || 0)}
+                                    </div>
+                                  </div>
+                                  <div className="space-y-1 text-right">
+                                    <div className="text-[10px] text-muted-foreground uppercase font-semibold">Branch Profit</div>
+                                    <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                                      {formatCurrency(sale.sellerProfit || 0)}
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
                               <div className="text-right">
                                 <div className="text-blue-600 dark:text-blue-400">
                                   {formatCurrency(sale.amount * exchangeRate)}
                                 </div>
-                                {sale.seller_profit && sale.seller_profit > 0 && (
+                                {sale.sellerProfit && sale.sellerProfit > 0 && (
                                   <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                                    +{formatCurrency(sale.seller_profit * exchangeRate)}
+                                    +{formatCurrency(sale.sellerProfit * exchangeRate)}
                                   </div>
                                 )}
                               </div>
@@ -358,6 +372,6 @@ export function DailySales() {
       </div>
 
       <BottomNav />
-    </div>
+    </div >
   );
 }

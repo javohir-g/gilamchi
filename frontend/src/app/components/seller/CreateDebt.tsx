@@ -134,9 +134,10 @@ export function CreateDebt() {
         orderDetails: orderDetails.trim(),
         totalAmount: totalAmount * exchangeRate, // Convert to UZS
         paidAmount: paidAmount * exchangeRate, // Convert to UZS
-        initial_payment: paidAmount * exchangeRate, // Convert to UZS
+        initialPayment: paidAmount * exchangeRate, // Convert to UZS
         remainingAmount: remainingUZS, // Already in UZS
         paymentDeadline: new Date(paymentDeadline).toISOString(),
+        exchangeRate: exchangeRate,
         branchId: user.branchId || "",
         sellerId: user.id,
         sellerName: user.name,

@@ -88,20 +88,7 @@ export function BranchProfitDetail() {
   // Calculate director's profit for each sale
   // Director's profit = Total Sale Amount - Total Cost
   const calculateDirectorProfit = (sale: typeof sales[0]) => {
-    const product = products.find((p) => p.id === sale.productId);
-    if (!product) return sale.profit || 0;
-
-    let cost = 0;
-    if (sale.type === "meter" || product.type === "meter") {
-      // For meter products, linear length is the basis for cost (buyPrice is per meter)
-      const length = sale.length || sale.quantity || 0;
-      cost = (product.buyPrice || 0) * length;
-    } else {
-      // For unit products (unit quantity)
-      cost = (product.buyPrice || 0) * (sale.quantity || 1);
-    }
-
-    return sale.amount - cost;
+    return sale.adminProfit || 0;
   };
 
   // Group sales by product
@@ -113,6 +100,7 @@ export function BranchProfitDetail() {
       totalArea?: number;
       totalAmount: number;
       totalProfit: number;
+      totalAdminProfit: number;
       totalSellerProfit: number;
       salesCount: number;
     }
@@ -123,7 +111,7 @@ export function BranchProfitDetail() {
     if (!product) return;
 
     const profit = calculateDirectorProfit(sale);
-    const sellerProfit = sale.seller_profit || 0;
+    const sellerProfit = sale.sellerProfit || 0;
     const existing = productProfitMap.get(sale.productId);
 
     if (existing) {
@@ -131,6 +119,7 @@ export function BranchProfitDetail() {
       existing.totalArea = (existing.totalArea || 0) + (sale.area || 0);
       existing.totalAmount += sale.amount;
       existing.totalProfit += profit;
+      existing.totalAdminProfit += (sale.adminProfit || 0);
       existing.totalSellerProfit += sellerProfit;
       existing.salesCount += 1;
     } else {
@@ -140,6 +129,7 @@ export function BranchProfitDetail() {
         totalArea: sale.area,
         totalAmount: sale.amount,
         totalProfit: profit,
+        totalAdminProfit: (sale.adminProfit || 0),
         totalSellerProfit: sellerProfit,
         salesCount: 1,
       });
@@ -156,16 +146,64 @@ export function BranchProfitDetail() {
   );
 
   const totalAdminProfit = filteredSales.reduce(
-    (sum, sale) => sum + (sale.admin_profit || 0),
+    (sum, sale) => sum + (sale.adminProfit || 0),
     0
   );
 
   const totalSellerProfit = filteredSales.reduce(
-    (sum, sale) => sum + (sale.seller_profit || 0),
+    (sum, sale) => sum + (sale.sellerProfit || 0),
     0
   );
 
-  const formatCurrency = (amount: number) => {
+  // 1. Total Stock Value for this branch (Buy Price)
+  const branchProducts = products.filter(p => p.branchId === branchId);
+  const totalStockValue = branchProducts.reduce((sum, p) => {
+    if (p.type === "meter") {
+      return sum + (p.buyPrice || 0) * (p.remainingLength || 0);
+    } else {
+      const qty = p.availableSizes
+        ? p.availableSizes.reduce((s: number, sz: any) => s + (sz.quantity || 0), 0)
+        : (p.quantity || 0);
+      return sum + (p.buyPrice || 0) * qty;
+    }
+  }, 0);
+
+  // 2. Total Potential Profit for this branch (Markup if all sold)
+  const totalPotentialProfit = branchProducts.reduce((sum, p) => {
+    if (p.type === "meter") {
+      const margin = (p.sellPricePerMeter || 0) - (p.buyPrice || 0);
+      return sum + margin * (p.remainingLength || 0);
+    } else {
+      const margin = (p.sellPrice || 0) - (p.buyPrice || 0);
+      const qty = p.availableSizes
+        ? p.availableSizes.reduce((s: number, sz: any) => s + (sz.quantity || 0), 0)
+        : (p.quantity || 0);
+      return sum + margin * qty;
+    }
+  }, 0);
+
+  // 3. Sold Stock Cost for this branch in selected period
+  const soldStockCost = filteredSales.reduce((sum, sale) => {
+    const product = products.find(p => p.id === sale.productId);
+    if (!product) return sum;
+    let cost = 0;
+    if (sale.type === "meter" || product.type === "meter") {
+      cost = (product.buyPrice || 0) * (sale.length || sale.quantity || 0);
+    } else {
+      cost = (product.buyPrice || 0) * (sale.quantity || 1);
+    }
+    return sum + cost;
+  }, 0);
+
+  const formatCurrency = (amount: number, currency: "USD" | "UZS" = "USD") => {
+    if (currency === "UZS") {
+      return new Intl.NumberFormat("uz-UZ", {
+        style: "currency",
+        currency: "UZS",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(Math.round(amount));
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -218,150 +256,75 @@ export function BranchProfitDetail() {
       </div>
 
       <div className="p-4 space-y-4">
-        {/* Total Profit Card */}
-        <div className="grid grid-cols-2 gap-4">
-          <Card className="p-6 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-700 dark:to-blue-800 border-0">
-            <div className="flex flex-col">
-              <div className="flex items-center space-x-2 mb-2">
-                <TrendingUp className="h-4 w-4 text-white" />
-                <span className="text-xs text-blue-100">{t('admin.myProfit')}</span>
+        {/* Financial Summary Grid (Same as Hisob.tsx) */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Card 1: Stock Value */}
+          <Card className="p-4 bg-gradient-to-br from-indigo-500 to-indigo-600 border-0 shadow-lg shadow-indigo-500/20 text-white">
+            <div className="flex flex-col space-y-1">
+              <span className="text-xs font-medium text-indigo-100 uppercase tracking-wider">
+                {t('admin.stockValue')}
+              </span>
+              <div className="text-xl md:text-2xl font-bold truncate">
+                {formatCurrency(totalStockValue)}
               </div>
-              <div className="text-xl font-bold text-white">
+            </div>
+          </Card>
+
+          {/* Card 3: Sold Stock Cost */}
+          <Card className="p-4 bg-indigo-50 dark:bg-indigo-950 border border-indigo-100 dark:border-indigo-900 shadow-sm">
+            <div className="flex flex-col space-y-1">
+              <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
+                {t('admin.soldStockCost')}
+              </span>
+              <div className="text-xl md:text-2xl font-bold dark:text-white truncate">
+                {formatCurrency(soldStockCost)}
+              </div>
+            </div>
+          </Card>
+
+          {/* Card 2: Potential Profit */}
+          <Card className="p-4 bg-gradient-to-br from-emerald-500 to-emerald-600 border-0 shadow-lg shadow-emerald-500/20 text-white">
+            <div className="flex flex-col space-y-1">
+              <span className="text-xs font-medium text-emerald-100 uppercase tracking-wider">
+                {t('admin.potentialProfit')}
+              </span>
+              <div className="text-xl md:text-2xl font-bold truncate">
+                {formatCurrency(totalPotentialProfit)}
+              </div>
+            </div>
+          </Card>
+
+          {/* Card 4: Actual Profit */}
+          <Card className="p-4 bg-emerald-50 dark:bg-emerald-950 border border-emerald-100 dark:border-emerald-900 shadow-sm">
+            <div className="flex flex-col space-y-1">
+              <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                {t('admin.actualProfit')}
+              </span>
+              <div className="text-xl md:text-2xl font-bold dark:text-white truncate">
                 {formatCurrency(totalAdminProfit)}
               </div>
             </div>
           </Card>
-          <Card className="p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 dark:from-emerald-700 dark:to-emerald-800 border-0">
-            <div className="flex flex-col">
-              <div className="flex items-center space-x-2 mb-2">
-                <DollarSign className="h-4 w-4 text-white" />
-                <span className="text-xs text-emerald-100">{t('admin.sellerProfits')}</span>
-              </div>
-              <div className="text-xl font-bold text-white">
-                {formatCurrency(totalSellerProfit)}
-              </div>
-            </div>
-          </Card>
         </div>
 
-        {/* Summary Card */}
+        {/* Info Card with details */}
         <Card className="p-4 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
           <div className="text-sm text-blue-900 dark:text-blue-100">
-            <p className="font-medium mb-2">{t('common.summary')}:</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="font-medium">{t('common.summary')}:</p>
+              <Badge variant="outline" className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800">
+                {t('admin.branchProfit')}: {formatCurrency(totalSellerProfit)}
+              </Badge>
+            </div>
             <ul className="space-y-1 text-xs text-blue-700 dark:text-blue-200">
               <li>• {t('messages.summaryProductsSold').replace('{count}', productProfits.length.toString())}</li>
               <li>• {t('messages.summarySalesCount').replace('{count}', filteredSales.length.toString())}</li>
-              <li>
-                • {t('messages.summaryProfitCalc').replace('{total}', formatCurrency(totalProfit)).replace('{admin}', formatCurrency(totalAdminProfit)).replace('{seller}', formatCurrency(totalSellerProfit))}
-              </li>
+              <li>• {t('messages.summaryProfitCalc').replace('{total}', formatCurrency(totalAdminProfit + totalSellerProfit)).replace('{admin}', formatCurrency(totalAdminProfit)).replace('{seller}', formatCurrency(totalSellerProfit))}</li>
             </ul>
           </div>
         </Card>
 
-        {/* Products Breakdown */}
-        <div>
-          <h3 className="text-sm text-muted-foreground mb-3 px-1 text-uppercase">
-            {t('admin.profitByProduct')}
-          </h3>
 
-          {productProfits.length === 0 ? (
-            <Card className="p-8 text-center">
-              <Package className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground">
-                {t('messages.noSalesPeriod')}
-              </p>
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {productProfits.map((pp) => {
-                const averageProfitPerUnit = pp.totalProfit / (pp.totalArea || pp.totalQuantity || 1);
-                const percentageOfTotal =
-                  totalProfit > 0
-                    ? ((pp.totalProfit / totalProfit) * 100).toFixed(1)
-                    : 0;
-
-                return (
-                  <Card
-                    key={pp.product.id}
-                    className="p-4 border border-border bg-card"
-                  >
-                    <div className="space-y-3">
-                      {/* Product Name & Total */}
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <Link
-                            to={`/seller/edit-product/${pp.product.id}`}
-                            className="font-medium text-card-foreground mb-1 hover:underline hover:text-blue-600 block w-fit"
-                          >
-                            {pp.product.name}
-                          </Link>
-                          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                            <Package className="h-3.5 w-3.5" />
-                            <span>
-                              {pp.product.type === "unit"
-                                ? `${pp.totalQuantity} ${t('common.unit')}`
-                                : `${(pp.totalArea || pp.totalQuantity).toFixed(1)} m²`
-                              } {t('common.sold')}
-                            </span>
-                            <span>•</span>
-                            <span>{pp.salesCount} {t('seller.orderCount').replace('{count}', pp.salesCount.toString())}</span>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-semibold text-card-foreground">
-                            {formatCurrency(pp.totalSellerProfit)}
-                          </div>
-                          <Badge
-                            variant="outline"
-                            className="text-[10px] mt-1 border-emerald-500 text-emerald-600 dark:text-emerald-400 bg-emerald-50/50"
-                          >
-                            {t('admin.branchProfit')}
-                          </Badge>
-                        </div>
-                      </div>
-
-                      {/* Profit Details */}
-                      <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border/50">
-                        <div className="space-y-1">
-                          <div className="text-xs text-muted-foreground">
-                            {t('seller.buyPrice')}
-                          </div>
-                          <div className="text-sm font-medium text-card-foreground">
-                            {formatCurrency(pp.product.buyPrice)}
-                          </div>
-                        </div>
-                        <div className="space-y-1 text-right">
-                          <div className="text-xs text-muted-foreground">
-                            {t('seller.price')}
-                          </div>
-                          <div className="text-sm font-medium text-card-foreground">
-                            {formatCurrency(pp.product.type === "unit" ? pp.product.sellPrice : (pp.product.sellPricePerMeter || 0))}
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="text-xs text-muted-foreground">
-                            {t('seller.soldPrice')} ({t('common.average')})
-                          </div>
-                          <div className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                            {formatCurrency(pp.totalAmount / (pp.totalArea || pp.totalQuantity || 1))}
-                          </div>
-                        </div>
-                        <div className="space-y-1 text-right">
-                          <div className="text-xs text-muted-foreground">
-                            {t('admin.averageProfit')}
-                          </div>
-                          <div className="text-sm font-medium text-green-600 dark:text-green-400">
-                            {formatCurrency(averageProfitPerUnit)}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </div>
 
         {/* Detailed Sales History */}
         <div>
@@ -369,37 +332,50 @@ export function BranchProfitDetail() {
             {t('seller.recentSales')}
           </h3>
           <div className="space-y-3">
-            {filteredSales.slice(0, 50).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((sale) => (
-              <Card key={sale.id} className="p-4 border border-border bg-card">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <div className="font-medium text-card-foreground">{sale.productName}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {new Date(sale.date).toLocaleString("uz-UZ")}
+            {filteredSales.slice(0, 50).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((sale) => {
+              const saleProduct = products.find(p => p.id === sale.productId);
+              return (
+                <Card key={sale.id} className="p-4 border border-border bg-card">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <div className="font-medium text-card-foreground">{sale.productName}</div>
+                      <div className="text-[10px] text-muted-foreground mt-1 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full w-fit">
+                        {new Date(sale.date).toLocaleString("uz-UZ")}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[10px] text-muted-foreground uppercase font-bold mb-0.5">
+                        {t('admin.actualProfit')}
+                      </div>
+                      <div className="font-black text-lg text-blue-600 dark:text-blue-400 leading-none">
+                        {formatCurrency(sale.adminProfit || 0)}
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="font-bold text-blue-600 dark:text-blue-400">
-                      {formatCurrency(sale.amount)}
+
+                  <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border/50">
+                    <div className="space-y-0.5">
+                      <div className="text-[9px] text-muted-foreground uppercase">{t('admin.stockValue')}</div>
+                      <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                        {formatCurrency(saleProduct?.buyPrice || 0)}
+                      </div>
                     </div>
-                    <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-600 border-emerald-100">
-                      +{formatCurrency(sale.seller_profit || 0)}
-                    </Badge>
+                    <div className="space-y-0.5 text-center">
+                      <div className="text-[9px] text-muted-foreground uppercase">{t('admin.branchProfit')}</div>
+                      <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-500">
+                        {formatCurrency(sale.sellerProfit || 0)}
+                      </div>
+                    </div>
+                    <div className="space-y-0.5 text-right">
+                      <div className="text-[9px] text-muted-foreground uppercase">{t('seller.soldPrice')}</div>
+                      <div className="text-xs font-bold text-card-foreground">
+                        {formatCurrency(sale.amount)}
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center space-x-4 text-xs">
-                  <span className="text-muted-foreground">
-                    {t('common.me')}: <span className="text-blue-600">{formatCurrency(sale.admin_profit || 0)}</span>
-                  </span>
-                  <span className="text-muted-foreground">
-                    {t('common.branch')}: <span className="text-emerald-600">{formatCurrency(sale.seller_profit || 0)}</span>
-                  </span>
-                  <span className="text-muted-foreground">
-                    {t('common.payment')}: <span className="font-medium uppercase">{sale.paymentType === 'cash' ? t('common.cash') : sale.paymentType === 'card' ? t('common.card') : t('common.transfer')}</span>
-                  </span>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </div>
         </div>
       </div>

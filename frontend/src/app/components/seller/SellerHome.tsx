@@ -127,7 +127,7 @@ export function SellerHome() {
     debt.paymentHistory?.forEach(payment => {
       // Ensure we only show payments recorded by this seller/branch today if needed
       const isOurBranch = isAdminViewingAsSeller
-        ? String(debt.branch_id).toLowerCase() === String(user?.branchId).toLowerCase()
+        ? String(debt.branchId).toLowerCase() === String(user?.branchId).toLowerCase()
         : true;
 
       if (isOurBranch && isToday(payment.date)) {
@@ -233,7 +233,7 @@ export function SellerHome() {
         {/* Branch Profit Card */}
         {(() => {
           const totalBranchProfit = todaySales.reduce(
-            (sum, sale) => sum + (sale.seller_profit || 0),
+            (sum, sale) => sum + (sale.sellerProfit || 0),
             0,
           );
           if (totalBranchProfit <= 0) return null;
@@ -401,7 +401,7 @@ export function SellerHome() {
                           </div>
                           {(() => {
                             const branchProfit = order.sales.reduce(
-                              (sum: number, sale: any) => sum + (sale.seller_profit || 0),
+                              (sum: number, sale: any) => sum + (sale.sellerProfit || 0),
                               0,
                             );
                             if (branchProfit !== 0) {
@@ -449,15 +449,15 @@ export function SellerHome() {
                                 <div className="text-foreground font-bold">
                                   {formatCurrency(sale.amount * exchangeRate)}
                                 </div>
-                                {sale.seller_profit && sale.seller_profit !== 0 && (
+                                {sale.sellerProfit && sale.sellerProfit !== 0 && (
                                   <div
                                     className="text-xs font-semibold mt-0.5"
                                     style={{
-                                      color: sale.seller_profit > 0 ? "#22c55e" : "#ef4444",
+                                      color: sale.sellerProfit > 0 ? "#22c55e" : "#ef4444",
                                     }}
                                   >
-                                    {sale.seller_profit > 0 ? "+" : ""}
-                                    {formatCurrency(sale.seller_profit * exchangeRate)}
+                                    {sale.sellerProfit > 0 ? "+" : ""}
+                                    {formatCurrency(sale.sellerProfit * exchangeRate)}
                                   </div>
                                 )}
                               </div>

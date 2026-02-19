@@ -16,7 +16,7 @@ import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
-import { useApp } from "../../context/AppContext";
+import { useApp, Sale } from "../../context/AppContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { BottomNav } from "../shared/BottomNav";
 import { DatePickerWithRange } from "../ui/date-range-picker";
@@ -88,13 +88,13 @@ export function AdminDashboard() {
     (sum, sale) => sum + (sale.profit || 0),
     0,
   );
-  const totalAdminProfit = filteredSales.reduce(
-    (sum, sale) => sum + (sale.admin_profit || 0),
-    0,
+  const totalAdminProfit = (sales || []).reduce(
+    (acc: number, sale: Sale) => acc + (sale.adminProfit || 0),
+    0
   );
-  const totalSellerProfit = filteredSales.reduce(
-    (sum, sale) => sum + (sale.seller_profit || 0),
-    0,
+  const totalSellerProfit = (sales || []).reduce(
+    (acc: number, sale: Sale) => acc + (sale.sellerProfit || 0),
+    0
   );
   const cashSales = filteredSales
     .filter((s) => s.paymentType === "cash")
@@ -123,11 +123,11 @@ export function AdminDashboard() {
       .filter((s) => s.paymentType === "cash")
       .reduce((sum, sale) => sum + sale.amount, 0);
     const branchProfit = branchSales.reduce(
-      (sum, sale) => sum + (sale.seller_profit || 0),
+      (sum, sale) => sum + (sale.sellerProfit || 0),
       0,
     );
     const branchAdminProfit = branchSales.reduce(
-      (sum, sale) => sum + (sale.admin_profit || 0),
+      (sum, sale) => sum + (sale.adminProfit || 0),
       0,
     );
 
@@ -312,7 +312,7 @@ export function AdminDashboard() {
                   </span>
                 </div>
                 <div className="text-xl md:text-3xl font-bold text-white tracking-tight">
-                  {formatCurrency(totalDebtAmount * exchangeRate, "UZS")}
+                  {formatCurrency(totalDebtAmount, "UZS")}
                 </div>
               </div>
               <div className="mt-2 flex items-center justify-between">

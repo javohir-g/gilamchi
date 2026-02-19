@@ -425,7 +425,7 @@ export function SellProduct() {
                       )}
                       {(() => {
                         const col = collections.find(c => c.name === product.collection);
-                        const rate = col?.price_per_sqm || col?.price_usd_per_sqm;
+                        const rate = col?.pricePerSqm || col?.priceUsdPerSqm;
                         if (rate && (product.category === "Gilamlar" || product.category === "Metrajlar")) {
                           return (
                             <div className="text-xs font-semibold text-green-600 dark:text-green-400 pt-1 border-t border-border/50 mt-2">
@@ -608,9 +608,9 @@ export function SellProduct() {
                           }
                         />
                         {/* Similarity Badge - Restored */}
-                        {product.similarity_percentage !== undefined && (
+                        {product.similarityPercentage !== undefined && (
                           <div className="absolute -top-2 -right-2 bg-gradient-to-r from-green-50 to-emerald-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-                            {Math.round(product.similarity_percentage)}%
+                            {Math.round(product.similarityPercentage)}%
                           </div>
                         )}
                       </div>
@@ -639,10 +639,10 @@ export function SellProduct() {
                           )}
 
                           {/* Similarity Info */}
-                          {product.similarity_percentage !== undefined && (
+                          {product.similarityPercentage !== undefined && (
                             <div className="flex items-center gap-2 text-muted-foreground">
                               <span className="text-green-600 dark:text-green-400 font-medium">
-                                ✓ {t('seller.similarity').replace('{percent}', Math.round(product.similarity_percentage).toString())}
+                                ✓ {t('seller.similarity').replace('{percent}', Math.round(product.similarityPercentage).toString())}
                               </span>
                             </div>
                           )}
@@ -664,7 +664,7 @@ export function SellProduct() {
 
                           {(() => {
                             const col = collections.find(c => c.name === product.collection);
-                            const rate = col?.price_per_sqm || col?.price_usd_per_sqm;
+                            const rate = col?.pricePerSqm || col?.priceUsdPerSqm;
                             if (rate && (product.category === "Gilamlar" || product.category === "Metrajlar")) {
                               return (
                                 <div className="text-[10px] font-semibold text-green-600 dark:text-green-400 pt-1 border-t border-border/50 mt-1">

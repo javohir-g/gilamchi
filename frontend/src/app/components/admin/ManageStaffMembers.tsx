@@ -57,7 +57,7 @@ export function ManageStaffMembers() {
         try {
             setIsGenerating(true);
             const data = await invitationService.generateLink({
-                branch_id: formData.branchId,
+                branchId: formData.branchId,
                 role: "seller",
                 username_hint: formData.name || undefined // Send name as hint
             });

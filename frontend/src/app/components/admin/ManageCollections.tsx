@@ -72,18 +72,13 @@ export function ManageCollections() {
     return products.filter((p) => p.collection === collectionName && (user?.role === 'admin' ? p.branchId === selectedBranchId : true)).length;
   };
 
-  // Use collections from context but filter by branch
-  // Admin can select branch
   const [selectedBranchId, setSelectedBranchId] = useState<string>(user?.branchId || "");
 
-  // Update selectedBranchId when branches load if not set
   useEffect(() => {
     if (!selectedBranchId && branches.length > 0) {
-      // Sort branches to ensure consisten order if needed, or just take first
-      // Assuming branches are: Yangi Bozor, Hunarmandlar, Naymancha
       setSelectedBranchId(branches[0].id);
     }
-  }, [branches, selectedBranchId, setSelectedBranchId]);
+  }, [branches, selectedBranchId]);
 
   const [localCollections, setLocalCollections] = useState<any[]>([]);
 
@@ -96,11 +91,6 @@ export function ManageCollections() {
   }, [selectedBranchId, ctxCollections, user, fetchCollectionsForBranch]);
 
   const collections = user?.role === 'admin' ? localCollections : ctxCollections;
-
-  // ... helper functions
-  const handleBranchChange = (newBranchId: string) => {
-    setSelectedBranchId(newBranchId);
-  };
 
   const handleAddCollection = async () => {
     if (!newCollectionName.trim()) {
@@ -117,8 +107,8 @@ export function ManageCollections() {
     try {
       await addCollection({
         name: newCollectionName,
-        price_per_sqm: collectionPrice ? parseFloat(collectionPrice) : undefined,
-        buy_price_per_sqm: collectionBuyPrice ? parseFloat(collectionBuyPrice) : undefined,
+        pricePerSqm: collectionPrice ? parseFloat(collectionPrice) : undefined,
+        buyPricePerSqm: collectionBuyPrice ? parseFloat(collectionBuyPrice) : undefined,
         branchId: user?.role === 'admin' ? addBranchId : user?.branchId
       });
 
@@ -145,8 +135,8 @@ export function ManageCollections() {
     try {
       await updateCollection(selectedCollectionId, {
         name: editCollectionName,
-        price_per_sqm: collectionPrice ? parseFloat(collectionPrice) : undefined,
-        buy_price_per_sqm: collectionBuyPrice ? parseFloat(collectionBuyPrice) : undefined,
+        pricePerSqm: collectionPrice ? parseFloat(collectionPrice) : undefined,
+        buyPricePerSqm: collectionBuyPrice ? parseFloat(collectionBuyPrice) : undefined,
         branchId: user?.role === 'admin' ? addBranchId : undefined
       });
 
@@ -180,12 +170,21 @@ export function ManageCollections() {
     }
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("uz-UZ", {
+      style: "currency",
+      currency: "UZS",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   const openEditDialog = (collection: any) => {
     setSelectedCollectionId(collection.id);
     setAddBranchId(collection.branchId || selectedBranchId);
     setEditCollectionName(collection.name);
-    setCollectionPrice(collection.price_per_sqm?.toString() || "");
-    setCollectionBuyPrice(collection.buy_price_per_sqm?.toString() || "");
+    setCollectionPrice(collection.pricePerSqm?.toString() || "");
+    setCollectionBuyPrice(collection.buyPricePerSqm?.toString() || "");
     setEditDialogOpen(true);
   };
 
@@ -263,28 +262,36 @@ export function ManageCollections() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3">
-            {collections.map((collection) => {
-              const count = getCollectionCount(collection.name);
+            {collections.map((col) => {
+              const count = getCollectionCount(col.name);
               return (
                 <Card
-                  key={collection.id}
+                  key={col.id}
                   className="border border-border bg-card shadow-sm"
                 >
                   <div className="p-4 flex items-center gap-4">
-                    <div className="text-4xl">{getCollectionIcon(collection.name)}</div>
+                    <div className="text-4xl">{getCollectionIcon(col.name)}</div>
                     <div className="flex-1">
                       <h3 className="text-lg font-medium text-card-foreground">
-                        {collection.name}
+                        {col.name}
                       </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {count} {t('nav.products')} • {collection.price_per_sqm || 0} $/m²
+                      <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                        <div>
+                          Sotish: <b>{formatCurrency(col.pricePerSqm || 0)}</b>
+                        </div>
+                        <div>
+                          Xarid: <b>{formatCurrency(col.buyPricePerSqm || 0)}</b>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        {count} {t('nav.products')}
                       </p>
                     </div>
                     <div className="flex gap-2">
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => openEditDialog(collection)}
+                        onClick={() => openEditDialog(col)}
                         className="h-9 w-9"
                       >
                         <Edit2 className="h-4 w-4" />
@@ -292,7 +299,7 @@ export function ManageCollections() {
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => openDeleteDialog(collection)}
+                        onClick={() => openDeleteDialog(col)}
                         className="h-9 w-9 text-red-600 hover:text-red-700 dark:text-red-400"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -347,27 +354,27 @@ export function ManageCollections() {
             )}
             <div>
               <Label htmlFor="collection-buy-price" className="mb-2 block">
-                {t('seller.buyPrice')} ($/m²)
+                Xarid narxi (so'm/m²)
               </Label>
               <Input
                 id="collection-buy-price"
                 type="number"
                 value={collectionBuyPrice}
                 onChange={(e) => setCollectionBuyPrice(e.target.value)}
-                placeholder={`${t('common.forExample')}: 10`}
+                placeholder={`${t('common.forExample')}: 50000`}
                 className="h-12"
               />
             </div>
             <div>
               <Label htmlFor="collection-price" className="mb-2 block">
-                {t('seller.price')} ($/m²)
+                Sotish narxi (so'm/m²)
               </Label>
               <Input
                 id="collection-price"
                 type="number"
                 value={collectionPrice}
                 onChange={(e) => setCollectionPrice(e.target.value)}
-                placeholder={`${t('common.forExample')}: 15`}
+                placeholder={`${t('common.forExample')}: 75000`}
                 className="h-12"
               />
             </div>
@@ -431,27 +438,25 @@ export function ManageCollections() {
             )}
             <div>
               <Label htmlFor="edit-collection-buy-price" className="mb-2 block">
-                Sotib olish narxi ($/m²)
+                Xarid narxi (so'm/m²)
               </Label>
               <Input
                 id="edit-collection-buy-price"
                 type="number"
                 value={collectionBuyPrice}
                 onChange={(e) => setCollectionBuyPrice(e.target.value)}
-                placeholder={`${t('common.forExample')}: 10`}
                 className="h-12"
               />
             </div>
             <div>
               <Label htmlFor="edit-collection-price" className="mb-2 block">
-                Sotish narxi ($/m²)
+                Sotish narxi (so'm/m²)
               </Label>
               <Input
                 id="edit-collection-price"
                 type="number"
                 value={collectionPrice}
                 onChange={(e) => setCollectionPrice(e.target.value)}
-                placeholder={`${t('common.forExample')}: 15`}
                 className="h-12"
               />
             </div>
@@ -504,6 +509,6 @@ export function ManageCollections() {
       </AlertDialog>
 
       <BottomNav />
-    </div >
+    </div>
   );
 }

@@ -9,6 +9,7 @@ import {
 import { Badge } from "../ui/badge";
 import { Package, DollarSign } from "lucide-react";
 import { Sale, Expense, StaffMember, useApp } from "../../context/AppContext";
+import { useLanguage } from "../../context/LanguageContext";
 
 type DrillDownItem = (Sale | Expense) & { type: "sale" | "expense" };
 
@@ -26,6 +27,7 @@ export function StatsDrillDownDialog({
     staffMembers = []
 }: StatsDrillDownDialogProps) {
     const { exchangeRate } = useApp();
+    const { t } = useLanguage();
 
     const formatCurrency = (amount: number, currency: "USD" | "UZS" = "USD") => {
         if (currency === "UZS") {
@@ -81,8 +83,8 @@ export function StatsDrillDownDialog({
                                         <div>
                                             <div className="font-bold dark:text-white text-sm">
                                                 {item.type === "sale"
-                                                    ? (item as any).productName
-                                                    : (item as any).description}
+                                                    ? (item as unknown as Sale).productName
+                                                    : (item as unknown as Expense).description}
                                             </div>
                                             <div className="text-[10px] text-gray-400 uppercase tracking-tighter">
                                                 {new Date(item.date).toLocaleDateString("uz-UZ")} • {new Date(item.date).toLocaleTimeString("uz-UZ", { hour: '2-digit', minute: '2-digit' })}
@@ -93,18 +95,24 @@ export function StatsDrillDownDialog({
                                     {item.type === "sale" && (
                                         <div className="mt-2 space-y-1 ml-10">
                                             <div className="text-xs text-gray-500 dark:text-gray-400">
-                                                {(item as any).type === "unit" ? "Dona" : "Metr"} • {(item as any).quantity} • <span className="uppercase">{(item as any).paymentType}</span>
+                                                {(item as unknown as Sale).type === "unit" ? "Dona" : "Metr"} • {(item as unknown as Sale).quantity} • <span className="uppercase">{(item as unknown as Sale).paymentType}</span>
                                             </div>
                                             <div className="flex items-center space-x-3 text-[10px]">
-                                                {(item as any).admin_profit !== undefined && (
-                                                    <span className="text-indigo-600 dark:text-indigo-400 font-bold">
-                                                        MEN: {formatCurrency((item as any).admin_profit || 0, "USD")}
-                                                    </span>
-                                                )}
-                                                {(item as any).seller_profit !== undefined && (
-                                                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                                                        FILIAL: {formatCurrency(((item as any).seller_profit || 0) * exchangeRate, "UZS")}
-                                                    </span>
+                                                {item.type === "sale" && (
+                                                    <>
+                                                        <div className="space-y-0.5">
+                                                            <div className="text-[9px] text-muted-foreground uppercase">{t('admin.actualProfit')}</div>
+                                                            <div className="text-xs font-bold text-blue-600 dark:text-blue-400">
+                                                                MEN: {formatCurrency(((item as unknown as Sale).adminProfit || 0), "USD")}
+                                                            </div>
+                                                        </div>
+                                                        <div className="space-y-0.5 text-center">
+                                                            <div className="text-[9px] text-muted-foreground uppercase">{t('admin.branchProfit')}</div>
+                                                            <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-500">
+                                                                FILIAL: {formatCurrency(((item as unknown as Sale).sellerProfit || 0) * exchangeRate, "UZS")}
+                                                            </div>
+                                                        </div>
+                                                    </>
                                                 )}
                                             </div>
                                         </div>

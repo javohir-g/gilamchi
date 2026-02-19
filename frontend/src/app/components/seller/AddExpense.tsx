@@ -67,8 +67,8 @@ export function AddExpense() {
           staffId: category === "staff" ? staffId : undefined,
           branchId: user?.branchId || "",
           sellerId: user?.id || "",
-          exchange_rate: exchangeRate,
-          is_usd: false,
+          exchangeRate: exchangeRate,
+          isUsd: false,
           date:
             expenses.find((e) => e.id === editingId)?.date ||
             new Date().toISOString(),
@@ -86,8 +86,8 @@ export function AddExpense() {
           staffId: category === "staff" ? staffId : undefined,
           branchId: user?.branchId || "",
           sellerId: user?.id || "",
-          exchange_rate: exchangeRate,
-          is_usd: false,
+          exchangeRate: exchangeRate,
+          isUsd: false,
           date: new Date().toISOString(),
         };
         await addExpense(newExpense);

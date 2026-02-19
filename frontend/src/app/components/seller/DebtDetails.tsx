@@ -119,7 +119,7 @@ export function DebtDetails() {
       sellerId: user.id,
       sellerName: user.name,
       note: paymentNote.trim() || undefined,
-      exchange_rate: exchangeRate,
+      exchangeRate: exchangeRate,
     };
 
     makeDebtPayment(debt.id, payment);
@@ -209,7 +209,7 @@ export function DebtDetails() {
                 {t('debt.initialPayment')}
               </p>
               <p className="font-semibold text-blue-600 dark:text-blue-400">
-                {formatCurrency(debt.initial_payment || 0)}
+                {formatCurrency(debt.initialPayment || 0)}
               </p>
             </div>
             <div>
@@ -267,7 +267,7 @@ export function DebtDetails() {
                       </p>
                     )}
                     <p className="text-sm font-semibold text-gray-600 dark:text-gray-300">
-                      {formatCurrency(item.total * exchangeRate)}
+                      {formatCurrency(item.total, "UZS")}
                     </p>
                   </div>
                 </div>

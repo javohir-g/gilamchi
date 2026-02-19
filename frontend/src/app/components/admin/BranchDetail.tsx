@@ -103,12 +103,12 @@ export function BranchDetail() {
   );
 
   const totalAdminProfit = branchSales.reduce(
-    (sum, s) => sum + (s.admin_profit || 0),
+    (sum, s) => sum + (s.adminProfit || 0),
     0,
   );
 
   const totalSellerProfit = branchSales.reduce(
-    (sum, s) => sum + (s.seller_profit || 0),
+    (sum, s) => sum + (s.sellerProfit || 0),
     0,
   );
 
@@ -176,6 +176,9 @@ export function BranchDetail() {
             <h1 className="text-xl dark:text-white">
               {branch.name}
             </h1>
+            <div className="text-xs text-muted-foreground">
+              1$ = {exchangeRate} so'm
+            </div>
           </div>
         </div>
       </div>
@@ -195,7 +198,14 @@ export function BranchDetail() {
                 <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">{t('seller.cashRegister')}</span>
               </div>
               <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 leading-none">
-                {formatCurrency((cashSales + totalDebtPaymentsInPeriod + cardTransferSales) * exchangeRate, "UZS")}
+                {/* KASSA = (Cash Sales * rate) + Debt Payments (UZS) + (Card Sales * rate) */}
+                {/* IMPORTANT: Debt payments from fromDebt mapper are ALREADY in UZS */}
+                {formatCurrency(
+                  (cashSales * exchangeRate) +
+                  (cardTransferSales * exchangeRate) +
+                  totalDebtPaymentsInPeriod,
+                  "UZS"
+                )}
               </div>
             </div>
 
@@ -203,7 +213,7 @@ export function BranchDetail() {
               <div>
                 <div className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">{t('common.cash')}</div>
                 <div className="text-sm font-bold text-gray-900 dark:text-white leading-none">
-                  {formatCurrency((cashSales + totalDebtPaymentsInPeriod) * exchangeRate, "UZS")}
+                  {formatCurrency((cashSales * exchangeRate) + totalDebtPaymentsInPeriod, "UZS")}
                 </div>
                 <div className="text-[8px] text-gray-400 italic mt-1.5 leading-none">{t('seller.salesAndDebt')}</div>
               </div>
@@ -232,7 +242,7 @@ export function BranchDetail() {
                 </div>
               </Card>
             }
-            items={branchSales.map(s => ({ ...s, type: "sale" as const })).filter(s => (s.admin_profit || 0) > 0) as any[]}
+            items={branchSales.map(s => ({ ...s, type: "sale" as const })).filter(s => (s.adminProfit || 0) > 0) as any[]}
           />
 
           <StatsDrillDownDialog
@@ -247,7 +257,7 @@ export function BranchDetail() {
                 </div>
               </Card>
             }
-            items={branchSales.map(s => ({ ...s, type: "sale" as const })).filter(s => (s.seller_profit || 0) > 0) as any[]}
+            items={branchSales.map(s => ({ ...s, type: "sale" as const })).filter(s => (s.sellerProfit || 0) > 0) as any[]}
           />
 
           <StatsDrillDownDialog
@@ -470,7 +480,7 @@ export function BranchDetail() {
                       ? item.entryType === "payment" ? "text-emerald-600 dark:text-emerald-400" : "text-blue-600 dark:text-blue-400"
                       : "text-orange-600 dark:text-orange-400"
                       }`}>
-                      {item.entryType === "sale" || item.entryType === "payment" ? "+" : "-"}{formatCurrency(item.amount * (item.entryType === "sale" || item.entryType === "payment" ? (item.entryType === "payment" ? 1 : exchangeRate) : 1), (item.entryType === "sale" || item.entryType === "payment") ? "UZS" : "USD")}
+                      {item.entryType === "sale" || item.entryType === "payment" ? "+" : "-"}{formatCurrency(item.amount * (item.entryType === "sale" || item.entryType === "payment" ? (item.entryType === "payment" ? 1 : exchangeRate) : 1), "UZS")}
                     </div>
                   </div>
                 </div>

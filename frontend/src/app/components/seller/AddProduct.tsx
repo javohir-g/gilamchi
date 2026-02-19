@@ -231,8 +231,8 @@ export function AddProduct() {
     if (collection && !isEditMode) {
       const selectedCollectionData = localCollections.find(c => c.name === collection);
 
-      const buyRate = selectedCollectionData?.buy_price_per_sqm || 0;
-      const sellRate = selectedCollectionData?.price_per_sqm || 0;
+      const buyRate = selectedCollectionData?.buyPricePerSqm || 0;
+      const sellRate = selectedCollectionData?.pricePerSqm || 0;
 
       if (type === "unit" && availableSizes.length > 0) {
         // Redundant check removed, accessing [0] safely
@@ -307,9 +307,9 @@ export function AddProduct() {
       category,
       type,
       photo,
-      buyPrice: parseFloat(buyPrice),
-      buyPriceUsd: buyPriceUsd ? parseFloat(buyPriceUsd) : undefined,
-      isUsdPriced,
+      pricePerSquareMeter: parseFloat(pricePerSqm) || 0,
+      buyPricePerSquareMeter: parseFloat(buyPricePerSqm) || 0,
+      isUsdPriced: isConvertedFromUsd,
       sellPrice: parseFloat(sellPrice),
       collection,
       availableSizes,
@@ -319,7 +319,7 @@ export function AddProduct() {
       ? { quantity: parseInt(quantity) }
       : {
         totalLength: parseFloat(totalLength),
-        remainingLength: parseFloat(totalLength),
+        ...(isEditMode ? {} : { remainingLength: parseFloat(totalLength) }),
         width: width ? parseFloat(width) : undefined,
         sellPricePerMeter: parseFloat(sellPricePerMeter),
       };
@@ -842,7 +842,7 @@ export function AddProduct() {
                   ${buyPriceUsd || "0"}
                 </div>
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  {t('common.collection')}: ${collections.find(c => c.name === collection)?.buy_price_per_sqm || 0}/m²
+                  {t('common.collection')}: ${collections.find(c => c.name === collection)?.buyPricePerSqm || 0}/m²
                 </p>
               </div>
               <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
@@ -851,7 +851,7 @@ export function AddProduct() {
                   ${parseFloat(sellPrice || "0").toFixed(2)}
                 </div>
                 <p className="text-[10px] text-blue-500/70 mt-1">
-                  {t('common.collection')}: ${collections.find(c => c.name === collection)?.price_per_sqm || 0}/m²
+                  {t('common.collection')}: ${collections.find(c => c.name === collection)?.pricePerSqm || 0}/m²
                 </p>
               </div>
             </div>

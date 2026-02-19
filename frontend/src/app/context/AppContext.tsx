@@ -61,7 +61,7 @@ export interface Product {
   // Carpet-specific fields (for Gilamlar category)
   pricePerSquareMeter?: number; // Price per m² in USD or local currency
   availableSizes?: any[]; // e.g., [{size: "1×2", quantity: 5}]
-  similarity_percentage?: number; // AI search similarity score
+  similarityPercentage?: number; // AI search similarity score
 }
 
 export interface Sale {
@@ -75,8 +75,8 @@ export interface Sale {
   sellerId: string;
   date: string;
   profit?: number; // Total profit
-  admin_profit?: number;
-  seller_profit?: number;
+  adminProfit?: number;
+  sellerProfit?: number;
   orderId?: string;
   type: ProductType; // unit or meter
   size?: string; // Track which size was sold
@@ -84,7 +84,7 @@ export interface Sale {
   length?: number;
   area?: number;
   isNasiya?: boolean;
-  exchange_rate?: number;
+  exchangeRate?: number;
 }
 
 
@@ -131,6 +131,8 @@ export interface Expense {
   branchId: string;
   sellerId: string;
   staffId?: string; // ID of StaffMember
+  exchangeRate?: number;
+  isUsd?: boolean;
   date: string;
 }
 
@@ -141,7 +143,7 @@ export interface DebtPayment {
   sellerId: string;
   sellerName: string;
   note?: string; // Optional payment note
-  exchange_rate?: number;
+  exchangeRate?: number;
 }
 
 export interface Debt {
@@ -150,7 +152,7 @@ export interface Debt {
   phoneNumber?: string; // Debtor's phone number
   orderDetails: string; // What they're buying
   totalAmount: number; // Total order amount
-  initial_payment: number; // Upfront payment made at sale
+  initialPayment: number; // Upfront payment made at sale
   paidAmount: number; // Total amount paid so far (including initial)
   remainingAmount: number; // Amount left to pay
   paymentDeadline: string; // When they said they'll pay
@@ -162,7 +164,7 @@ export interface Debt {
   orderItems?: BasketItem[]; // Optional: store the actual items they bought
   paymentHistory?: DebtPayment[]; // History of all payments made
   orderId?: string; // Link to the order
-  exchange_rate?: number;
+  exchangeRate?: number;
   branch_id?: string; // for backward compatibility/backend consistency
 }
 
@@ -183,8 +185,8 @@ export interface Collection {
   id: string;
   name: string;
   icon?: string;
-  price_per_sqm?: number; // Primary selling price per m² (usually in USD)
-  buy_price_per_sqm?: number; // Buying price per m² (usually in USD)
+  pricePerSqm?: number; // Primary selling price per m² (usually in USD)
+  buyPricePerSqm?: number; // Buying price per m² (usually in USD)
   price_usd_per_sqm?: number; // For backward compatibility
   branchId?: string;
 }
@@ -401,7 +403,10 @@ export function AppProvider({
   const addSale = async (sale: Sale) => {
     try {
       await salesService.create(sale);
-      await refreshSales();
+      await Promise.all([
+        refreshSales(),
+        refreshProducts()
+      ]);
     } catch (error) {
       console.error("Failed to add sale", error);
     }
@@ -622,7 +627,7 @@ export function AppProvider({
   const deleteDebt = async (debtId: string) => {
     try {
       await debtService.delete(debtId);
-      setDebts((prev) => prev.filter((d) => d.id !== debtId));
+      await fetchData();
     } catch (error) {
       console.error("Failed to delete debt", error);
       throw error;
@@ -663,7 +668,7 @@ export function AppProvider({
 
   const updateExchangeRate = async (rate: number) => {
     try {
-      await settingsService.update({ exchange_rate: rate });
+      await settingsService.update({ exchangeRate: rate });
       setExchangeRate(rate);
     } catch (error) {
       console.error("Failed to update exchange rate", error);
@@ -836,6 +841,8 @@ export function AppProvider({
     });
 
     await Promise.all(salesPromises);
+    // Refresh all data once after complete order to sync stock and sales
+    await fetchData();
     clearBasket();
     return orderId;
   };

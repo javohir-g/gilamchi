@@ -43,7 +43,7 @@ def create_debt(debt: DebtCreate, db: Session = Depends(get_db), current_user = 
 
 @router.get("/", response_model=List[DebtResponse])
 def read_debts(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
-    query = db.query(Debt)
+    query = db.query(Debt).filter(Debt.deleted_at == None)
     if current_user.role == "seller":
         query = query.filter(Debt.branch_id == current_user.branch_id)
     return query.offset(skip).limit(limit).all()
@@ -89,8 +89,9 @@ def delete_debt(debt_id: str, db: Session = Depends(get_db), current_user = Depe
         raise HTTPException(status_code=404, detail="Debt not found")
     
     # Soft delete
-    from datetime import datetime
-    debt.deleted_at = datetime.now()
+    from datetime import datetime, timezone
+    debt.deleted_at = datetime.now(timezone.utc)
+    debt.deleted_by = current_user.id
     db.commit()
     
     return {"message": "Debt deleted successfully"}

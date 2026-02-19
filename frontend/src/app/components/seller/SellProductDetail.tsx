@@ -10,6 +10,7 @@ import { useApp, PaymentType } from '../../context/AppContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'sonner';
 
+import { Badge } from '../ui/badge';
 import {
   Select,
   SelectContent,
@@ -157,7 +158,7 @@ export function SellProductDetail() {
       area: area > 0 ? area : ((product.type === 'meter' && product.width) ? (product.width * saleQuantity) : undefined),
       size: selectedSize || undefined,
       isNasiya: isNasiya,
-      exchange_rate: exchangeRate,
+      exchangeRate: exchangeRate,
     });
 
     toast.success(t('messages.orderSuccess'));
@@ -307,6 +308,13 @@ export function SellProductDetail() {
                 />
               </div>
             </div>
+            {product.similarityPercentage && (
+              <div className="flex justify-center mt-3">
+                <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+                  {Math.round(product.similarityPercentage * 100)}% {t('seller.similarityMatch')}
+                </Badge>
+              </div>
+            )}
             {area > 0 && (
               <div className="mt-3 text-sm text-gray-500 font-medium">
                 {t('seller.area')}: {area.toFixed(2)} m²
