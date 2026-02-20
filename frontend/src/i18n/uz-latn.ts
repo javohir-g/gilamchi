@@ -72,6 +72,9 @@ export const uzLatn = {
         payment: "To'lov",
         latin: "Lotin",
         cyrillic: "Kirill",
+        export: "Eksport (Excel)",
+        filterBySeller: "Sotuvchi bo'yicha",
+        filterByNasiya: "Faqat nasiya",
     },
 
     auth: {

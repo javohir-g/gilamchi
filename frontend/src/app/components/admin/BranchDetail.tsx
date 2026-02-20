@@ -1,10 +1,12 @@
-import { ArrowLeft, DollarSign, Package } from "lucide-react";
+import { ArrowLeft, DollarSign, Package, ChevronDown, ChevronUp, User, Clock, CreditCard, Wallet, ReceiptText, Layers, Filter, Download, Tag, Info } from "lucide-react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
-import { useApp } from "../../context/AppContext";
+import { useApp, Sale, Expense, DebtPayment, StaffMember, Product } from "../../context/AppContext";
 import { useLanguage } from "../../context/LanguageContext";
+import { useState } from "react";
+import { cn } from "../ui/utils";
 import {
   PieChart,
   Pie,
@@ -21,6 +23,9 @@ export function BranchDetail() {
   const navigate = useNavigate();
   const { branches, sales, products, expenses, debts, staffMembers, exchangeRate } = useApp();
   const { t } = useLanguage();
+
+  const [sellerFilter, setSellerFilter] = useState<string>("all");
+  const [nasiyaOnlyFilter, setNasiyaOnlyFilter] = useState<boolean>(false);
 
   const branch = branches.find((b) => b.id === branchId);
 
@@ -134,7 +139,56 @@ export function BranchDetail() {
     ...branchSales.map(s => ({ ...s, entryType: "sale" as const })),
     ...branchExpenses.map(e => ({ ...e, entryType: "expense" as const })),
     ...allDebtPayments
-  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  ]
+    .filter(item => {
+      if (sellerFilter !== "all") {
+        const itemSellerId = (item as any).sellerId || (item as any).staffId;
+        if (itemSellerId !== sellerFilter) return false;
+      }
+      if (nasiyaOnlyFilter) {
+        if (item.entryType !== "sale" || !(item as any).isNasiya) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const exportToCSV = () => {
+    const headers = ["Sana", "Tur", "Tavsif/Mahsulot", "Summa (UZS)", "Sotuvchi", "To'lov turi"];
+    const rows = unifiedHistory.map(item => {
+      const isSale = item.entryType === "sale";
+      const isPayment = item.entryType === "payment";
+      const isExpense = item.entryType === "expense";
+
+      let typeLabel = isSale ? "Sotuv" : isPayment ? "To'lov" : "Xarajat";
+      let desc = "";
+      if (isSale) desc = `${(item as any).productName} (${(item as any).quantity})`;
+      else if (isPayment) desc = `${(item as any).debtorName} (Qarz)`;
+      else desc = (item as any).description;
+
+      const amount = item.amount * (isPayment ? 1 : (isSale ? (item.exchangeRate || exchangeRate) : 1));
+      const seller = staffMembers.find(s => s.id === ((item as any).sellerId || (item as any).staffId))?.name || "";
+      const paymentType = isSale ? (item as any).paymentType : "";
+
+      return [
+        new Date(item.date).toLocaleString("uz-UZ"),
+        typeLabel,
+        desc,
+        amount.toFixed(0),
+        seller,
+        paymentType
+      ];
+    });
+
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([`\ufeff${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `tarix_${branch?.name}_${dateFilter}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // New debts created in the period
   const totalNewDebt = branchDebts
@@ -392,112 +446,296 @@ export function BranchDetail() {
 
         {/* Unified History List */}
         <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
-          <h3 className="mb-4 text-lg font-bold dark:text-white tracking-tight">
-            {t('admin.operationalHistory')}
-          </h3>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <h3 className="text-lg font-bold dark:text-white tracking-tight">
+              {t('admin.operationalHistory')}
+            </h3>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Seller Filter */}
+              <select
+                value={sellerFilter}
+                onChange={(e) => setSellerFilter(e.target.value)}
+                className="text-[10px] h-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-2 outline-none dark:text-gray-300"
+              >
+                <option value="all">{t('common.all')}</option>
+                {staffMembers.filter(s => s.branchId === branchId).map(s => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+
+              {/* Nasiya Toggle */}
+              <Button
+                variant={nasiyaOnlyFilter ? "default" : "outline"}
+                size="sm"
+                className="h-8 text-[10px] gap-1"
+                onClick={() => setNasiyaOnlyFilter(!nasiyaOnlyFilter)}
+              >
+                <Tag className="h-3 w-3" />
+                {t('common.filterByNasiya')}
+              </Button>
+
+              {/* Export Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-[10px] gap-1"
+                onClick={exportToCSV}
+              >
+                <Download className="h-3 w-3" />
+                {t('common.export')}
+              </Button>
+            </div>
+          </div>
+
           {unifiedHistory.length === 0 ? (
             <p className="text-center text-gray-500 dark:text-gray-400 py-8">
               {t('messages.noOperationsYet')}
             </p>
           ) : (
             <div className="space-y-4">
-              {unifiedHistory.map((item) => (
-                <div
+              {unifiedHistory.map((item: any) => (
+                <HistoryItem
                   key={item.id}
-                  onClick={() => item.entryType === "payment" && navigate("/admin/debts")}
-                  className={`flex items-start justify-between rounded-xl border p-4 transition-all hover:shadow-sm ${item.entryType === "payment" ? "cursor-pointer" : ""
-                    } ${item.entryType === "sale"
-                      ? (item as any).isNasiya
-                        ? "bg-yellow-50/50 dark:bg-yellow-900/10 border-yellow-200/50 dark:border-yellow-900/30"
-                        : "bg-white dark:bg-gray-800/50 border-gray-100 dark:border-gray-700"
-                      : item.entryType === "payment"
-                        ? "bg-emerald-50/30 dark:bg-emerald-950/10 border-emerald-100 dark:border-emerald-900/30"
-                        : "bg-orange-50/30 dark:bg-orange-950/20 border-orange-100 dark:border-orange-900/50"
-                    }`}
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <div className={`p-2 rounded-lg ${item.entryType === "sale"
-                        ? "bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400"
-                        : item.entryType === "payment"
-                          ? "bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400"
-                          : "bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400"
-                        }`}>
-                        {item.entryType === "sale" ? <Package className="h-4 w-4" /> : item.entryType === "payment" ? <DollarSign className="h-4 w-4" /> : <DollarSign className="h-4 w-4" />}
-                      </div>
-                      <div>
-                        <div className="font-bold dark:text-white flex items-center gap-2">
-                          {item.entryType === "sale"
-                            ? (
-                              <>
-                                {(item as any).productName}
-                                {products.find(p => p.id === (item as any).productId)?.collection && (
-                                  <span className="text-muted-foreground font-normal text-xs">
-                                    ({products.find(p => p.id === (item as any).productId)?.collection})
-                                  </span>
-                                )}
-                              </>
-                            )
-                            : item.entryType === "payment"
-                              ? `${(item as any).debtorName} (${t('debt.payment')})`
-                              : (item as any).description}
-                          {(item as any).isNasiya && (
-                            <Badge className="bg-orange-100 text-orange-600 border-orange-200 text-[8px] h-4 py-0">{t('seller.nasiyaSale')}</Badge>
-                          )}
-                        </div>
-                        <div className="text-[10px] text-gray-400 uppercase tracking-tighter">
-                          {new Date(item.date).toLocaleDateString("uz-UZ")} • {new Date(item.date).toLocaleTimeString("uz-UZ", { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                      </div>
-                    </div>
-
-                    {item.entryType === "sale" && (
-                      <div className="mt-2 space-y-1">
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {(item as any).type === "unit"
-                            ? `${(item as any).quantity} ${t('common.unit')}`
-                            : `${((item as any).area || (item as any).quantity).toFixed(1)} ${t('common.meter_short')}²`}
-                          {" "} • {" "}
-                          <span className="font-medium uppercase">{(item as any).paymentType === 'cash' ? t('common.cash') : (item as any).paymentType === 'card' ? t('common.card') : t('common.transfer')}</span>
-                        </div>
-                        <div className="flex items-center space-x-3 text-[10px]">
-                          <span className="text-indigo-600 dark:text-indigo-400 font-bold">
-                            {t('common.adminShort')}: {formatCurrency((item as any).admin_profit || 0, "USD")}
-                          </span>
-                          <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                            {t('common.branchShort')}: {formatCurrency(((item as any).seller_profit || 0) * exchangeRate, "UZS")}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
-                    {item.entryType === "expense" && (
-                      <div className="mt-1 flex gap-1">
-                        <Badge variant="outline" className="text-[9px] uppercase border-orange-200 text-orange-600 bg-orange-50/50">
-                          {(item as any).category === "staff" ? t('admin.staffExpenses') : t('admin.branchExpenses')}
-                        </Badge>
-                        {(item as any).category === "staff" && (item as any).staffId && (
-                          <Badge variant="outline" className="text-[9px] uppercase border-blue-200 text-blue-600 bg-blue-50/50">
-                            {staffMembers.find(s => s.id === (item as any).staffId)?.name || t('common.unknown')}
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-right ml-4">
-                    <div className={`text-lg font-black ${item.entryType === "sale" || item.entryType === "payment"
-                      ? item.entryType === "payment" ? "text-emerald-600 dark:text-emerald-400" : "text-blue-600 dark:text-blue-400"
-                      : "text-orange-600 dark:text-orange-400"
-                      }`}>
-                      {item.entryType === "sale" || item.entryType === "payment" ? "+" : "-"}{formatCurrency(item.amount * (item.entryType === "sale" || item.entryType === "payment" ? (item.entryType === "payment" ? 1 : exchangeRate) : 1), "UZS")}
-                    </div>
-                  </div>
-                </div>
+                  item={item}
+                  exchangeRate={exchangeRate}
+                  staffMembers={staffMembers}
+                  products={products}
+                  formatCurrency={formatCurrency}
+                  navigate={navigate}
+                  debts={debts}
+                  t={t}
+                />
               ))}
             </div>
           )}
         </Card>
       </div >
     </div >
+  );
+}
+
+interface HistoryItemProps {
+  item: any;
+  exchangeRate: number;
+  staffMembers: StaffMember[];
+  products: Product[];
+  formatCurrency: (amount: number, currency?: "USD" | "UZS") => string;
+  navigate: (path: string) => void;
+  debts: any[];
+  t: any;
+}
+
+function HistoryItem({ item, exchangeRate, staffMembers, products, formatCurrency, navigate, debts, t }: HistoryItemProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const isSale = item.entryType === "sale";
+  const isPayment = item.entryType === "payment";
+  const isExpense = item.entryType === "expense";
+
+  const getStatusColor = () => {
+    if (isSale) {
+      return item.isNasiya
+        ? "bg-orange-50/50 dark:bg-orange-950/20 border-orange-200/50 dark:border-orange-800/30 text-orange-600 dark:text-orange-400"
+        : "bg-blue-50/50 dark:bg-blue-950/20 border-blue-200/50 dark:border-blue-800/30 text-blue-600 dark:text-blue-400";
+    }
+    if (isPayment) return "bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-800/30 text-emerald-600 dark:text-emerald-400";
+    if (isExpense) return "bg-rose-50/50 dark:bg-rose-950/20 border-rose-200/50 dark:border-rose-800/30 text-rose-600 dark:text-rose-400";
+    return "bg-gray-50/50 dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-400";
+  };
+
+  const getIcon = () => {
+    if (isSale) return <Package className="h-4 w-4" />;
+    if (isPayment) return <Wallet className="h-4 w-4" />;
+    if (isExpense) return <ReceiptText className="h-4 w-4" />;
+    return <Clock className="h-4 w-4" />;
+  };
+
+  const getTitle = () => {
+    if (isSale) {
+      const product = products.find(p => p.id === item.productId);
+      return (
+        <div className="flex flex-col">
+          <span className="font-bold text-sm dark:text-white">{product?.collection || t('seller.withoutCollection')}</span>
+          <span className="text-xs text-muted-foreground font-normal">{item.productName}</span>
+        </div>
+      );
+    }
+    if (isPayment) return (
+      <div className="flex flex-col">
+        <span className="font-bold text-sm dark:text-white">{item.debtorName}</span>
+        <span className="text-xs text-muted-foreground font-normal">{t('debt.payment')}</span>
+      </div>
+    );
+    if (isExpense) return (
+      <div className="flex flex-col">
+        <span className="font-bold text-sm dark:text-white truncate max-w-[150px]">{item.description}</span>
+        <span className="text-xs text-muted-foreground font-normal">{item.category === 'staff' ? t('admin.staffExpenses') : t('admin.branchExpenses')}</span>
+      </div>
+    );
+    return item.description;
+  };
+
+  const seller = staffMembers.find(s => s.id === (item.sellerId || item.staffId));
+  const product = isSale ? products.find(p => p.id === item.productId) : null;
+
+  // For payment, find remaining debt
+  const debt = isPayment ? debts.find(d => d.id === item.debtId) : null;
+
+  return (
+    <div
+      onClick={() => {
+        setIsExpanded(!isExpanded);
+      }}
+      className={cn(
+        "rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden",
+        getStatusColor(),
+        isExpanded ? "shadow-md scale-[1.01]" : "hover:shadow-sm"
+      )}
+    >
+      <div className="p-4 flex items-center justify-between">
+        <div className="flex items-center space-x-3 flex-1 min-w-0">
+          <div className={cn("p-2.5 rounded-xl",
+            isSale ? "bg-blue-100 dark:bg-blue-900/50" :
+              isPayment ? "bg-emerald-100 dark:bg-emerald-900/50" :
+                "bg-rose-100 dark:bg-rose-900/50"
+          )}>
+            {getIcon()}
+          </div>
+          <div className="flex-1 min-w-0">
+            {getTitle()}
+          </div>
+        </div>
+
+        <div className="text-right flex flex-col items-end shrink-0">
+          <div className={cn(
+            "text-base font-black leading-none mb-1",
+            isSale || isPayment ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+          )}>
+            {isSale || isPayment ? "+" : "-"}{
+              formatCurrency(
+                item.amount * (isPayment ? 1 : (isSale ? (item.exchangeRate || exchangeRate) : 1)),
+                "UZS"
+              )
+            }
+          </div>
+          <div className="text-[10px] text-muted-foreground uppercase flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            {new Date(item.date).toLocaleTimeString("uz-UZ", { hour: '2-digit', minute: '2-digit' })}
+          </div>
+        </div>
+
+        <div className="ml-2 text-muted-foreground shrink-0">
+          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </div>
+      </div>
+
+      {isExpanded && (
+        <div className="px-4 pb-4 pt-2 border-t border-inherit/30 space-y-3 animate-in fade-in slide-in-from-top-1 duration-200">
+          <div className="grid grid-cols-2 gap-3">
+            {/* Common Fields */}
+            <div className="flex flex-col gap-1">
+              <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider">{t('common.date')}</span>
+              <div className="flex items-center gap-1.5 text-xs font-semibold dark:text-gray-200">
+                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                {new Date(item.date).toLocaleDateString("uz-UZ")}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider">{t('nav.staff')}</span>
+              <div className="flex items-center gap-1.5 text-xs font-semibold dark:text-gray-200">
+                <User className="h-3.5 w-3.5 text-muted-foreground" />
+                {seller?.name || t('common.unknown')}
+              </div>
+            </div>
+
+            {isSale && (
+              <>
+                {/* Product Code & Thumbnail */}
+                <div className="col-span-2 flex items-center gap-3 p-2 bg-white/40 dark:bg-black/20 rounded-xl mb-1 mt-1">
+                  {product?.photo ? (
+                    <img src={product.photo} alt="" className="h-10 w-10 object-cover rounded-lg shadow-sm" />
+                  ) : (
+                    <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                      <Package className="h-5 w-5 text-gray-400" />
+                    </div>
+                  )}
+                  <div className="flex flex-col">
+                    <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider">{t('product.code')} (Artikul)</span>
+                    <span className="text-xs font-black dark:text-white uppercase">{product?.code || '---'}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider">{t('product.size')} / {t('seller.area')}</span>
+                  <div className="flex items-center gap-1.5 text-xs font-semibold dark:text-gray-200">
+                    <Layers className="h-3.5 w-3.5 text-muted-foreground" />
+                    {item.type === "unit"
+                      ? `${item.quantity} ${t('common.unit')} ${item.size ? `(${item.size})` : ''}`
+                      : `${(item.area || item.quantity).toFixed(1)} m² ${item.width ? `(${item.width}x${((item.area || item.quantity) / item.width).toFixed(1)})` : ''}`}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider">{t('common.payment')}</span>
+                  <div className="flex items-center gap-1.5 text-xs font-semibold dark:text-gray-200">
+                    {item.paymentType === 'cash' ? <Wallet className="h-3.5 w-3.5 text-muted-foreground" /> : <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />}
+                    <span className="uppercase">{item.paymentType === 'cash' ? t('common.cash') : item.paymentType === 'card' ? t('common.card') : t('common.transfer')}</span>
+                    {item.isNasiya && <Badge className="bg-orange-100 text-orange-600 border-orange-200 text-[8px] h-3.5 px-1 py-0">{t('seller.nasiyaSale')}</Badge>}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1 border-l pl-3 border-indigo-200 dark:border-indigo-900/30">
+                  <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider text-indigo-500 font-black">{t('product.buyPrice')} (USD)</span>
+                  <div className="text-xs font-black text-indigo-700 dark:text-indigo-300">
+                    {formatCurrency(product?.buyPriceUsd || 0, "USD")}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1 border-l pl-3 border-emerald-200 dark:border-emerald-900/30">
+                  <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider text-emerald-500 font-black">{t('admin.actualProfit')} (USD)</span>
+                  <div className="text-xs font-black text-emerald-700 dark:text-emerald-300">
+                    {formatCurrency(item.adminProfit || item.admin_profit || 0, "USD")}
+                  </div>
+                </div>
+
+                <div className="col-span-2 text-[8px] text-muted-foreground italic flex items-center gap-1 mt-1">
+                  <Info className="h-2.5 w-2.5" />
+                  USD Kursi: 1$ = {item.exchangeRate || exchangeRate} so'm
+                </div>
+              </>
+            )}
+
+            {isPayment && (
+              <>
+                <div className="col-span-2 flex flex-col gap-1 p-2 bg-emerald-100/30 dark:bg-emerald-900/10 rounded-xl mb-1">
+                  <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider">{t('common.filterByNasiya')} ({t('common.debts')})</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs dark:text-gray-400">{t('debt.remainingDebt')}:</span>
+                    <span className="text-sm font-black text-emerald-600 truncate">{formatCurrency(debt?.remainingAmount || 0, "UZS")}</span>
+                  </div>
+                </div>
+                <div className="col-span-2 flex flex-col gap-1">
+                  <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider">{t('expense.description')}</span>
+                  <div className="text-xs font-semibold dark:text-gray-200 italic">
+                    {item.note || t('messages.noData')}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {isExpense && (
+              <div className="col-span-2 flex flex-col gap-1">
+                <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider">{t('expense.description')}</span>
+                <div className="text-xs font-semibold dark:text-gray-200">
+                  {item.description}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
