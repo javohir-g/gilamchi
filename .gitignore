@@ -16,6 +16,10 @@ venv/
 !frontend/package-lock.json
 !backend/app/**/*.json
 
+# Uploads
+backend/uploads/*
+!backend/uploads/.gitkeep
+
 # Database
 *.db
 *.sqlite3
