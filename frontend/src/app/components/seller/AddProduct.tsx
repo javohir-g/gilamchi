@@ -302,15 +302,25 @@ export function AddProduct() {
       return;
     }
 
+    let finalSellRate = 0;
+    let finalBuyRate = 0;
+    const colData = collections.find(c => c.name === collection);
+    if (colData) {
+      finalSellRate = colData.pricePerSqm || 0;
+      finalBuyRate = colData.buyPricePerSqm || 0;
+    }
+
     const commonData = {
       code,
       category,
       type,
       photo,
-      pricePerSquareMeter: parseFloat(pricePerSqm) || 0,
-      buyPricePerSquareMeter: parseFloat(buyPricePerSqm) || 0,
-      isUsdPriced: isConvertedFromUsd,
+      pricePerSquareMeter: finalSellRate,
+      buyPricePerSquareMeter: finalBuyRate,
+      isUsdPriced: isUsdPriced,
       sellPrice: parseFloat(sellPrice),
+      buyPrice: parseFloat(buyPrice),
+      buyPriceUsd: buyPriceUsd ? parseFloat(buyPriceUsd) : undefined,
       collection,
       availableSizes,
     };
