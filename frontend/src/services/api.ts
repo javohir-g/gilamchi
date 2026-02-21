@@ -16,7 +16,7 @@ if (envApiUrl && !envApiUrl.startsWith('http')) {
 // 1. If no env, use localhost (dev) or relative path (prod)
 // 2. If env exists, ensure it ends with /api/ (case insensitive and handle trailing slashes)
 const apiProd = (import.meta as any).env?.PROD;
-let API_URL = envApiUrl || (apiProd ? '/api/' : 'http://localhost:8000/api/');
+export let API_URL = envApiUrl || (apiProd ? '/api/' : 'http://localhost:8000/api/');
 // Explicit override for local troubleshooting
 if (!apiProd && !envApiUrl) API_URL = 'http://localhost:8000/api/';
 
@@ -66,6 +66,25 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// --- Helpers ---
+export const getImageUrl = (photoPath: string | undefined): string => {
+  if (!photoPath) return '';
+  if (photoPath.startsWith('http') || photoPath.startsWith('data:')) return photoPath;
+
+  // Extract base URL from API_URL (remove trailing /api/ or /api)
+  let baseUrl = API_URL;
+  if (baseUrl.endsWith('/api/')) {
+    baseUrl = baseUrl.substring(0, baseUrl.length - 5);
+  } else if (baseUrl.endsWith('/api')) {
+    baseUrl = baseUrl.substring(0, baseUrl.length - 4);
+  }
+
+  if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
+  const path = photoPath.startsWith('/') ? photoPath : `/${photoPath}`;
+
+  return `${baseUrl}${path}`;
+};
 
 // --- Mappers ---
 

@@ -5,6 +5,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Product, BasketItem, useApp } from "../../context/AppContext";
 import { useLanguage } from "../../context/LanguageContext";
+import { getImageUrl } from "../../services/api";
 import {
   Select,
   SelectContent,
@@ -224,7 +225,7 @@ export function AddToBasketModal({
           {/* Product Info */}
           <div className="flex gap-4">
             <img
-              src={product.photo}
+              src={getImageUrl(product.photo)}
               alt={product.name}
               className="h-20 w-20 rounded-lg object-cover"
             />

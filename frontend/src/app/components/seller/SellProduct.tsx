@@ -19,7 +19,7 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { useApp, Product } from "../../context/AppContext";
 import { useLanguage } from "../../context/LanguageContext";
-import { productService } from "../../../services/api";
+import { productService, getImageUrl } from "../../../services/api";
 import { BottomNav } from "../shared/BottomNav";
 import { AddToBasketModal } from "./AddToBasketModal";
 import { LiveCamera } from "../shared/LiveCamera";
@@ -385,7 +385,7 @@ export function SellProduct() {
               >
                 <div className="flex flex-col">
                   <img
-                    src={product.photo}
+                    src={getImageUrl(product.photo)}
                     alt={product.code}
                     className="w-full aspect-[4/5] object-cover cursor-pointer hover:opacity-90 transition-opacity"
                     onClick={(e) => handleOpenBasketModal(e, product)}
@@ -600,7 +600,7 @@ export function SellProduct() {
                     <div className="flex space-x-4 p-4">
                       <div className="relative">
                         <img
-                          src={product.photo}
+                          src={getImageUrl(product.photo)}
                           alt={product.name}
                           className="h-24 w-24 rounded-xl object-cover ring-1 ring-border cursor-pointer"
                           onClick={() =>

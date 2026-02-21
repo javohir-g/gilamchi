@@ -58,6 +58,7 @@ import {
 import { BottomNav } from "../shared/BottomNav";
 import { useLanguage } from "../../context/LanguageContext";
 import { toast } from "sonner";
+import { getImageUrl } from "../../services/api";
 
 type ViewMode =
   | "categories"
@@ -1009,7 +1010,7 @@ export function Inventory() {
                 <div className="flex flex-col h-full">
                   <div className="aspect-[4/5] relative overflow-hidden">
                     <img
-                      src={product.photo}
+                      src={getImageUrl(product.photo)}
                       alt={product.code}
                       className="w-full h-full object-cover"
                     />
