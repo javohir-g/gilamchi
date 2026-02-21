@@ -14,7 +14,7 @@ router = APIRouter()
 
 @router.post("/", response_model=SaleResponse)
 def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
-    product = db.query(Product).filter(Product.id == sale.product_id).first()
+    product = db.query(Product).with_for_update().filter(Product.id == sale.product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
@@ -59,7 +59,7 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
             
     elif product.type == ProductType.METER:
         available = float(product.remaining_length if product.remaining_length is not None else (product.total_length or 0))
-        sale_len = float(sale.quantity)
+        sale_len = float(sale.length) if sale.length else float(sale.quantity)
         sale_width = float(sale.width) if sale.width else None
         
         logger.debug(f"Current remaining_length: {available}, Sale length: {sale_len}, Width: {sale_width}")
