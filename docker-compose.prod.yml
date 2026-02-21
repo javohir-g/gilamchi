@@ -33,7 +33,7 @@ services:
       # Increase timeout for workers if needed
       - WORKERS=1
     volumes:
-      - ./uploads:/app/static # If you store images locally
+      - ./uploads:/app/uploads # Persistent storage for product images
 
   frontend:
     build:

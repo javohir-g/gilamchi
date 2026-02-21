@@ -147,6 +147,25 @@ def create_product(
              # Сохраняем image_data для фоновой задачи
              image_data_for_background = image_data
              
+             import uuid
+             import os
+             
+             # Determine extension from header
+             ext = "jpg"
+             if "png" in header.lower():
+                 ext = "png"
+             elif "webp" in header.lower():
+                 ext = "webp"
+                 
+             filename = f"product_{uuid.uuid4().hex}.{ext}"
+             filepath = os.path.join("uploads", filename)
+             
+             with open(filepath, "wb") as f:
+                 f.write(image_data)
+                 
+             # Save relative URL instead of massive base64 string
+             product_data["photo"] = f"/uploads/{filename}"
+             
              logger.debug("Image hash computed, CLIP embedding will be computed in background")
                  
         except Exception as e:
@@ -460,6 +479,35 @@ def update_product(
              
              # Сохраняем для фоновой задачи
              image_data_for_background = image_data
+             
+             import uuid
+             import os
+             
+             # Determine extension from header
+             ext = "jpg"
+             if "png" in header.lower():
+                 ext = "png"
+             elif "webp" in header.lower():
+                 ext = "webp"
+                 
+             filename = f"product_{uuid.uuid4().hex}.{ext}"
+             filepath = os.path.join("uploads", filename)
+             
+             with open(filepath, "wb") as f:
+                 f.write(image_data)
+                 
+             # Optionally delete old file if it exists
+             old_photo = db_product.photo
+             if old_photo and old_photo.startswith("/uploads/"):
+                 old_filepath = old_photo.lstrip("/")
+                 if os.path.exists(old_filepath):
+                     try:
+                         os.remove(old_filepath)
+                     except Exception as e:
+                         pass
+                 
+             # Update with new URL instead of base64
+             update_data["photo"] = f"/uploads/{filename}"
              
              logger.debug("Image hash updated, CLIP embedding will be computed in background")
                  

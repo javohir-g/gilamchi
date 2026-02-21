@@ -92,6 +92,13 @@ app.add_middleware(
 )
 
 # Include Routers
+from fastapi.staticfiles import StaticFiles
+
+# Ensure uploads directory exists
+import os
+os.makedirs("uploads", exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(branches.router, prefix="/api/branches", tags=["branches"])
 app.include_router(users.router, prefix="/api/users", tags=["users"])
