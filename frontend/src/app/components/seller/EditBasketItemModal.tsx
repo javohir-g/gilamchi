@@ -5,7 +5,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { BasketItem, Product, useApp } from "../../context/AppContext";
 import { useLanguage } from "../../context/LanguageContext";
-import { getImageUrl } from "../../services/api";
+import { getImageUrl } from "../../../services/api";
 import {
   Select,
   SelectContent,

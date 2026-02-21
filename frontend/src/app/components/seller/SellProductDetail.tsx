@@ -8,7 +8,7 @@ import { Label } from '../ui/label';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { useApp, PaymentType } from '../../context/AppContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { getImageUrl } from '../../services/api';
+import { getImageUrl } from '../../../services/api';
 import { toast } from 'sonner';
 
 import { Badge } from '../ui/badge';

@@ -58,7 +58,7 @@ import {
 import { BottomNav } from "../shared/BottomNav";
 import { useLanguage } from "../../context/LanguageContext";
 import { toast } from "sonner";
-import { getImageUrl } from "../../services/api";
+import { getImageUrl } from "../../../services/api";
 
 type ViewMode =
   | "categories"
