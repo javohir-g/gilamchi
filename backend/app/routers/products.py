@@ -8,6 +8,8 @@ from ..models.product import Product
 from ..schemas.product import ProductCreate, ProductResponse, ProductUpdate
 from ..utils.dependencies import get_current_user, get_admin_user
 from ..utils.image import compute_image_hash
+import logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -25,7 +27,7 @@ def compute_clip_embedding_background(product_id: str, image_data: bytes):
     import numpy as np
     
     try:
-        print(f"Background: Computing CLIP embedding for product {product_id}", file=sys.stderr)
+        logger.info(f"Background: Computing CLIP embedding for product {product_id}")
         
         # Вычисление embedding (оптимизация изображения происходит внутри)
         embedding = extract_image_embedding(image_data)
@@ -39,18 +41,18 @@ def compute_clip_embedding_background(product_id: str, image_data: bytes):
                 if product:
                     product.image_embedding = embedding.astype(np.float32).tobytes()
                     db.commit()
-                    print(f"Background: CLIP embedding saved for product {product_id}", file=sys.stderr)
+                    logger.info(f"Background: CLIP embedding saved for product {product_id}")
                 else:
-                    print(f"Background: Product {product_id} not found", file=sys.stderr)
+                    logger.warning(f"Background: Product {product_id} not found")
             finally:
                 db.close()
         else:
-            print(f"Background: Failed to compute embedding for product {product_id}", file=sys.stderr)
+            logger.error(f"Background: Failed to compute embedding for product {product_id}")
             
     except Exception as e:
-        print(f"Background: Error computing embedding for product {product_id}: {e}", file=sys.stderr)
+        logger.error(f"Background: Error computing embedding for product {product_id}: {e}")
         import traceback
-        traceback.print_exc(file=sys.stderr)
+        logger.error(traceback.format_exc())
 
 @router.get("/", response_model=List[ProductResponse])
 def read_products(
@@ -62,16 +64,15 @@ def read_products(
     db: Session = Depends(get_db), 
     current_user = Depends(get_current_user)
 ):
-    import sys
     import uuid
-    print(f"DEBUG: read_products called. User: {current_user}", file=sys.stderr)
+    logger.debug(f"read_products called for user: {current_user.username}")
     try:
         query = db.query(Product).filter(Product.deleted_at == None)
         
         if current_user.role == "seller" and not branch_id:
             if current_user.branch_id:
                 branch_id = str(current_user.branch_id)
-                print(f"DEBUG: Seller branch_id from user: {branch_id} (Type: {type(branch_id)})", file=sys.stderr)
+                logger.debug(f"Seller branch_id from user: {branch_id} (Type: {type(branch_id)})")
         
         if branch_id and branch_id != "all":
             # Sanity check for empty dict string or object
@@ -84,7 +85,7 @@ def read_products(
                     uuid_obj = uuid.UUID(str(branch_id))
                     query = query.filter(Product.branch_id == uuid_obj)
                 except ValueError:
-                    print(f"WARNING: Invalid UUID for branch_id: {branch_id}", file=sys.stderr)
+                    logger.warning(f"Invalid UUID for branch_id: {branch_id}")
                     # If invalid UUID, maybe don't filter? Or filter by string?
                     # If DB has string UUIDs, uuid_obj comparison works.
                     pass
@@ -94,14 +95,27 @@ def read_products(
         if collection:
             query = query.filter(Product.collection == collection)
             
+        logger.debug(f"Executing query for user {current_user.username} (role: {current_user.role})")
         products = query.offset(skip).limit(limit).all()
-        print(f"DEBUG: Found {len(products)} products", file=sys.stderr)
+        logger.debug(f"Query finished. Found {len(products)} products")
+        
+        # Diagnostic: check for problematic products
+        for i, p in enumerate(products):
+             try:
+                 # Check if we can access all fields
+                 _ = p.id, p.code, p.category, p.type, p.photo[:10] if p.photo else None
+                 if i % 10 == 0:
+                     logger.debug(f"Processed {i} products...")
+             except Exception as e:
+                 logger.error(f"Problematic product at index {i}: id={p.id}, error={e}")
+                 
+        logger.debug(f"Returning {len(products)} products")
         return products
     except Exception as e:
-        print(f"DEBUG: Error in read_products: {e}", file=sys.stderr)
         import traceback
-        traceback.print_exc(file=sys.stderr)
-        raise e
+        error_msg = f"Error in read_products: {str(e)}\n{traceback.format_exc()}"
+        logger.error(error_msg)
+        raise HTTPException(status_code=500, detail=error_msg)
 
 @router.post("/", response_model=ProductResponse)
 def create_product(
@@ -133,10 +147,10 @@ def create_product(
              # Сохраняем image_data для фоновой задачи
              image_data_for_background = image_data
              
-             print("DEBUG: Image hash computed, CLIP embedding will be computed in background")
+             logger.debug("Image hash computed, CLIP embedding will be computed in background")
                  
         except Exception as e:
-             print(f"Failed to compute image hash: {e}")
+             logger.error(f"Failed to compute image hash: {e}")
 
     # Auto-calculate sell_price if collection has price_per_sqm and sizes are provided
     # Only if sell_price is not explicitly provided or we want to enforce it
@@ -221,7 +235,7 @@ async def search_products_by_image(
         if query_embedding is None:
             raise HTTPException(status_code=400, detail="Не удалось обработать изображение")
         
-        print(f"Query embedding extracted: shape={query_embedding.shape}", file=sys.stderr)
+        logger.info(f"Query embedding extracted: shape={query_embedding.shape}")
         
         # Построение запроса с фильтрацией
         query = db.query(Product).filter(
@@ -238,15 +252,15 @@ async def search_products_by_image(
         if current_user.role == "seller":
             if current_user.branch_id:
                 query = query.filter(Product.branch_id == current_user.branch_id)
-                print(f"Filtering by seller's branch: {current_user.branch_id}", file=sys.stderr)
+                logger.debug(f"Filtering by seller's branch: {current_user.branch_id}")
             else:
-                print("WARNING: Seller has no branch_id assigned", file=sys.stderr)
+                logger.warning("Seller has no branch_id assigned")
         
         products = query.all()
-        print(f"Searching among {len(products)} products with CLIP embeddings", file=sys.stderr)
+        logger.info(f"Searching among {len(products)} products with CLIP embeddings")
         
         if len(products) == 0:
-            print("WARNING: No products with CLIP embeddings found!", file=sys.stderr)
+            logger.warning("No products with CLIP embeddings found!")
             return []
         
         # 1. Извлекаем все эмбеддинги товаров и образцов
@@ -302,10 +316,10 @@ async def search_products_by_image(
                         }
             
             matches = list(product_best_matches.values())
-            print(f"Vectorized search (including {len(samples)} samples) finished. Matches: {len(matches)}", file=sys.stderr)
+            logger.info(f"Vectorized search (including {len(samples)} samples) finished. Matches: {len(matches)}")
             
         except Exception as e:
-            print(f"Error in vectorized search: {e}", file=sys.stderr)
+            logger.error(f"Error in vectorized search: {e}")
             # Fallback к обычному циклу если что-то пошло не так
             matches = []
             for product in products:
@@ -350,9 +364,8 @@ async def search_products_by_image(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error in search_products_by_image: {e}", file=sys.stderr)
+        logger.error(f"Error in search_products_by_image: {e}")
         import traceback
-        traceback.print_exc(file=sys.stderr)
         raise HTTPException(status_code=500, detail="Ошибка при поиске по изображению")
 
 @router.post("/{product_id}/samples")
@@ -387,7 +400,7 @@ async def add_product_sample(
             master_emb = np.frombuffer(product.image_embedding, dtype=np.float32)
             similarity_to_master = compute_similarity(new_embedding, master_emb)
             if similarity_to_master < 0.60:
-                print(f"Sample rejected: low similarity to master ({similarity_to_master:.2f})", file=sys.stderr)
+                logger.info(f"Sample rejected: low similarity to master ({similarity_to_master:.2f})")
                 return {"status": "skipped", "reason": "low_similarity"}
 
         # 2. Проверка на дубликаты среди существующих образцов
@@ -396,7 +409,7 @@ async def add_product_sample(
             sample_emb = np.frombuffer(sample.embedding, dtype=np.float32)
             sim = compute_similarity(new_embedding, sample_emb)
             if sim > 0.95:
-                print(f"Sample rejected: too similar to existing sample ({sim:.2f})", file=sys.stderr)
+                logger.info(f"Sample rejected: too similar to existing sample ({sim:.2f})")
                 return {"status": "skipped", "reason": "duplicate"}
 
         # 3. Сохранение
@@ -407,11 +420,11 @@ async def add_product_sample(
         db.add(new_sample)
         db.commit()
         
-        print(f"Added new sample for product {product_id}", file=sys.stderr)
+        logger.info(f"Added new sample for product {product_id}")
         return {"status": "success"}
 
     except Exception as e:
-        print(f"Error adding product sample: {e}", file=sys.stderr)
+        logger.error(f"Error adding product sample: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.patch("/{product_id}", response_model=ProductResponse)
@@ -448,10 +461,10 @@ def update_product(
              # Сохраняем для фоновой задачи
              image_data_for_background = image_data
              
-             print("DEBUG: Image hash updated, CLIP embedding will be computed in background")
+             logger.debug("Image hash updated, CLIP embedding will be computed in background")
                  
         except Exception as e:
-             print(f"Failed to compute image hash on update: {e}")
+             logger.error(f"Failed to compute image hash on update: {e}")
 
     for key, value in update_data.items():
         setattr(db_product, key, value)
@@ -466,7 +479,7 @@ def update_product(
             str(db_product.id),
             image_data_for_background
         )
-        print(f"DEBUG: Background task scheduled for updated product {db_product.id}")
+        logger.debug(f"Background task scheduled for updated product {db_product.id}")
     
     return db_product
 

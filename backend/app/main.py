@@ -1,3 +1,12 @@
+import logging
+import os
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import get_settings
@@ -19,28 +28,25 @@ async def lifespan(app: FastAPI):
     """
     Lifespan handler for start and stop events.
     """
-    print("Startup: Preloading CLIP model and starting Telegram Bot...")
+    logger.info("Startup: Preloading CLIP model...")
     bot_task = None
     try:
         from .utils.image_embedding import get_model
         import asyncio
         loop = asyncio.get_running_loop()
         
+        # Preload the model in a thread to keep startup fast
         async def preload_in_background():
             try:
                 await loop.run_in_executor(None, get_model)
-                print("Background: CLIP model preloaded successfully!")
+                logger.info("Background: CLIP model preloaded successfully!")
             except Exception as e:
-                print(f"Background warning: Failed to preload CLIP model: {e}")
-
-        # Fire and forget CLIP preload
-        asyncio.create_task(preload_in_background())
+                logger.warning(f"Background warning: Failed to preload CLIP model: {e}")
         
-        # Start the Telegram Bot and keep the task reference
-        bot_task = asyncio.create_task(run_bot())
-        print("Startup: CLIP model preload and Telegram Bot scheduled in background")
+        asyncio.create_task(preload_in_background())
+        logger.info("Startup: CLIP model preload scheduled")
     except Exception as e:
-        print(f"Startup warning: Initialization error: {e}")
+        logger.error(f"Startup error: Initialization failed: {e}")
 
     yield  # Application is running
 
@@ -63,6 +69,16 @@ app = FastAPI(
     debug=settings.DEBUG,
     lifespan=lifespan
 )
+
+@app.middleware("http")
+async def log_requests(request, call_next):
+    origin = request.headers.get("origin")
+    auth = request.headers.get("authorization", "")
+    token_snippet = auth[:15] if auth else "None"
+    logger.error(f"Incoming request: {request.method} {request.url} | Origin: {origin} | Auth: {token_snippet}...")
+    response = await call_next(request)
+    logger.error(f"Response status: {response.status_code}")
+    return response
 
 
 origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",")]

@@ -125,6 +125,41 @@ export function BranchDetail() {
     .filter(e => e.category === "staff")
     .reduce((sum, e) => sum + e.amount, 0);
 
+  // Group sales by order_id or (date + sellerId) for grouping multiple carpets sold to same client
+  const groupedSales = branchSales.reduce((acc: any[], sale) => {
+    const s = sale as any;
+    // Round date to the nearest minute for fallback grouping if order_id is missing
+    const dateKey = new Date(sale.date).toISOString().slice(0, 16);
+    const groupId = s.orderId || `${dateKey}_${s.sellerId || s.staffId}`;
+
+    const existingGroup = acc.find(g => g.groupId === groupId);
+
+    if (existingGroup) {
+      existingGroup.items.push(sale);
+      existingGroup.amount += sale.amount;
+      existingGroup.adminProfit += (s.adminProfit || s.admin_profit || 0);
+      existingGroup.sellerProfit += (s.sellerProfit || s.seller_profit || 0);
+
+      // Update display name for multiple items
+      if (existingGroup.items.length === 2) {
+        existingGroup.productName = `${existingGroup.items[0].productName}, ${sale.productName}`;
+      } else if (existingGroup.items.length > 2) {
+        existingGroup.productName = `${existingGroup.items.length} ta mahsulot`;
+      }
+    } else {
+      const s = sale as any;
+      acc.push({
+        ...sale,
+        groupId,
+        items: [sale],
+        adminProfit: (s.adminProfit || s.admin_profit || 0),
+        sellerProfit: (s.sellerProfit || s.seller_profit || 0),
+        entryType: "sale" as const
+      });
+    }
+    return acc;
+  }, []);
+
   // Combine sales, expenses, and debt payments for unified history
   const allDebtPayments = branchDebts.flatMap(debt =>
     (debt.paymentHistory || []).map(p => ({
@@ -136,7 +171,7 @@ export function BranchDetail() {
   );
 
   const unifiedHistory = [
-    ...branchSales.map(s => ({ ...s, entryType: "sale" as const })),
+    ...groupedSales,
     ...branchExpenses.map(e => ({ ...e, entryType: "expense" as const })),
     ...allDebtPayments
   ]
@@ -451,41 +486,7 @@ export function BranchDetail() {
               {t('admin.operationalHistory')}
             </h3>
 
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Seller Filter */}
-              <select
-                value={sellerFilter}
-                onChange={(e) => setSellerFilter(e.target.value)}
-                className="text-[10px] h-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-2 outline-none dark:text-gray-300"
-              >
-                <option value="all">{t('common.all')}</option>
-                {staffMembers.filter(s => s.branchId === branchId).map(s => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-
-              {/* Nasiya Toggle */}
-              <Button
-                variant={nasiyaOnlyFilter ? "default" : "outline"}
-                size="sm"
-                className="h-8 text-[10px] gap-1"
-                onClick={() => setNasiyaOnlyFilter(!nasiyaOnlyFilter)}
-              >
-                <Tag className="h-3 w-3" />
-                {t('common.filterByNasiya')}
-              </Button>
-
-              {/* Export Button */}
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 text-[10px] gap-1"
-                onClick={exportToCSV}
-              >
-                <Download className="h-3 w-3" />
-                {t('common.export')}
-              </Button>
-            </div>
+              {/* Filters removed per user request */}
           </div>
 
           {unifiedHistory.length === 0 ? (
@@ -577,7 +578,9 @@ function HistoryItem({ item, exchangeRate, staffMembers, products, formatCurrenc
   };
 
   const seller = staffMembers.find(s => s.id === (item.sellerId || item.staffId));
-  const product = isSale ? products.find(p => p.id === item.productId) : null;
+
+  // Sale groups might have multiple products
+  const saleItems = isSale ? (item.items || [item]) : [];
 
   // For payment, find remaining debt
   const debt = isPayment ? debts.find(d => d.id === item.debtId) : null;
@@ -614,7 +617,7 @@ function HistoryItem({ item, exchangeRate, staffMembers, products, formatCurrenc
           )}>
             {isSale || isPayment ? "+" : "-"}{
               formatCurrency(
-                item.amount * (isPayment ? 1 : (isSale ? (item.exchangeRate || exchangeRate) : 1)),
+                item.amount * (isPayment ? 1 : (isSale ? (item.exchangeRate || exchangeRate) : exchangeRate)),
                 "UZS"
               )
             }
@@ -651,60 +654,75 @@ function HistoryItem({ item, exchangeRate, staffMembers, products, formatCurrenc
             </div>
 
             {isSale && (
-              <>
-                {/* Product Code & Thumbnail */}
-                <div className="col-span-2 flex items-center gap-3 p-2 bg-white/40 dark:bg-black/20 rounded-xl mb-1 mt-1">
-                  {product?.photo ? (
-                    <img src={product.photo} alt="" className="h-10 w-10 object-cover rounded-lg shadow-sm" />
-                  ) : (
-                    <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                      <Package className="h-5 w-5 text-gray-400" />
+              <div className="col-span-2 space-y-4">
+                {saleItems.map((sItem: any, idx: number) => {
+                  const sProduct = products.find(p => p.id === sItem.productId);
+                  return (
+                    <div key={idx} className={cn(
+                      "p-3 rounded-xl border border-indigo-100 dark:border-indigo-900/30 bg-indigo-50/30 dark:bg-indigo-900/10",
+                      idx > 0 && "mt-2"
+                    )}>
+                      <div className="flex items-center gap-3 mb-3 border-b border-indigo-100/50 dark:border-indigo-900/20 pb-2">
+                        {sProduct?.photo ? (
+                          <img src={sProduct.photo} alt="" className="h-10 w-10 object-cover rounded-lg shadow-sm" />
+                        ) : (
+                          <div className="h-10 w-10 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg flex items-center justify-center">
+                            <Package className="h-5 w-5 text-indigo-400" />
+                          </div>
+                        )}
+                        <div className="flex flex-col flex-1 min-w-0">
+                          <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider leading-none mb-1">
+                            {sProduct?.collection || t('seller.withoutCollection')}
+                          </span>
+                          <span className="text-xs font-bold dark:text-white truncate">{sItem.productName}</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-y-3 gap-x-4">
+                        <div className="flex flex-col gap-1 text-[10px]">
+                          <span className="text-muted-foreground uppercase font-bold tracking-tight opacity-70">{t('product.size')} / {t('seller.area')}</span>
+                          <div className="font-bold dark:text-gray-200">
+                            {sItem.type === "unit"
+                              ? `${sItem.quantity} ${t('common.unit')} ${sItem.size ? `(${sItem.size})` : ''}`
+                              : `${(sItem.area || sItem.quantity).toFixed(1)} m² ${sItem.width ? `(${sItem.width}x${((sItem.area || sItem.quantity) / (sItem.width || 1)).toFixed(1)})` : ''}`}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-1 text-[10px]">
+                          <span className="text-muted-foreground uppercase font-bold tracking-tight opacity-70">{t('common.payment')}</span>
+                          <div className="flex items-center gap-1 font-bold dark:text-gray-200">
+                            <span className="uppercase">{sItem.paymentType === 'cash' ? t('common.cash') : sItem.paymentType === 'card' ? t('common.card') : t('common.transfer')}</span>
+                            {sItem.isNasiya && <Badge className="bg-orange-100 text-orange-600 border-orange-200 text-[7px] h-3 px-1 py-0">{t('seller.nasiyaSale')}</Badge>}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-1 text-[10px]">
+                          <span className="text-indigo-500 font-black uppercase tracking-tight">{t('product.buyPrice')}</span>
+                          <div className="font-black text-indigo-600 dark:text-indigo-400">
+                            {formatCurrency(sProduct?.buyPriceUsd || 0, "USD")}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-1 text-[10px]">
+                          <span className="text-emerald-500 font-black uppercase tracking-tight">{t('admin.actualProfit')}</span>
+                          <div className="font-black text-emerald-600 dark:text-emerald-400">
+                            {formatCurrency(sItem.adminProfit || sItem.admin_profit || 0, "USD")}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                  <div className="flex flex-col">
-                    <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider">{t('product.code')} (Artikul)</span>
-                    <span className="text-xs font-black dark:text-white uppercase">{product?.code || '---'}</span>
+                  );
+                })}
+
+                <div className="text-[10px] bg-slate-100 dark:bg-slate-800/50 p-2 rounded-lg flex items-center justify-end">
+                  <div className="flex items-center gap-3">
+                    <div className="flex flex-col items-end">
+                      <span className="text-[8px] uppercase font-bold text-indigo-500">{t('common.adminShort')} JAMI</span>
+                      <span className="text-xs font-black text-indigo-600">{formatCurrency(item.adminProfit, "USD")}</span>
+                    </div>
                   </div>
                 </div>
-
-                <div className="flex flex-col gap-1">
-                  <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider">{t('product.size')} / {t('seller.area')}</span>
-                  <div className="flex items-center gap-1.5 text-xs font-semibold dark:text-gray-200">
-                    <Layers className="h-3.5 w-3.5 text-muted-foreground" />
-                    {item.type === "unit"
-                      ? `${item.quantity} ${t('common.unit')} ${item.size ? `(${item.size})` : ''}`
-                      : `${(item.area || item.quantity).toFixed(1)} m² ${item.width ? `(${item.width}x${((item.area || item.quantity) / item.width).toFixed(1)})` : ''}`}
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider">{t('common.payment')}</span>
-                  <div className="flex items-center gap-1.5 text-xs font-semibold dark:text-gray-200">
-                    {item.paymentType === 'cash' ? <Wallet className="h-3.5 w-3.5 text-muted-foreground" /> : <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />}
-                    <span className="uppercase">{item.paymentType === 'cash' ? t('common.cash') : item.paymentType === 'card' ? t('common.card') : t('common.transfer')}</span>
-                    {item.isNasiya && <Badge className="bg-orange-100 text-orange-600 border-orange-200 text-[8px] h-3.5 px-1 py-0">{t('seller.nasiyaSale')}</Badge>}
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1 border-l pl-3 border-indigo-200 dark:border-indigo-900/30">
-                  <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider text-indigo-500 font-black">{t('product.buyPrice')} (USD)</span>
-                  <div className="text-xs font-black text-indigo-700 dark:text-indigo-300">
-                    {formatCurrency(product?.buyPriceUsd || 0, "USD")}
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1 border-l pl-3 border-emerald-200 dark:border-emerald-900/30">
-                  <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider text-emerald-500 font-black">{t('admin.actualProfit')} (USD)</span>
-                  <div className="text-xs font-black text-emerald-700 dark:text-emerald-300">
-                    {formatCurrency(item.adminProfit || item.admin_profit || 0, "USD")}
-                  </div>
-                </div>
-
-                <div className="col-span-2 text-[8px] text-muted-foreground italic flex items-center gap-1 mt-1">
-                  <Info className="h-2.5 w-2.5" />
-                  USD Kursi: 1$ = {item.exchangeRate || exchangeRate} so'm
-                </div>
-              </>
+              </div>
             )}
 
             {isPayment && (

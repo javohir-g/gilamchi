@@ -7,6 +7,9 @@ from ..models.debt import Debt, Payment
 from ..schemas.debt import DebtCreate, DebtResponse, PaymentCreate, PaymentResponse
 from ..utils.dependencies import get_current_user
 
+import logging
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 @router.post("/", response_model=DebtResponse)
@@ -36,8 +39,8 @@ def create_debt(debt: DebtCreate, db: Session = Depends(get_db), current_user = 
         return new_debt
     except Exception as e:
         import traceback
-        print(f"Error creating debt: {e}")
-        print(traceback.format_exc())
+        logger.error(f"Error creating debt: {e}")
+        logger.error(traceback.format_exc())
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 

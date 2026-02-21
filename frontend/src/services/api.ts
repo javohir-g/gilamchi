@@ -17,6 +17,8 @@ if (envApiUrl && !envApiUrl.startsWith('http')) {
 // 2. If env exists, ensure it ends with /api/ (case insensitive and handle trailing slashes)
 const apiProd = (import.meta as any).env?.PROD;
 let API_URL = envApiUrl || (apiProd ? '/api/' : 'http://localhost:8000/api/');
+// Explicit override for local troubleshooting
+if (!apiProd && !envApiUrl) API_URL = 'http://localhost:8000/api/';
 
 if (envApiUrl) {
   let base = envApiUrl.trim();

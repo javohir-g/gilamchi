@@ -6,6 +6,9 @@ from ..models.expense import Expense
 from ..schemas.expense import ExpenseCreate, ExpenseResponse
 from ..utils.dependencies import get_current_user
 
+import logging
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 @router.post("/", response_model=ExpenseResponse)
@@ -16,22 +19,27 @@ def create_expense(
 ):
     branch_id = expense.branch_id or current_user.branch_id
     
-    if not branch_id:
-        raise HTTPException(status_code=400, detail="Branch ID is required")
+    try:
+        new_expense = Expense(
+            amount=expense.amount,
+            description=expense.description,
+            category=expense.category,
+            branch_id=branch_id,
+            seller_id=current_user.id,
+            # Ensure None is passed to SQLAlchemy if staff_id is empty/none
+            staff_id=expense.staff_id if expense.staff_id else None
+        )
         
-    new_expense = Expense(
-        amount=expense.amount,
-        description=expense.description,
-        category=expense.category,
-        branch_id=branch_id,
-        seller_id=current_user.id,
-        staff_id=expense.staff_id
-    )
-    
-    db.add(new_expense)
-    db.commit()
-    db.refresh(new_expense)
-    return new_expense
+        db.add(new_expense)
+        db.commit()
+        db.refresh(new_expense)
+        return new_expense
+    except Exception as e:
+        db.rollback()
+        import traceback
+        error_msg = f"Error creating expense: {str(e)}\n{traceback.format_exc()}"
+        logger.error(error_msg)
+        raise HTTPException(status_code=500, detail=error_msg)
 
 @router.get("/", response_model=List[ExpenseResponse])
 def read_expenses(

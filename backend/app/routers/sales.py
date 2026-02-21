@@ -7,6 +7,9 @@ from ..models.product import Product, ProductType
 from ..schemas.sale import SaleCreate, SaleResponse
 from ..utils.dependencies import get_current_user
 
+import logging
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 @router.post("/", response_model=SaleResponse)
@@ -16,11 +19,10 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
         raise HTTPException(status_code=404, detail="Product not found")
 
     # Stock Validation & Deduction
-    import sys
-    print(f"DEBUG: Processing sale for product {product.id} (Type: {product.type})", file=sys.stderr)
+    logger.debug(f"Processing sale for product {product.id} (Type: {product.type})")
     
     if product.type == ProductType.UNIT:
-        print(f"DEBUG: Current quantity: {product.quantity}, Sale quantity: {sale.quantity}", file=sys.stderr)
+        logger.debug(f"Current quantity: {product.quantity}, Sale quantity: {sale.quantity}")
         if product.quantity < sale.quantity:
              raise HTTPException(status_code=400, detail=f"Insufficient stock (requested {sale.quantity}, available {product.quantity})")
         
@@ -34,7 +36,7 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
                     if size_qty < sale.quantity:
                         raise HTTPException(status_code=400, detail=f"Insufficient stock for size {sale.size}")
                     s["quantity"] = size_qty - int(sale.quantity)
-                    print(f"DEBUG: Size {sale.size} updated: {size_qty} -> {s['quantity']}", file=sys.stderr)
+                    logger.debug(f"Size {sale.size} updated: {size_qty} -> {s['quantity']}")
                     found = True
                     break
                 elif isinstance(s, str) and s == sale.size:
@@ -47,20 +49,20 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
                 flag_modified(product, "available_sizes")
 
         product.quantity = int(product.quantity) - int(sale.quantity)
-        print(f"DEBUG: New quantity: {product.quantity}", file=sys.stderr)
+        logger.debug(f"New quantity: {product.quantity}")
         
         if product.quantity <= 0:
             from datetime import datetime, timezone
             product.deleted_at = datetime.now(timezone.utc)
             product.deleted_by = current_user.id
-            print(f"DEBUG: Product {product.id} marked as deleted", file=sys.stderr)
+            logger.debug(f"Product {product.id} marked as deleted")
             
     elif product.type == ProductType.METER:
         available = float(product.remaining_length if product.remaining_length is not None else (product.total_length or 0))
         sale_len = float(sale.quantity)
         sale_width = float(sale.width) if sale.width else None
         
-        print(f"DEBUG: Current remaining_length: {available}, Sale length: {sale_len}, Width: {sale_width}", file=sys.stderr)
+        logger.debug(f"Current remaining_length: {available}, Sale length: {sale_len}, Width: {sale_width}")
         
         if available < sale_len:
              raise HTTPException(status_code=400, detail=f"Insufficient stock (requested {sale_len}m, available {available}m)")
@@ -92,11 +94,11 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
                                     # Preserve metadata like initial_length if present
                                     s["size"] = f"{w}x{new_l:.2f}"
                                 
-                                print(f"DEBUG: Roll {size_str} updated to {w}x{new_l:.2f}", file=sys.stderr)
+                                logger.debug(f"Roll {size_str} updated to {w}x{new_l:.2f}")
                                 found = True
                                 break
                     except Exception as e:
-                        print(f"DEBUG: Error parsing roll size {s.get('size')}: {e}", file=sys.stderr)
+                        logger.error(f"Error parsing roll size {s.get('size')}: {e}")
             
             if found:
                 from sqlalchemy.orm.attributes import flag_modified
@@ -104,7 +106,7 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
                 flag_modified(product, "available_sizes")
         
         product.remaining_length = available - sale_len
-        print(f"DEBUG: New remaining_length: {product.remaining_length}", file=sys.stderr)
+        logger.debug(f"New remaining_length: {product.remaining_length}")
             
         if product.remaining_length <= 0.05:
             from datetime import datetime, timezone

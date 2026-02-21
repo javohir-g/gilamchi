@@ -53,7 +53,7 @@ export function StaffProfitDistribution({
                 {activeStaff.map(staff => {
                     const individualExpenses = branchExpenses
                         .filter(e => e.category === "staff" && e.staffId === staff.id)
-                        .reduce((sum, e) => sum + e.amount, 0);
+                        .reduce((sum, e) => sum + (e.amount * exchangeRate), 0); // Convert USD → UZS
                     const netPayout = sharePerPerson - individualExpenses;
 
                     return (

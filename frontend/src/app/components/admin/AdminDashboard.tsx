@@ -88,11 +88,11 @@ export function AdminDashboard() {
     (sum, sale) => sum + (sale.profit || 0),
     0,
   );
-  const totalAdminProfit = (sales || []).reduce(
+  const totalAdminProfit = filteredSales.reduce(
     (acc: number, sale: Sale) => acc + (sale.adminProfit || 0),
     0
   );
-  const totalSellerProfit = (sales || []).reduce(
+  const totalSellerProfit = filteredSales.reduce(
     (acc: number, sale: Sale) => acc + (sale.sellerProfit || 0),
     0
   );

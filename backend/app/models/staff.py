@@ -12,4 +12,4 @@ class Staff(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
 
     # Relationships
     branch = relationship("Branch", back_populates="staff_members")
-    expenses = relationship("Expense", back_populates="staff_member")
+    # expenses = relationship("Expense", back_populates="staff_member")
