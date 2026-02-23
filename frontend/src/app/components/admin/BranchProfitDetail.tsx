@@ -10,7 +10,7 @@ export function BranchProfitDetail() {
   const navigate = useNavigate();
   const { branchId } = useParams();
   const [searchParams] = useSearchParams();
-  const { sales, products, branches } = useApp();
+  const { sales, products, branches, collections } = useApp();
   const { t } = useLanguage();
 
   const branch = branches.find((b) => b.id === branchId);
@@ -339,15 +339,42 @@ export function BranchProfitDetail() {
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <div className="font-medium text-card-foreground">
-                        {sale.productName}
-                        {saleProduct?.collection && (
-                          <span className="text-muted-foreground ml-1.5 font-normal text-xs">
-                            ({saleProduct.collection})
-                          </span>
-                        )}
+                        <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                          {saleProduct?.collection || t('seller.withoutCollection')}
+                        </span>
+                        {(() => {
+                          const coll = collections.find(c => c.name === saleProduct?.collection);
+                          const price = coll?.pricePerSqm || coll?.price_usd_per_sqm;
+                          if (price) {
+                            return (
+                              <span className="text-[10px] font-bold text-muted-foreground ml-2">
+                                (${price}/m²)
+                              </span>
+                            );
+                          }
+                          return null;
+                        })()}
+                        <span className="text-muted-foreground ml-1.5 font-normal text-xs">
+                          ({sale.productName || saleProduct?.code})
+                        </span>
                       </div>
-                      <div className="text-[10px] text-muted-foreground mt-1 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full w-fit">
-                        {new Date(sale.date).toLocaleString("uz-UZ")}
+                      <div className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-2">
+                        <span className="font-medium">
+                          {sale.type === 'meter'
+                            ? `${sale.width || 0}x${sale.length || 0}`
+                            : (sale.size || t('seller.withoutSize'))
+                          }
+                        </span>
+                        {(sale.area || 0) > 0 && (
+                          <>
+                            <span className="h-1 w-1 rounded-full bg-muted-foreground/30" />
+                            <span className="font-medium text-indigo-600/70">{sale.area} m²</span>
+                          </>
+                        )}
+                        <span className="h-1 w-1 rounded-full bg-muted-foreground/30 ml-auto" />
+                        <span className="text-[9px] bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
+                          {new Date(sale.date).toLocaleString("uz-UZ")}
+                        </span>
                       </div>
                     </div>
                     <div className="text-right">

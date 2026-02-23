@@ -97,7 +97,7 @@ export function DemoDashboard() {
         const branchExp = bExpenses.filter(e => e.category === 'branch').reduce((sum, e) => {
             return sum + (e.isUsd ? e.amount : e.amount / exchangeRate);
         }, 0);
-
+        
         const totalExpenses = staffExpenses + branchExp;
         const netMargin = adminProfit > 0 ? ((adminProfit - totalExpenses) / adminTurnover) * 100 : 0;
 
@@ -127,18 +127,18 @@ export function DemoDashboard() {
             maximumFractionDigits: compact && absAmount >= 1000 ? 1 : 2,
             notation: compact && absAmount >= 1000 ? "compact" : "standard"
         };
-
+        
         const formatted = new Intl.NumberFormat(currency === "UZS" ? "uz-UZ" : "en-US", options).format(absAmount);
         return isNegative ? `-${formatted}` : formatted;
     };
 
     return (
         <div className="min-h-screen bg-slate-50 pb-24 font-sans text-slate-900 selection:bg-blue-500/30">
-
+            
             {/* STICKY HEADER AREA */}
             <div className="bg-white/90 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-30 pt-4 pb-2 shadow-sm">
                 <div className="max-w-3xl mx-auto px-4">
-
+                    
                     {/* Top Row: Title & Action */}
                     <div className="flex justify-between items-center mb-6">
                         <div className="flex items-center gap-2">
@@ -150,8 +150,8 @@ export function DemoDashboard() {
                         <div className="text-right">
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Период</p>
                             <p className="text-sm font-bold text-blue-600 cursor-pointer" onClick={() => setShowDatePicker(!showDatePicker)}>
-                                {isCustomRange && dateRange?.from
-                                    ? `${format(dateRange.from, 'dd MMM')} - ${dateRange.to ? format(dateRange.to, 'dd MMM') : ''}`
+                                {isCustomRange && dateRange?.from 
+                                    ? `${format(dateRange.from, 'dd MMM')} - ${dateRange.to ? format(dateRange.to, 'dd MMM') : ''}` 
                                     : format(selectedDate, 'dd MMMM yyyy', { locale: ru })}
                             </p>
                         </div>
@@ -185,10 +185,11 @@ export function DemoDashboard() {
                                 <button
                                     key={i}
                                     onClick={() => handleDayClick(day)}
-                                    className={`flex flex-col items-center justify-center p-2 rounded-xl min-w-[48px] h-[56px] transition-all relative ${isSelected
-                                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                                            : "hover:bg-slate-100 text-slate-500 bg-white border border-slate-200"
-                                        }`}
+                                    className={`flex flex-col items-center justify-center p-2 rounded-xl min-w-[48px] h-[56px] transition-all relative ${
+                                        isSelected 
+                                        ? "bg-blue-600 text-white shadow-md shadow-blue-500/20" 
+                                        : "hover:bg-slate-100 text-slate-500 bg-white border border-slate-200"
+                                    }`}
                                 >
                                     <span className={`text-[10px] font-bold mb-0.5 ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>
                                         {format(day, 'E', { locale: ru })}
@@ -208,7 +209,7 @@ export function DemoDashboard() {
                 <div className="max-w-3xl mx-auto px-4 mt-4 animate-in slide-in-from-top-4 fade-in duration-200 relative z-20">
                     <div className="bg-white rounded-2xl p-4 shadow-xl border border-slate-200">
                         <DatePickerWithRange date={dateRange} setDate={setDateRange} className="w-full text-slate-800 mb-4" />
-                        <button
+                        <button 
                             onClick={handleApplyCustom}
                             disabled={!dateRange?.from}
                             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors disabled:opacity-50"
@@ -221,7 +222,7 @@ export function DemoDashboard() {
 
             {/* MAIN CONTENT AREA */}
             <div className="max-w-3xl mx-auto px-4 mt-6 space-y-4">
-
+                
                 <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Детализация по филиалам</h2>
 
                 {branchStats.map((branch) => {
@@ -262,7 +263,7 @@ export function DemoDashboard() {
                                     </div>
                                     <span className="text-sm font-black text-emerald-600">{formatCurrency(branch.adminProfit, "USD")}</span>
                                 </div>
-
+                                
                                 {/* Seller Margin */}
                                 <div className="flex justify-between items-center">
                                     <div className="flex items-center gap-1.5 text-slate-500">
@@ -293,7 +294,7 @@ export function DemoDashboard() {
                                     <span className="text-sm font-bold text-rose-600">{formatCurrency(branch.branchExp, "USD")}</span>
                                 </div>
                             </div>
-
+                            
                             {/* View Details Hint */}
                             <div className="mt-4 flex items-center justify-end gap-1 text-[10px] uppercase font-bold tracking-widest text-slate-400 group-hover:text-blue-600 transition-colors">
                                 Подробнее <ChevronRight className="h-3 w-3" />
@@ -303,7 +304,7 @@ export function DemoDashboard() {
                 })}
 
             </div>
-
+            
             <BottomNav />
         </div>
     );

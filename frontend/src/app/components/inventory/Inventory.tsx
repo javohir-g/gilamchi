@@ -1087,10 +1087,11 @@ export function Inventory() {
                         <div className="pt-1 border-t border-border/50">
                           {(() => {
                             const col = collections.find((c: any) => c.name === product.collection);
-                            const rate = col?.price_per_sqm || col?.price_usd_per_sqm;
+                            const rate = col?.pricePerSqm || col?.price_per_sqm || col?.price_usd_per_sqm;
+
                             if (rate && (product.category === "Gilamlar" || product.category === "Metrajlar")) {
                               return (
-                                <div className="text-xs font-semibold text-green-600 dark:text-green-400">
+                                <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
                                   ${rate}/m²
                                 </div>
                               );

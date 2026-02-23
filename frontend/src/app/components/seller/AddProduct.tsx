@@ -386,7 +386,7 @@ export function AddProduct() {
   }, [buyPrice, availableSizes, type]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-48">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-80">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
         <div className="flex items-center space-x-4 p-4">

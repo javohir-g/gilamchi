@@ -24,13 +24,6 @@ import {
 } from "recharts";
 import { DatePickerWithRange } from "../ui/date-range-picker";
 import { DateRange } from "react-day-picker";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../ui/dialog";
 
 type DateFilter = "today" | "week" | "month" | "custom";
 
@@ -370,36 +363,20 @@ export function Hisob() {
 
         {/* Financial Summary Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Card 1: Stock Value with Dialog */}
-          <Dialog>
-            <DialogTrigger asChild>
-              <Card className="p-4 bg-gradient-to-br from-indigo-500 to-indigo-600 border-0 shadow-lg shadow-indigo-500/20 text-white cursor-pointer hover:shadow-indigo-500/40 transition-shadow">
-                <div className="flex flex-col space-y-1">
-                  <span className="text-xs font-medium text-indigo-100 uppercase tracking-wider">
-                    {t('admin.stockValue')}
-                  </span>
-                  <div className="text-xl md:text-2xl font-bold truncate">
-                    {formatCurrency(totalStockValue)}
-                  </div>
-                </div>
-              </Card>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>{t('admin.stockValue')}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                {branchProfits.map((bp) => (
-                  <div key={bp.branchId} className="flex justify-between items-center bg-muted/50 p-3 rounded-lg">
-                    <div className="font-semibold">{bp.branchName}</div>
-                    <div className="font-bold text-indigo-600 dark:text-indigo-400">
-                      {formatCurrency(bp.stockValue)}
-                    </div>
-                  </div>
-                ))}
+          {/* Card 1: Stock Value */}
+          <Card
+            className="p-4 bg-gradient-to-br from-indigo-500 to-indigo-600 border-0 shadow-lg shadow-indigo-500/20 text-white cursor-pointer hover:shadow-indigo-500/40 transition-shadow"
+            onClick={() => navigate("/admin/warehouse-report")}
+          >
+            <div className="flex flex-col space-y-1">
+              <span className="text-xs font-medium text-indigo-100 uppercase tracking-wider">
+                {t('admin.stockValue')}
+              </span>
+              <div className="text-xl md:text-2xl font-bold truncate">
+                {formatCurrency(totalStockValue)}
               </div>
-            </DialogContent>
-          </Dialog>
+            </div>
+          </Card>
 
           {/* Card 3: Sold Stock Cost (Linked to Card 1) */}
           <Card className="p-4 bg-indigo-50 dark:bg-indigo-950 border border-indigo-100 dark:border-indigo-900 shadow-sm">
@@ -495,28 +472,8 @@ export function Hisob() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <div className="text-right">
-                      <div className="font-bold text-lg text-card-foreground">
-                        {formatCurrency(bp.profit)}
-                      </div>
-                      <Badge
-                        variant="outline"
-                        className="text-xs font-bold mt-1"
-                        style={{
-                          borderColor: pieData[index].color,
-                          color: pieData[index].color,
-                          backgroundColor: pieData[index].color + "10",
-                        }}
-                      >
-                        {totalDirectorProfit > 0
-                          ? (
-                            (bp.profit /
-                              totalDirectorProfit) *
-                            100
-                          ).toFixed(1)
-                          : 0}
-                        %
-                      </Badge>
+                    <div className="font-bold text-lg text-card-foreground">
+                      {formatCurrency(bp.profit)}
                     </div>
                     <ChevronRight className="h-6 w-6 text-muted-foreground" />
                   </div>
@@ -526,44 +483,10 @@ export function Hisob() {
           </div>
         </div>
 
-        {/* Pie Chart */}
-        {totalDirectorProfit > 0 && (
-          <Card className="p-6 border border-border bg-card rounded-2xl">
-            <h3 className="mb-4 text-sm font-bold text-muted-foreground tracking-wider uppercase">
-              {t('admin.profitDistribution')}
-            </h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={90}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={entry.color}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value: number) =>
-                    formatCurrency(value)
-                  }
-                />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </Card>
-        )}
       </div>
 
 
       <BottomNav />
-    </div>
+    </div >
   );
 }

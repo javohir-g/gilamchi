@@ -25,6 +25,7 @@ import { CashClosure } from './components/admin/CashClosure';
 import { ManageStaffMembers } from './components/admin/ManageStaffMembers';
 import { ManageCollections } from './components/admin/ManageCollections';
 import { ManageSizes } from './components/admin/ManageSizes';
+import WarehouseReport from './components/admin/WarehouseReport';
 import { Inventory } from './components/inventory/Inventory';
 import { Profile } from './components/Profile';
 
@@ -266,6 +267,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRole="admin">
               <Hisob />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/warehouse-report"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <WarehouseReport />
             </ProtectedRoute>
           }
         />
