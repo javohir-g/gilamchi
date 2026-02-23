@@ -314,6 +314,8 @@ export const uzCyrl = {
         debtHistory: "Қарзлар тарихи",
         unpaid: "Тўланмаган",
         payment: "Тўлов",
+        nasiyaSale: "НАСИЯ САВДО",
+        cardAndTransfer: "Карта / Ўтказма",
     },
 
     expense: {
@@ -346,6 +348,11 @@ export const uzCyrl = {
         meters: "Метражлар",
         oval: "Овалний",
         rugs: "Коврик",
+        metrajlar: "Метражлар",
+        gilamlar: "Гиламлар",
+        kovrik: "Коврик",
+        ovalniy: "Овалний",
+        "inStock:": "Омборда:",
     },
 
     profile: {

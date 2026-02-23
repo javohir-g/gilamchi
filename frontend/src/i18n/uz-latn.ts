@@ -317,6 +317,8 @@ export const uzLatn = {
         debtHistory: "Qarzlar tarixi",
         unpaid: "To'lanmagan",
         payment: "To'lov",
+        nasiyaSale: "NASIYA SAVDO",
+        cardAndTransfer: "Karta / O'tkazma",
     },
 
     expense: {
@@ -349,6 +351,11 @@ export const uzLatn = {
         meters: "Metrajlar",
         oval: "Ovalniy",
         rugs: "Kovrik",
+        metrajlar: "Metrajlar",
+        gilamlar: "Gilamlar",
+        kovrik: "Kovrik",
+        ovalniy: "Ovalniy",
+        "inStock:": "Omborda:",
     },
 
     profile: {

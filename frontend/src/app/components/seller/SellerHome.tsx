@@ -37,65 +37,88 @@ export function SellerHome() {
   const navigate = useNavigate();
   const { user, sales, branches, isAdminViewingAsSeller, exchangeRate, expenses, debts, staffMembers } = useApp();
   const { t } = useLanguage();
+
+  const [filterType, setFilterType] = useState<"today" | "week" | "month" | "custom">("today");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
 
   const userBranch = branches.find((b) => b.id === user?.branchId);
 
-  // Robust date check for "today"
-  const isToday = (dateStr: string) => {
-    const saleDate = new Date(dateStr);
-    const today = new Date();
-    return saleDate.toDateString() === today.toDateString();
+  // Filter based on period and branch
+  const getFilteredData = () => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const filterByDate = (dateStr: string) => {
+      const d = new Date(dateStr);
+      switch (filterType) {
+        case "today":
+          return d >= today;
+        case "week":
+          const weekStart = new Date(today);
+          const day = today.getDay();
+          const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+          weekStart.setDate(diff);
+          weekStart.setHours(0, 0, 0, 0);
+          return d >= weekStart;
+        case "month":
+          const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+          return d >= monthStart;
+        case "custom":
+          if (!customStart || !customEnd) return true;
+          const start = new Date(customStart);
+          const end = new Date(customEnd);
+          end.setHours(23, 59, 59, 999);
+          return d >= start && d <= end;
+        default:
+          return true;
+      }
+    };
+
+    const filteredSales = sales.filter((s: Sale) => {
+      const isOurBranch = isAdminViewingAsSeller
+        ? String(s.branchId).toLowerCase() === String(user?.branchId).toLowerCase()
+        : true;
+      return isOurBranch && filterByDate(s.date);
+    });
+
+    const filteredExpenses = expenses.filter(e =>
+      e.branchId === userBranch?.id &&
+      filterByDate(e.date) &&
+      (!e.category || e.category === "branch")
+    );
+
+    return { filteredSales, filteredExpenses, filterByDate };
   };
 
-  // Filter today's sales
-  const todaySales = sales.filter((sale: Sale) => {
-    const isOurSale = isAdminViewingAsSeller
-      ? String(sale.branchId).toLowerCase() === String(user?.branchId).toLowerCase()
-      : true;
+  const { filteredSales, filteredExpenses, filterByDate } = getFilteredData();
 
-    if (!isOurSale) return false;
-    return isToday(sale.date);
-  });
-
-  const totalSalesToday = todaySales.reduce(
-    (sum: number, sale: Sale) => sum + sale.amount,
-    0,
-  );
-
-  // Kassa calculations (consistent with BranchDetail)
-  const cashSalesToday = todaySales
+  // Kassa calculations
+  const cashSales = filteredSales
     .filter(s => s.paymentType === 'cash')
     .reduce((sum, s) => sum + s.amount, 0);
 
-  const cardTransferSalesToday = todaySales
+  const cardTransferSales = filteredSales
     .filter(s => s.paymentType === 'card' || s.paymentType === 'transfer')
     .reduce((sum, s) => sum + s.amount, 0);
 
-  const debtPaymentsToday = sales
+  const debtPayments = sales
     .filter(s => {
       const isOurBranch = isAdminViewingAsSeller
         ? String(s.branchId).toLowerCase() === String(user?.branchId).toLowerCase()
         : true;
-      return isOurBranch && (s as any).type === 'debt_payment' && isToday(s.date);
+      return isOurBranch && (s as any).type === 'debt_payment' && filterByDate(s.date);
     })
     .reduce((sum, s) => sum + s.amount, 0);
 
-  // Calculate today's branch expenses
-  const todayBranchExpenses = expenses
-    .filter(e =>
-      e.branchId === userBranch?.id &&
-      isToday(e.date) &&
-      (!e.category || e.category === "branch")
-    )
-    .reduce((sum, e) => sum + e.amount, 0);
+  const totalPeriodExpenses = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
 
-  // Get all operations (Orders + Debt Payments)
+  // Group operations
   const operations: any[] = [];
-
-  // Group sales by orderId for operations
   const orderMap = new Map<string, Sale[]>();
-  todaySales.forEach((sale: Sale) => {
+
+  filteredSales.forEach((sale: Sale) => {
     const orderId = sale.orderId || sale.id;
     if (!orderMap.has(orderId)) {
       orderMap.set(orderId, []);
@@ -103,7 +126,6 @@ export function SellerHome() {
     orderMap.get(orderId)!.push(sale);
   });
 
-  // Add grouped orders
   orderMap.forEach((orderSales, orderId) => {
     const totalAmount = orderSales.reduce((sum, s) => sum + s.amount, 0);
     const paymentTypes = [...new Set(orderSales.map((s) => s.paymentType))];
@@ -122,15 +144,13 @@ export function SellerHome() {
     });
   });
 
-  // Add debt payments
   debts.forEach(debt => {
     debt.paymentHistory?.forEach(payment => {
-      // Ensure we only show payments recorded by this seller/branch today if needed
       const isOurBranch = isAdminViewingAsSeller
         ? String(debt.branchId).toLowerCase() === String(user?.branchId).toLowerCase()
         : true;
 
-      if (isOurBranch && isToday(payment.date)) {
+      if (isOurBranch && filterByDate(payment.date)) {
         operations.push({
           id: payment.id,
           opType: 'payment',
@@ -144,10 +164,7 @@ export function SellerHome() {
     });
   });
 
-  // Sort operations by date (newest first)
-  operations.sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-  );
+  operations.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const formatCurrency = (amount: number, currency: "USD" | "UZS" = "UZS") => {
     if (currency === "UZS") {
@@ -181,8 +198,8 @@ export function SellerHome() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="bg-card border-b border-border px-6 py-4 mb-3">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
+      <div className="bg-card border-b border-border">
+        <div className="px-6 py-4 flex justify-between items-center">
           <div>
             <div className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-1">
               {userBranch?.name || t('common.branch')}
@@ -192,6 +209,46 @@ export function SellerHome() {
           <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 border-0 px-3 py-1 font-semibold">
             {t('common.seller')}
           </Badge>
+        </div>
+
+        {/* Date Filters */}
+        <div className="px-6 pb-4">
+          <div className="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl mb-3">
+            {[
+              { id: "today", label: t('common.today') },
+              { id: "week", label: t('common.week') },
+              { id: "month", label: t('common.month') },
+              { id: "custom", label: t('common.other') }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setFilterType(tab.id as any)}
+                className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${filterType === tab.id
+                    ? "bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400"
+                    : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                  }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {filterType === "custom" && (
+            <div className="grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-top-2 mb-2">
+              <input
+                type="date"
+                value={customStart}
+                onChange={(e) => setCustomStart(e.target.value)}
+                className="h-10 px-3 rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"
+              />
+              <input
+                type="date"
+                value={customEnd}
+                onChange={(e) => setCustomEnd(e.target.value)}
+                className="h-10 px-3 rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -208,7 +265,7 @@ export function SellerHome() {
               <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">{t('seller.cashRegister')}</span>
             </div>
             <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 leading-none">
-              {formatCurrency((cashSalesToday + debtPaymentsToday + cardTransferSalesToday) * exchangeRate, "UZS")}
+              {formatCurrency((cashSales + debtPayments + cardTransferSales) * exchangeRate, "UZS")}
             </div>
           </div>
 
@@ -216,7 +273,7 @@ export function SellerHome() {
             <div>
               <div className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">{t('common.cash')}</div>
               <div className="text-sm font-bold text-gray-900 dark:text-white leading-none">
-                {formatCurrency((cashSalesToday + debtPaymentsToday) * exchangeRate, "UZS")}
+                {formatCurrency((cashSales + debtPayments) * exchangeRate, "UZS")}
               </div>
               <div className="text-[8px] text-gray-400 italic mt-1.5 leading-none">{t('seller.salesAndDebt')}</div>
             </div>
@@ -224,7 +281,7 @@ export function SellerHome() {
             <div>
               <div className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">{t('seller.cardAndTransfer')}</div>
               <div className="text-sm font-bold text-blue-600 dark:text-blue-400 leading-none">
-                {formatCurrency(cardTransferSalesToday * exchangeRate, "UZS")}
+                {formatCurrency(cardTransferSales * exchangeRate, "UZS")}
               </div>
             </div>
           </div>
@@ -232,7 +289,7 @@ export function SellerHome() {
 
         {/* Branch Profit Card */}
         {(() => {
-          const totalBranchProfit = todaySales.reduce(
+          const totalBranchProfit = filteredSales.reduce(
             (sum, sale) => sum + (sale.sellerProfit || 0),
             0,
           );
@@ -262,8 +319,8 @@ export function SellerHome() {
                   staffMembers={staffMembers}
                   branchId={userBranch?.id || ""}
                   totalSellerProfit={totalBranchProfit * exchangeRate}
-                  totalBranchExpenses={todayBranchExpenses * exchangeRate}
-                  branchExpenses={expenses.filter(e => e.branchId === userBranch?.id && isToday(e.date))}
+                  totalBranchExpenses={totalPeriodExpenses * exchangeRate}
+                  branchExpenses={filteredExpenses}
                 />
               </DialogContent>
             </Dialog>
@@ -279,7 +336,7 @@ export function SellerHome() {
           <div className="space-y-3">
             {operations.length === 0 ? (
               <Card className="p-12 text-center text-muted-foreground bg-card rounded-2xl border border-border">
-                {t('messages.noSalesToday')}
+                {t('messages.noSalesPeriod')}
               </Card>
             ) : (
               operations.map((op) => {

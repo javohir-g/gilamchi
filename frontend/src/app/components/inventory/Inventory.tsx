@@ -193,6 +193,9 @@ export function Inventory() {
     const targetBranchId = isAdmin
       ? filterBranch
       : user?.branchId;
+
+    if (!isAdmin && !targetBranchId) return [];
+
     const relevantProducts = products.filter((p) => {
       const isCorrectBranch =
         targetBranchId === "all" ||
@@ -228,6 +231,9 @@ export function Inventory() {
     const targetBranchId = isAdmin
       ? filterBranch
       : user?.branchId;
+
+    if (!isAdmin && !targetBranchId) return 0;
+
     return products.filter((p) => {
       const isCorrectBranch =
         targetBranchId === "all" ||

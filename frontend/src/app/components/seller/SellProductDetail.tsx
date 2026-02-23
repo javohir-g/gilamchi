@@ -100,6 +100,14 @@ export function SellProductDetail() {
     return <div>{t('messages.noData')}</div>;
   }
 
+  // Branch safety check for sellers
+  const isAdmin = user?.role === 'admin';
+  if (!isAdmin && user?.branchId && String(product.branchId) !== String(user.branchId)) {
+    toast.error(t('messages.accessDenied'));
+    navigate('/seller/sell');
+    return null;
+  }
+
   const isCarpet = product.category === "Gilamlar";
   const isMetraj = product.category === "Metrajlar";
   const isCarpetOrMetraj = isCarpet || isMetraj;

@@ -69,12 +69,11 @@ export function SellProduct() {
   const filteredProducts = products.filter((product) => {
     const isAdmin = user?.role === "admin";
 
-    // For sellers, we trust the backend to have already filtered by branch.
-    // For admins, we allow them to see everything or we could add a branch selector later.
     const matchesBranch =
-      user?.role === "seller" ||
       isAdmin ||
-      (String(product.branchId).toLowerCase() === String(user?.branchId).toLowerCase());
+      (user?.branchId &&
+        String(product.branchId).toLowerCase() ===
+        String(user?.branchId).toLowerCase());
 
     const matchesCategory = selectedCategory
       ? product.category === selectedCategory

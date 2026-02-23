@@ -5,6 +5,7 @@ import {
   ChevronDown,
   ChevronUp,
   Package,
+  Calendar,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
@@ -26,36 +27,58 @@ export function DailySales() {
   const navigate = useNavigate();
   const { user, sales, isAdminViewingAsSeller, exchangeRate } = useApp();
   const { t } = useLanguage();
-  const [expandedOrders, setExpandedOrders] = useState<
-    Set<string>
-  >(new Set());
 
-  // Robust date check for "today"
-  const isToday = (dateStr: string) => {
-    const saleDate = new Date(dateStr);
-    const today = new Date();
-    return saleDate.toDateString() === today.toDateString();
+  const [filterType, setFilterType] = useState<"today" | "week" | "month" | "custom">("today");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
+  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
+
+  // Filter sales based on period and branch
+  const getFilteredSales = () => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const branchFiltered = sales.filter((sale: Sale) => {
+      return isAdminViewingAsSeller
+        ? String(sale.branchId).toLowerCase() === String(user?.branchId).toLowerCase()
+        : true;
+    });
+
+    switch (filterType) {
+      case "today":
+        return branchFiltered.filter((sale) => new Date(sale.date) >= today);
+      case "week":
+        const weekStart = new Date(today);
+        const day = today.getDay();
+        const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+        weekStart.setDate(diff);
+        weekStart.setHours(0, 0, 0, 0);
+        return branchFiltered.filter((sale) => new Date(sale.date) >= weekStart);
+      case "month":
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        return branchFiltered.filter((sale) => new Date(sale.date) >= monthStart);
+      case "custom":
+        if (!customStart || !customEnd) return branchFiltered;
+        const start = new Date(customStart);
+        const end = new Date(customEnd);
+        end.setHours(23, 59, 59, 999);
+        return branchFiltered.filter((sale) => {
+          const d = new Date(sale.date);
+          return d >= start && d <= end;
+        });
+      default:
+        return branchFiltered;
+    }
   };
 
-  // Filter today's sales
-  const todaySales = sales.filter((sale: Sale) => {
-    // If we are an admin viewing as a seller, we MUST filter by the selected branch.
-    // Real sellers already got a filtered list from the API.
-    const isOurSale = isAdminViewingAsSeller
-      ? String(sale.branchId).toLowerCase() === String(user?.branchId).toLowerCase()
-      : true;
-
-    if (!isOurSale) return false;
-
-    return isToday(sale.date);
-  });
+  const filteredSales = getFilteredSales();
 
   // Group sales by orderId
   const orders: Order[] = [];
   const orderMap = new Map<string, Sale[]>();
 
-  todaySales.forEach((sale: Sale) => {
-    const orderId = sale.orderId || sale.id; // Use sale.id for single-product sales
+  filteredSales.forEach((sale: Sale) => {
+    const orderId = sale.orderId || sale.id;
     if (!orderMap.has(orderId)) {
       orderMap.set(orderId, []);
     }
@@ -63,13 +86,8 @@ export function DailySales() {
   });
 
   orderMap.forEach((orderSales, orderId) => {
-    const totalAmount = orderSales.reduce(
-      (sum: number, s: Sale) => sum + s.amount,
-      0,
-    );
-    const paymentTypes = [
-      ...new Set(orderSales.map((s) => s.paymentType)),
-    ];
+    const totalAmount = orderSales.reduce((sum: number, s: Sale) => sum + s.amount, 0);
+    const paymentTypes = [...new Set(orderSales.map((s) => s.paymentType))];
 
     orders.push({
       orderId,
@@ -77,41 +95,15 @@ export function DailySales() {
       totalAmount,
       date: orderSales[0].date,
       paymentTypes: paymentTypes.map((pt) =>
-        pt === "cash"
-          ? t('common.cash')
-          : pt === "card"
-            ? t('common.card')
-            : t('common.transfer'),
+        pt === "cash" ? t('common.cash') : pt === "card" ? t('common.card') : t('common.transfer'),
       ),
     });
   });
 
-  // Sort orders by date (newest first)
-  orders.sort(
-    (a, b) =>
-      new Date(b.date).getTime() - new Date(a.date).getTime(),
-  );
+  orders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const totalAmount = todaySales.reduce(
-    (sum, sale) => sum + sale.amount,
-    0,
-  );
-
-  const totalSellerProfit = todaySales.reduce(
-    (sum, s) => sum + (s.sellerProfit || 0),
-    0,
-  );
-
-  // Group by payment type
-  const cashTotal = todaySales
-    .filter((s) => s.paymentType === "cash")
-    .reduce((sum, s) => sum + s.amount, 0);
-  const cardTotal = todaySales
-    .filter((s) => s.paymentType === "card")
-    .reduce((sum, s) => sum + s.amount, 0);
-  const transferTotal = todaySales
-    .filter((s) => s.paymentType === "transfer")
-    .reduce((sum, s) => sum + s.amount, 0);
+  const totalAmount = filteredSales.reduce((sum, sale) => sum + sale.amount, 0);
+  const totalSellerProfit = filteredSales.reduce((sum, s) => sum + (s.sellerProfit || 0), 0);
 
   const formatCurrency = (amount: number, currency: "USD" | "UZS" = "UZS") => {
     if (currency === "UZS") {
@@ -146,17 +138,57 @@ export function DailySales() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
-        <div className="flex items-center space-x-4 p-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/seller/home")}
-          >
-            <ArrowLeft className="h-6 w-6 dark:text-white" />
-          </Button>
-          <h1 className="text-xl dark:text-white">
-            {t('seller.myDailySales')}
-          </h1>
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/seller/home")}
+            >
+              <ArrowLeft className="h-6 w-6 dark:text-white" />
+            </Button>
+            <h1 className="text-xl dark:text-white">{t('nav.sales')}</h1>
+          </div>
+        </div>
+
+        {/* Date Filters */}
+        <div className="px-4 pb-4">
+          <div className="flex p-1 bg-gray-100 dark:bg-gray-700 rounded-xl mb-3">
+            {[
+              { id: "today", label: t('common.today') },
+              { id: "week", label: t('common.week') },
+              { id: "month", label: t('common.month') },
+              { id: "custom", label: t('common.other') }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setFilterType(tab.id as any)}
+                className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${filterType === tab.id
+                    ? "bg-white dark:bg-gray-600 shadow-sm text-blue-600 dark:text-blue-400"
+                    : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                  }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {filterType === "custom" && (
+            <div className="grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-top-2">
+              <input
+                type="date"
+                value={customStart}
+                onChange={(e) => setCustomStart(e.target.value)}
+                className="h-10 px-3 rounded-lg border dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
+              />
+              <input
+                type="date"
+                value={customEnd}
+                onChange={(e) => setCustomEnd(e.target.value)}
+                className="h-10 px-3 rounded-lg border dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -208,7 +240,7 @@ export function DailySales() {
           </h3>
           {orders.length === 0 ? (
             <p className="py-8 text-center text-gray-500 dark:text-gray-400">
-              {t('messages.noSalesToday')}
+              {t('messages.noSalesPeriod')}
             </p>
           ) : (
             <div className="space-y-3">

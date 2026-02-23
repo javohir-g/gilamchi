@@ -754,11 +754,9 @@ export function AppProvider({
     let remainingTransfer = payments.find(p => p.type === "transfer")?.amount || 0;
     let remainingDebt = payments.find(p => p.type === "debt")?.amount || 0;
 
-    const salesPromises = basket.map((item, index) => {
-      const product = products.find(
-        (p) => p.id === item.productId,
-      );
-      if (!product) return Promise.resolve();
+    const salesPromisesGroups = basket.map((item) => {
+      const product = products.find((p) => p.id === item.productId);
+      if (!product) return [Promise.resolve()];
 
       // Calculate base price for this item
       let itemBaseTotal = item.total;
@@ -772,75 +770,82 @@ export function AppProvider({
       // Calculate this item's total with markup
       const itemTotalWithMarkup = itemBaseTotal + itemProfit;
 
-      // Determine payment type for this sale based on remaining amounts
-      let paymentType: PaymentType = "cash";
+      // Determine payment distribution for this specific item
+      const itemPayments: { type: PaymentType; amount: number }[] = [];
+      let itemAmountToDistribute = itemTotalWithMarkup;
 
-      if (remainingCash >= itemTotalWithMarkup) {
-        paymentType = "cash";
-        remainingCash -= itemTotalWithMarkup;
-      } else if (remainingCash > 0) {
-        paymentType = "cash";
-        remainingCash = 0;
-      } else if (remainingCard >= itemTotalWithMarkup) {
-        paymentType = "card";
-        remainingCard -= itemTotalWithMarkup;
-      } else if (remainingCard > 0) {
-        paymentType = "card";
-        remainingCard = 0;
-      } else if (remainingTransfer >= itemTotalWithMarkup) {
-        paymentType = "transfer";
-        remainingTransfer -= itemTotalWithMarkup;
-      } else if (remainingTransfer > 0) {
-        paymentType = "transfer";
-        remainingTransfer = 0;
-      } else {
-        paymentType = "debt";
-        remainingDebt -= itemTotalWithMarkup;
-      }
+      const consume = (type: PaymentType, amount: number) => {
+        if (itemAmountToDistribute <= 0 || amount <= 0) return amount;
+        const taken = Math.min(itemAmountToDistribute, amount);
+        itemPayments.push({ type, amount: taken });
+        itemAmountToDistribute -= taken;
+        return amount - taken;
+      };
+
+      remainingCash = consume("cash", remainingCash);
+      remainingCard = consume("card", remainingCard);
+      remainingTransfer = consume("transfer", remainingTransfer);
+      remainingDebt = consume("debt", remainingDebt);
 
       // Map dimensions and area
       let width = item.width ? parseFloat(item.width) : undefined;
-      let height_val = item.height ? parseFloat(item.height) : (item.type === 'meter' ? item.quantity : undefined);
+      let height_val = item.height
+        ? parseFloat(item.height)
+        : item.type === "meter"
+          ? item.quantity
+          : undefined;
 
-      // Crucial: area sent to backend should be TOTAL area for profit calculation context
-      // For unit products: total area = area of one piece * quantity
-      // For meter products: item.area is already the total area of the cut
       let total_area = item.area;
-      if (item.area && item.type === 'unit') {
+      if (item.area && item.type === "unit") {
         total_area = item.area * item.quantity;
       }
 
-      if (item.type === 'meter' && !width && product.width) {
+      if (item.type === "meter" && !width && product.width) {
         width = product.width;
       }
 
       if (!total_area && width && height_val) {
-        total_area = width * height_val * (item.type === 'unit' ? item.quantity : 1);
+        total_area =
+          width * height_val * (item.type === "unit" ? item.quantity : 1);
       }
 
-      const sale: any = {
-        productId: item.productId,
-        productName: item.productName,
-        quantity: item.quantity,
-        amount: itemTotalWithMarkup,
-        paymentType: paymentType,
-        branchId: user.branchId || "",
-        sellerId: user.id,
-        date: new Date().toISOString(),
-        orderId: orderId,
-        profit: itemProfit,
-        type: item.type,
-        width,
-        length: height_val,
-        area: total_area,
-        isNasiya: isNasiya,
-        size: item.size
-      };
+      // Create one sale record for each payment chunk
+      return itemPayments.map((p, pIndex) => {
+        const proportion = p.amount / itemTotalWithMarkup;
+        const sale: any = {
+          productId: item.productId,
+          productName: item.productName,
+          quantity: item.quantity * proportion,
+          amount: p.amount,
+          paymentType: p.type,
+          branchId: user.branchId || "",
+          sellerId: user.id,
+          date: new Date().toISOString(),
+          orderId: orderId,
+          profit: itemProfit * proportion,
+          type: item.type,
+          width,
+          length: height_val ? height_val * proportion : undefined,
+          area: total_area ? total_area * proportion : undefined,
+          isNasiya: isNasiya,
+          size: item.size,
+        };
 
-      return addSale(sale);
+        // Handle unit quantity rounding to avoid fractional stock if possible
+        if (item.type === "unit") {
+          if (item.quantity === 1) {
+            sale.quantity = pIndex === 0 ? 1 : 0;
+          } else {
+            // For multiple units, we could round but proportional is safer for price accuracy
+            // The backend should ideally handle fractional quantities for inventory if needed
+          }
+        }
+
+        return addSale(sale);
+      });
     });
 
-    await Promise.all(salesPromises);
+    await Promise.all(salesPromisesGroups.flat());
     // Refresh all data once after complete order to sync stock and sales
     await fetchData();
     clearBasket();
