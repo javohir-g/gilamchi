@@ -170,12 +170,12 @@ export function ManageCollections() {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("uz-UZ", {
+  const formatUsdCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "UZS",
+      currency: "USD",
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      maximumFractionDigits: 2,
     }).format(amount);
   };
 
@@ -277,10 +277,10 @@ export function ManageCollections() {
                       </h3>
                       <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                         <div>
-                          Sotish: <b>{formatCurrency(col.pricePerSqm || 0)}</b>
+                          Sotish: <b>{formatUsdCurrency(col.pricePerSqm || 0)}</b>
                         </div>
                         <div>
-                          Xarid: <b>{formatCurrency(col.buyPricePerSqm || 0)}</b>
+                          Xarid: <b>{formatUsdCurrency(col.buyPricePerSqm || 0)}</b>
                         </div>
                       </div>
                       <p className="text-[10px] text-muted-foreground mt-1">
@@ -354,27 +354,27 @@ export function ManageCollections() {
             )}
             <div>
               <Label htmlFor="collection-buy-price" className="mb-2 block">
-                Xarid narxi (so'm/m²)
+                Xarid narxi ($/m²)
               </Label>
               <Input
                 id="collection-buy-price"
                 type="number"
                 value={collectionBuyPrice}
                 onChange={(e) => setCollectionBuyPrice(e.target.value)}
-                placeholder={`${t('common.forExample')}: 50000`}
+                placeholder={`${t('common.forExample')}: 4.5`}
                 className="h-12"
               />
             </div>
             <div>
               <Label htmlFor="collection-price" className="mb-2 block">
-                Sotish narxi (so'm/m²)
+                Sotish narxi ($/m²)
               </Label>
               <Input
                 id="collection-price"
                 type="number"
                 value={collectionPrice}
                 onChange={(e) => setCollectionPrice(e.target.value)}
-                placeholder={`${t('common.forExample')}: 75000`}
+                placeholder={`${t('common.forExample')}: 6.5`}
                 className="h-12"
               />
             </div>
@@ -438,7 +438,7 @@ export function ManageCollections() {
             )}
             <div>
               <Label htmlFor="edit-collection-buy-price" className="mb-2 block">
-                Xarid narxi (so'm/m²)
+                Xarid narxi ($/m²)
               </Label>
               <Input
                 id="edit-collection-buy-price"
@@ -450,7 +450,7 @@ export function ManageCollections() {
             </div>
             <div>
               <Label htmlFor="edit-collection-price" className="mb-2 block">
-                Sotish narxi (so'm/m²)
+                Sotish narxi ($/m²)
               </Label>
               <Input
                 id="edit-collection-price"

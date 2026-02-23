@@ -70,7 +70,7 @@ export function AddToBasketModal({
     // 2. If it's a carpet/metraj, try to find collection price
     if (isCarpetOrMetraj && product.collection) {
       const coll = collections.find(c => c.name === product.collection);
-      if (coll?.price_per_sqm) return coll.price_per_sqm;
+      if (coll?.pricePerSqm) return coll.pricePerSqm;
     }
 
     // 3. Fallback to sellPrice or sellPricePerMeter

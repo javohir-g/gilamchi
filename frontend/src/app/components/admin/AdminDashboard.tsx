@@ -79,78 +79,19 @@ export function AdminDashboard() {
 
   const filteredSales = getFilteredSales();
 
-  // Calculate KPIs using filtered sales
-  const totalSales = filteredSales.reduce(
+  // Calculate KPIs using ONLY TODAY's sales, as requested
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const todaySalesData = sales.filter((sale) => new Date(sale.date) >= todayStart);
+
+  const totalSales = todaySalesData.reduce(
     (sum, sale) => sum + sale.amount,
     0,
   );
-  const totalProfit = filteredSales.reduce(
-    (sum, sale) => sum + (sale.profit || 0),
-    0,
-  );
-  const totalAdminProfit = filteredSales.reduce(
-    (acc: number, sale: Sale) => acc + (sale.adminProfit || 0),
-    0
-  );
-  const totalSellerProfit = filteredSales.reduce(
+  const totalSellerProfit = todaySalesData.reduce(
     (acc: number, sale: Sale) => acc + (sale.sellerProfit || 0),
     0
-  );
-  const cashSales = filteredSales
-    .filter((s) => s.paymentType === "cash")
-    .reduce((sum, sale) => sum + sale.amount, 0);
-  const cardSales = filteredSales
-    .filter((s) => s.paymentType === "card")
-    .reduce((sum, sale) => sum + sale.amount, 0);
-  const transferSales = filteredSales
-    .filter((s) => s.paymentType === "transfer")
-    .reduce((sum, sale) => sum + sale.amount, 0);
-
-  const expectedCash = cashSales;
-  const receivedCash = cashSales * 0.95; // Mock: 95% received
-  const difference = receivedCash - expectedCash;
-
-  // Branch data based on filtered sales
-  const branchData = branches.map((branch) => {
-    const branchSales = filteredSales.filter(
-      (s) => s.branchId === branch.id,
-    );
-    const periodTotal = branchSales.reduce(
-      (sum, sale) => sum + sale.amount,
-      0,
-    );
-    const cashTotal = branchSales
-      .filter((s) => s.paymentType === "cash")
-      .reduce((sum, sale) => sum + sale.amount, 0);
-    const branchProfit = branchSales.reduce(
-      (sum, sale) => sum + (sale.sellerProfit || 0),
-      0,
-    );
-    const branchAdminProfit = branchSales.reduce(
-      (sum, sale) => sum + (sale.adminProfit || 0),
-      0,
-    );
-
-    return {
-      ...branch,
-      todaySales: periodTotal, // Re-using property name but it's period-based now
-      cashAmount: cashTotal,
-      profit: branchProfit,
-      adminProfit: branchAdminProfit,
-    };
-  });
-
-  // Debt statistics
-  const pendingDebts = debts.filter(
-    (d) => d.status === "pending",
-  );
-  const overdueDebts = debts.filter((d) => {
-    if (d.status === "paid") return false;
-    return new Date(d.paymentDeadline) < new Date();
-  });
-  const totalDebtAmount = pendingDebts.reduce(
-    (sum, d) => sum + d.remainingAmount,
-    0,
   );
 
   const formatCurrency = (amount: number, currency: "USD" | "UZS" = "USD") => {
@@ -236,7 +177,7 @@ export function AdminDashboard() {
                 <div className="flex items-center space-x-2 mb-2">
                   <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-blue-100" />
                   <span className="text-xs md:text-sm font-medium text-blue-100/80">
-                    {t('admin.totalSales')}
+                    Bugungi jami savdo
                   </span>
                 </div>
                 <div className="text-xl md:text-3xl font-bold text-white tracking-tight">
@@ -244,7 +185,7 @@ export function AdminDashboard() {
                 </div>
               </div>
               <div className="mt-2 text-[10px] md:text-xs text-blue-100/60 font-medium uppercase tracking-wider">
-                {t('messages.salesCount').replace('{count}', filteredSales.length.toString())}
+                {t('common.today')}
               </div>
             </div>
           </Card>
@@ -259,7 +200,7 @@ export function AdminDashboard() {
                 <div className="flex items-center space-x-2 mb-2">
                   <DollarSign className="h-4 w-4 md:h-5 md:w-5 text-emerald-100" />
                   <span className="text-xs md:text-sm font-medium text-emerald-100/80">
-                    {t('admin.sellerProfits')}
+                    Bugungi foyda (Filiallar)
                   </span>
                 </div>
                 <div className="text-xl md:text-3xl font-bold text-white tracking-tight">
@@ -267,7 +208,7 @@ export function AdminDashboard() {
                 </div>
               </div>
               <div className="mt-2 text-[10px] md:text-xs text-emerald-100/60 font-medium uppercase tracking-wider">
-                {t('admin.totalBranches')}
+                {t('common.today')}
               </div>
             </div>
           </Card>
@@ -279,7 +220,7 @@ export function AdminDashboard() {
             {t('admin.byBranch')}
           </h3>
           <div className="space-y-4">
-            {branchData.map((branch, index) => (
+            {branches.map((branch, index) => (
               <Card
                 key={branch.id}
                 onClick={() => navigate(`/admin/branch/${branch.id}?filter=${period}`)}
@@ -302,45 +243,9 @@ export function AdminDashboard() {
                       <div className="font-bold text-lg text-card-foreground">
                         {branch.name}
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {t('admin.salesReport')}
-                      </div>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <div className="text-right">
-                      <div className="font-bold text-lg text-card-foreground">
-                        {formatCurrency(branch.todaySales * exchangeRate, "UZS")}
-                      </div>
-                      <div className="flex flex-col items-end gap-1 mt-1">
-                        {branch.adminProfit > 0 && (
-                          <Badge
-                            variant="outline"
-                            className="text-[10px] font-bold"
-                            style={{
-                              borderColor: "#6366f1",
-                              color: "#6366f1",
-                              backgroundColor: "#6366f110",
-                            }}
-                          >
-                            {t('admin.warehouse')}: +{formatCurrency(branch.adminProfit, "USD")}
-                          </Badge>
-                        )}
-                        {branch.profit > 0 && (
-                          <Badge
-                            variant="outline"
-                            className="text-[10px] font-bold"
-                            style={{
-                              borderColor: "#22c55e",
-                              color: "#22c55e",
-                              backgroundColor: "#22c55e10",
-                            }}
-                          >
-                            {t('admin.branch')}: +{formatCurrency(branch.profit * exchangeRate, "UZS")}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
                     <ChevronRight className="h-6 w-6 text-muted-foreground" />
                   </div>
                 </div>

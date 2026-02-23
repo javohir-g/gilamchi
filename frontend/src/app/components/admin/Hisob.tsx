@@ -24,6 +24,13 @@ import {
 } from "recharts";
 import { DatePickerWithRange } from "../ui/date-range-picker";
 import { DateRange } from "react-day-picker";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 
 type DateFilter = "today" | "week" | "month" | "custom";
 
@@ -257,6 +264,20 @@ export function Hisob() {
     // For specific UI cards, we still count sales in period
     const salesInPeriod = filteredSales.filter(s => s.branchId === branch.id);
 
+    // Calculate branch stock
+    const branchStockValue = products
+      .filter((p) => p.branchId === branch.id)
+      .reduce((sum, p) => {
+        if (p.type === "meter") {
+          return sum + (p.buyPrice || 0) * (p.remainingLength || 0);
+        } else {
+          const qty = p.availableSizes
+            ? p.availableSizes.reduce((s: number, sz: any) => s + (sz.quantity || 0), 0)
+            : (p.quantity || 0);
+          return sum + (p.buyPrice || 0) * qty;
+        }
+      }, 0);
+
     return {
       branchId: branch.id,
       branchName: branch.name,
@@ -264,6 +285,7 @@ export function Hisob() {
       adminProfit: profit, // In conservative mode, "Mening foydam" IS the recognized profit
       sellerProfit: salesInPeriod.reduce((sum, s) => sum + (s.sellerProfit || 0), 0),
       salesCount: salesInPeriod.length,
+      stockValue: branchStockValue,
     };
   });
 
@@ -348,17 +370,36 @@ export function Hisob() {
 
         {/* Financial Summary Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Card 1: Stock Value */}
-          <Card className="p-4 bg-gradient-to-br from-indigo-500 to-indigo-600 border-0 shadow-lg shadow-indigo-500/20 text-white">
-            <div className="flex flex-col space-y-1">
-              <span className="text-xs font-medium text-indigo-100 uppercase tracking-wider">
-                {t('admin.stockValue')}
-              </span>
-              <div className="text-xl md:text-2xl font-bold truncate">
-                {formatCurrency(totalStockValue)}
+          {/* Card 1: Stock Value with Dialog */}
+          <Dialog>
+            <DialogTrigger asChild>
+              <Card className="p-4 bg-gradient-to-br from-indigo-500 to-indigo-600 border-0 shadow-lg shadow-indigo-500/20 text-white cursor-pointer hover:shadow-indigo-500/40 transition-shadow">
+                <div className="flex flex-col space-y-1">
+                  <span className="text-xs font-medium text-indigo-100 uppercase tracking-wider">
+                    {t('admin.stockValue')}
+                  </span>
+                  <div className="text-xl md:text-2xl font-bold truncate">
+                    {formatCurrency(totalStockValue)}
+                  </div>
+                </div>
+              </Card>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>{t('admin.stockValue')}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                {branchProfits.map((bp) => (
+                  <div key={bp.branchId} className="flex justify-between items-center bg-muted/50 p-3 rounded-lg">
+                    <div className="font-semibold">{bp.branchName}</div>
+                    <div className="font-bold text-indigo-600 dark:text-indigo-400">
+                      {formatCurrency(bp.stockValue)}
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
-          </Card>
+            </DialogContent>
+          </Dialog>
 
           {/* Card 3: Sold Stock Cost (Linked to Card 1) */}
           <Card className="p-4 bg-indigo-50 dark:bg-indigo-950 border border-indigo-100 dark:border-indigo-900 shadow-sm">

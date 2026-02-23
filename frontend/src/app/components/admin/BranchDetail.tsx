@@ -241,6 +241,28 @@ export function BranchDetail() {
     );
   }, 0);
 
+  // Today's specific data for "Bugungi kassa"
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const todayBranchSales = sales.filter(
+    (s) => s.branchId === branchId && new Date(s.date) >= todayStart
+  );
+
+  const todayCashSales = todayBranchSales
+    .filter((s) => s.paymentType === "cash")
+    .reduce((sum, s) => sum + s.amount, 0);
+  const todayCardTransferSales = todayBranchSales
+    .filter((s) => s.paymentType === "card" || s.paymentType === "transfer")
+    .reduce((sum, s) => sum + s.amount, 0);
+
+  const todayDebtPaymentsInPeriod = debts.filter(d => d.branchId === branchId).reduce((sum, debt) => {
+    const periodPayments = (debt.paymentHistory || []).filter((payment) => {
+      return new Date(payment.date) >= todayStart;
+    });
+    return sum + periodPayments.reduce((pSum, p) => pSum + p.amount, 0);
+  }, 0);
+
   const getLabel = (base: string) => {
     switch (dateFilter) {
       case "week": return t('common.weekLabel') + " " + base.toLowerCase();
@@ -274,48 +296,46 @@ export function BranchDetail() {
 
       <div className="p-4 space-y-3">
 
-        {/* Kassa Plaque (Only for Today) - Refined Compact Layout */}
-        {dateFilter === "today" && (
-          <Card className="p-4 bg-white dark:bg-gray-800 border-0 shadow-lg relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-2 opacity-10">
-              <DollarSign className="h-10 w-10 text-gray-400" />
+        {/* Bugungi Kassa Plaque (Always shows Today) */}
+        <Card className="p-4 bg-white dark:bg-gray-800 border-0 shadow-lg relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-2 opacity-10">
+            <DollarSign className="h-10 w-10 text-gray-400" />
+          </div>
+
+          <div className="relative z-10 mb-4">
+            <div className="flex items-center gap-1.5 mb-1">
+              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Bugungi kassa</span>
+            </div>
+            <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 leading-none">
+              {/* KASSA = (Cash Sales * rate) + Debt Payments (UZS) + (Card Sales * rate) */}
+              {/* IMPORTANT: Debt payments from fromDebt mapper are ALREADY in UZS */}
+              {formatCurrency(
+                (todayCashSales * exchangeRate) +
+                (todayCardTransferSales * exchangeRate) +
+                todayDebtPaymentsInPeriod,
+                "UZS"
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 relative z-10 pt-3 border-t border-gray-100 dark:border-gray-700">
+            <div>
+              <div className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">{t('common.cash')}</div>
+              <div className="text-sm font-bold text-gray-900 dark:text-white leading-none">
+                {formatCurrency((todayCashSales * exchangeRate) + todayDebtPaymentsInPeriod, "UZS")}
+              </div>
+              <div className="text-[8px] text-gray-400 italic mt-1.5 leading-none">{t('seller.salesAndDebt')}</div>
             </div>
 
-            <div className="relative z-10 mb-4">
-              <div className="flex items-center gap-1.5 mb-1">
-                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">{t('seller.cashRegister')}</span>
-              </div>
-              <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 leading-none">
-                {/* KASSA = (Cash Sales * rate) + Debt Payments (UZS) + (Card Sales * rate) */}
-                {/* IMPORTANT: Debt payments from fromDebt mapper are ALREADY in UZS */}
-                {formatCurrency(
-                  (cashSales * exchangeRate) +
-                  (cardTransferSales * exchangeRate) +
-                  totalDebtPaymentsInPeriod,
-                  "UZS"
-                )}
+            <div>
+              <div className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">{t('seller.cardAndTransfer')}</div>
+              <div className="text-sm font-bold text-blue-600 dark:text-blue-400 leading-none">
+                {formatCurrency(todayCardTransferSales * exchangeRate, "UZS")}
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-4 relative z-10 pt-3 border-t border-gray-100 dark:border-gray-700">
-              <div>
-                <div className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">{t('common.cash')}</div>
-                <div className="text-sm font-bold text-gray-900 dark:text-white leading-none">
-                  {formatCurrency((cashSales * exchangeRate) + totalDebtPaymentsInPeriod, "UZS")}
-                </div>
-                <div className="text-[8px] text-gray-400 italic mt-1.5 leading-none">{t('seller.salesAndDebt')}</div>
-              </div>
-
-              <div>
-                <div className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">{t('seller.cardAndTransfer')}</div>
-                <div className="text-sm font-bold text-blue-600 dark:text-blue-400 leading-none">
-                  {formatCurrency(cardTransferSales * exchangeRate, "UZS")}
-                </div>
-              </div>
-            </div>
-          </Card>
-        )}
+          </div>
+        </Card>
 
         {/* Stats Grid 2x2 */}
         <div className="grid grid-cols-2 gap-4">
@@ -389,95 +409,7 @@ export function BranchDetail() {
           branchExpenses={branchExpenses}
         />
 
-        {/* Product Statistics */}
-        <Card className="p-6 dark:bg-gray-800 dark:border-gray-700 overflow-hidden">
-          <h3 className="mb-4 text-lg font-bold dark:text-white tracking-tight flex items-center gap-2">
-            <Package className="h-5 w-5 text-blue-500" />
-            {t('admin.productStats')}
-          </h3>
 
-          <div className="space-y-6">
-            {/* Metrajli (By Area) */}
-            <div>
-              <div className="flex items-center justify-between mb-3 px-1">
-                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                  {t('admin.topMetered')}
-                </h4>
-                <Badge variant="outline" className="text-[8px] border-blue-200 text-blue-600">
-                  {t('admin.byArea')}
-                </Badge>
-              </div>
-              <div className="space-y-3">
-                {Object.values(branchSales.reduce((acc: any, sale) => {
-                  if (sale.type === 'meter') {
-                    if (!acc[sale.productId]) acc[sale.productId] = { name: sale.productName, value: 0 };
-                    acc[sale.productId].value += (sale.area || sale.quantity || 0);
-                  }
-                  return acc;
-                }, {}))
-                  .sort((a: any, b: any) => b.value - a.value)
-                  .slice(0, 5)
-                  .map((item: any, i) => (
-                    <div key={i} className="relative">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm font-medium dark:text-gray-200 truncate pr-4">{item.name}</span>
-                        <span className="text-sm font-bold text-blue-600">{item.value.toFixed(1)} m²</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-blue-500 rounded-full opacity-80"
-                          style={{ width: `${Math.min(100, (item.value / Math.max(...Object.values(branchSales).map((s: any) => s.area || 0), 1)) * 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                {branchSales.filter(s => s.type === 'meter').length === 0 && (
-                  <p className="text-xs text-center text-muted-foreground py-2">{t('messages.noMeteredSales')}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Tayyor (By Quantity) */}
-            <div>
-              <div className="flex items-center justify-between mb-3 px-1 border-t dark:border-gray-700 pt-4">
-                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                  {t('admin.topUnit')}
-                </h4>
-                <Badge variant="outline" className="text-[8px] border-emerald-200 text-emerald-600">
-                  {t('admin.byQuantity')}
-                </Badge>
-              </div>
-              <div className="space-y-3">
-                {Object.values(branchSales.reduce((acc: any, sale) => {
-                  if (sale.type === 'unit') {
-                    if (!acc[sale.productId]) acc[sale.productId] = { name: sale.productName, value: 0 };
-                    acc[sale.productId].value += (sale.quantity || 1);
-                  }
-                  return acc;
-                }, {}))
-                  .sort((a: any, b: any) => b.value - a.value)
-                  .slice(0, 5)
-                  .map((item: any, i) => (
-                    <div key={i} className="relative">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm font-medium dark:text-gray-200 truncate pr-4">{item.name}</span>
-                        <span className="text-sm font-bold text-emerald-600">{item.value} dona</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-emerald-500 rounded-full opacity-80"
-                          style={{ width: `${Math.min(100, (item.value / Math.max(...Object.values(branchSales).map((s: any) => s.quantity || 0), 1)) * 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                {branchSales.filter(s => s.type === 'unit').length === 0 && (
-                  <p className="text-xs text-center text-muted-foreground py-2">{t('messages.noUnitSales')}</p>
-                )}
-              </div>
-            </div>
-          </div>
-        </Card>
 
         {/* Unified History List */}
         <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
@@ -486,7 +418,7 @@ export function BranchDetail() {
               {t('admin.operationalHistory')}
             </h3>
 
-              {/* Filters removed per user request */}
+            {/* Filters removed per user request */}
           </div>
 
           {unifiedHistory.length === 0 ? (
