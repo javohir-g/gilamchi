@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  TrendingUp,
   DollarSign,
   Building2,
   ChevronRight,
@@ -12,11 +11,11 @@ const startOfDay = (date: Date) => {
   return newDate;
 };
 import { Card } from "../ui/card";
-import { useApp } from "../../context/AppContext";
+import { useApp, Sale } from "../../context/AppContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { BottomNav } from "../shared/BottomNav";
 import { DatePickerWithRange } from "../ui/date-range-picker";
-import { DateRange } from "react-day-picker";
+import { useNavigate } from "react-router-dom";
 
 export function AdminDashboard() {
   const [period, setPeriod] = useState<
@@ -83,13 +82,26 @@ export function AdminDashboard() {
 
   const { periodSales, periodExpenses, start, end } = getFilteredData();
 
-  // Calculate KPIs using filtered data
-  const totalSales = periodSales.reduce((sum, sale) => sum + sale.amount, 0);
-  const totalAdminProfit = periodSales.reduce((sum, sale) => sum + (sale.adminProfit || 0), 0);
-  const totalExpenses = periodExpenses.reduce((sum, e) => {
-    return sum + (e.isUsd ? e.amount : e.amount / exchangeRate);
+  // Aggregated Kassa calculations across all branches
+  const aggCashSales = periodSales
+    .filter(s => s.paymentType === 'cash')
+    .reduce((sum, s) => sum + s.amount, 0);
+
+  const aggCardTransferSales = periodSales
+    .filter(s => s.paymentType === 'card' || s.paymentType === 'transfer')
+    .reduce((sum, s) => sum + s.amount, 0);
+
+  // Filter debt payments across all branches
+  const { debts } = useApp();
+  const aggDebtPayments = debts.reduce((total, debt) => {
+    const payments = (debt.paymentHistory || []).filter(p => {
+      const dDate = new Date(p.date);
+      return dDate.getTime() >= start.getTime() && dDate.getTime() <= end.getTime();
+    });
+    return total + payments.reduce((sum, p) => sum + p.amount, 0);
   }, 0);
-  const netProfit = totalAdminProfit - totalExpenses;
+
+  const { periodSales, start, end } = { ...getFilteredData() };
 
   const formatCurrency = (amount: number, currency: "USD" | "UZS" = "USD") => {
     if (currency === "UZS") {
@@ -163,54 +175,39 @@ export function AdminDashboard() {
       </div>
 
       <div className="p-4 md:p-6 space-y-3 max-w-7xl mx-auto">
-        {/* Stats Grid - 2x2 Layout */}
-        <div className="grid grid-cols-2 gap-2 md:gap-3">
-          {/* Total Sales */}
-          <Card className="p-4 md:p-6 bg-gradient-to-br from-blue-600 to-blue-700 dark:from-blue-800 dark:to-blue-900 border-0 shadow-lg shadow-blue-500/20 relative overflow-hidden group">
-            <div className="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform">
-              <DollarSign className="h-24 w-24 text-white" />
-            </div>
-            <div className="relative z-10 flex flex-col h-full justify-between">
-              <div>
-                <div className="flex items-center space-x-2 mb-1">
-                  <TrendingUp className="h-4 w-4 text-blue-100" />
-                  <span className="text-xs font-medium text-blue-100/80">
-                    Sotish (Jami)
-                  </span>
-                </div>
-                <div className="text-xl md:text-2xl font-bold text-white tracking-tight">
-                  {formatCurrency(totalSales, "USD")}
-                </div>
-              </div>
-              <div className="mt-2 text-[10px] text-blue-100/60 font-medium uppercase tracking-wider">
-                {period === "today" ? t('common.today') : period === "week" ? t('common.week') : period === "month" ? t('common.month') : t('common.other')}
-              </div>
-            </div>
-          </Card>
 
-          {/* Net Profit */}
-          <Card className="p-4 md:p-6 bg-gradient-to-br from-emerald-600 to-emerald-700 dark:from-emerald-800 dark:to-emerald-900 border-0 shadow-lg shadow-emerald-500/20 relative overflow-hidden group">
-            <div className="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform">
-              <Building2 className="h-24 w-24 text-white" />
+        {/* Aggregate Kassa Card */}
+        <Card className="p-5 bg-gradient-to-br from-indigo-700 to-indigo-800 dark:from-indigo-900 dark:to-slate-900 border-0 shadow-xl shadow-indigo-500/20 relative overflow-hidden group">
+          <div className="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform">
+            <DollarSign className="h-24 w-24 text-white" />
+          </div>
+
+          <div className="relative z-10 mb-4">
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="text-[10px] font-bold text-indigo-100/60 uppercase tracking-widest">Umumiy Kassa (Barcha filiallar)</span>
             </div>
-            <div className="relative z-10 flex flex-col h-full justify-between">
-              <div>
-                <div className="flex items-center space-x-2 mb-1">
-                  <DollarSign className="h-4 w-4 text-emerald-100" />
-                  <span className="text-xs font-medium text-emerald-100/80">
-                    Sof Foyda
-                  </span>
-                </div>
-                <div className="text-xl md:text-2xl font-bold text-white tracking-tight">
-                  {formatCurrency(netProfit, "USD")}
-                </div>
+            <div className="text-2xl font-black text-white leading-none tracking-tight">
+              {formatCurrency((aggCashSales + aggDebtPayments + aggCardTransferSales) * exchangeRate, "UZS")}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 relative z-10 pt-4 border-t border-white/10">
+            <div>
+              <div className="text-[9px] text-indigo-100/60 font-bold uppercase mb-1">{t('common.cash')}</div>
+              <div className="text-sm font-bold text-white leading-none">
+                {formatCurrency((aggCashSales + aggDebtPayments) * exchangeRate, "UZS")}
               </div>
-              <div className="mt-2 text-[10px] text-emerald-100/60 font-medium uppercase tracking-wider">
-                {period === "today" ? t('common.today') : period === "week" ? t('common.week') : period === "month" ? t('common.month') : t('common.other')}
+              <div className="text-[8px] text-indigo-100/40 italic mt-1.5 leading-none">Sotuv + Qarz to'lovlari</div>
+            </div>
+
+            <div>
+              <div className="text-[9px] text-indigo-100/60 font-bold uppercase mb-1">{t('seller.cardAndTransfer')}</div>
+              <div className="text-sm font-bold text-blue-100 leading-none">
+                {formatCurrency(aggCardTransferSales * exchangeRate, "UZS")}
               </div>
             </div>
-          </Card>
-        </div>
+          </div>
+        </Card>
 
         {/* Branch Breakdown */}
         <div>
@@ -220,9 +217,27 @@ export function AdminDashboard() {
           <div className="space-y-4">
             {branches.map((branch, index) => {
               const branchSales = periodSales.filter(s => String(s.branchId) === String(branch.id));
-              const branchAdminProfit = branchSales.reduce((sum, s) => sum + (s.adminProfit || 0), 0);
-              const branchSellerProfit = branchSales.reduce((sum, s) => sum + (s.sellerProfit || 0), 0);
-              const totalBranchProfit = branchAdminProfit; // Admin dashboard focuses on admin profit as "Total"
+
+              // Branch Kassa calculations
+              const bCash = branchSales
+                .filter(s => s.paymentType === 'cash')
+                .reduce((sum, s) => sum + s.amount, 0);
+
+              const bCard = branchSales
+                .filter(s => s.paymentType === 'card' || s.paymentType === 'transfer')
+                .reduce((sum, s) => sum + s.amount, 0);
+
+              const bDebtPayments = debts
+                .filter(d => String(d.branchId) === String(branch.id))
+                .reduce((total, debt) => {
+                  const payments = (debt.paymentHistory || []).filter(p => {
+                    const dDate = new Date(p.date);
+                    return dDate.getTime() >= start.getTime() && dDate.getTime() <= end.getTime();
+                  });
+                  return total + payments.reduce((sum, p) => sum + p.amount, 0);
+                }, 0);
+
+              const branchTotalKassa = (bCash + bCard + bDebtPayments) * exchangeRate;
 
               return (
                 <Card
@@ -244,27 +259,15 @@ export function AdminDashboard() {
                         />
                       </div>
                       <div>
-                        <div className="font-bold text-lg text-card-foreground">
+                        <div className="font-bold text-lg text-card-foreground leading-tight">
                           {branch.name}
                         </div>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <div className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900">
-                            {t('common.me') || 'Men'}: {formatCurrency(branchAdminProfit)}
-                          </div>
-                          <div className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900">
-                            {t('common.branch') || 'Filial'}: {formatCurrency(branchSellerProfit)}
-                          </div>
+                        <div className="text-sm font-black text-indigo-600 dark:text-indigo-400 mt-0.5">
+                          Kassa: {formatCurrency(branchTotalKassa, "UZS")}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="text-right">
-                        <div className="text-lg font-black text-card-foreground">
-                          {formatCurrency(branchAdminProfit)}
-                        </div>
-                      </div>
-                      <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                   </div>
                 </Card>
               );
