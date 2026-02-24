@@ -72,6 +72,7 @@ export const uzCyrl = {
         payment: "Тўлов",
         latin: "Лотин",
         cyrillic: "Кирилл",
+        price: "Нархи",
     },
 
     auth: {

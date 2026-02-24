@@ -75,6 +75,7 @@ export const uzLatn = {
         export: "Eksport (Excel)",
         filterBySeller: "Sotuvchi bo'yicha",
         filterByNasiya: "Faqat nasiya",
+        price: "Narxi",
     },
 
     auth: {
