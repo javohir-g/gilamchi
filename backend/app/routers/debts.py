@@ -45,7 +45,7 @@ def create_debt(debt: DebtCreate, db: Session = Depends(get_db), current_user = 
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/", response_model=List[DebtResponse])
-def read_debts(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+def read_debts(skip: int = 0, limit: int = 10000, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     query = db.query(Debt).filter(Debt.deleted_at == None)
     if current_user.role == "seller":
         query = query.filter(Debt.branch_id == current_user.branch_id)

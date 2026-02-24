@@ -44,7 +44,7 @@ def create_expense(
 @router.get("/", response_model=List[ExpenseResponse])
 def read_expenses(
     skip: int = 0, 
-    limit: int = 100, 
+    limit: int = 10000, 
     db: Session = Depends(get_db), 
     current_user = Depends(get_current_user)
 ):

@@ -13,9 +13,16 @@ import { useNavigate } from "react-router-dom";
 import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+const startOfDay = (date: Date) => {
+  const newDate = new Date(date);
+  newDate.setHours(0, 0, 0, 0);
+  return newDate;
+};
+import { DateRange } from "react-day-picker";
 import { useApp, Sale } from "../../context/AppContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { BottomNav } from "../shared/BottomNav";
+import { DatePickerWithRange } from "../ui/date-range-picker";
 import {
   Dialog,
   DialogContent,
@@ -39,8 +46,7 @@ export function SellerHome() {
   const { t } = useLanguage();
 
   const [filterType, setFilterType] = useState<"today" | "week" | "month" | "custom">("today");
-  const [customStart, setCustomStart] = useState("");
-  const [customEnd, setCustomEnd] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
 
   const userBranch = branches.find((b) => b.id === user?.branchId);
@@ -54,23 +60,23 @@ export function SellerHome() {
       const d = new Date(dateStr);
       switch (filterType) {
         case "today":
-          return d >= today;
+          return d.getTime() >= today.getTime();
         case "week":
           const weekStart = new Date(today);
           const day = today.getDay();
           const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-          weekStart.setDate(diff);
           weekStart.setHours(0, 0, 0, 0);
-          return d >= weekStart;
+          weekStart.setDate(diff);
+          return d.getTime() >= weekStart.getTime();
         case "month":
           const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-          return d >= monthStart;
+          return d.getTime() >= monthStart.getTime();
         case "custom":
-          if (!customStart || !customEnd) return true;
-          const start = new Date(customStart);
-          const end = new Date(customEnd);
+          if (!dateRange?.from) return true;
+          const start = startOfDay(dateRange.from);
+          const end = dateRange.to ? new Date(dateRange.to) : new Date(start);
           end.setHours(23, 59, 59, 999);
-          return d >= start && d <= end;
+          return d.getTime() >= start.getTime() && d.getTime() <= end.getTime();
         default:
           return true;
       }
@@ -213,39 +219,51 @@ export function SellerHome() {
 
         {/* Date Filters */}
         <div className="px-6 pb-4">
-          <div className="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl mb-3">
-            {[
-              { id: "today", label: t('common.today') },
-              { id: "week", label: t('common.week') },
-              { id: "month", label: t('common.month') },
-              { id: "custom", label: t('common.other') }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setFilterType(tab.id as any)}
-                className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${filterType === tab.id
-                    ? "bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400"
-                    : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                  }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+          <div className="flex gap-2 w-full overflow-x-auto pb-2 no-scrollbar">
+            <button
+              onClick={() => setFilterType("today")}
+              className={`flex-1 min-w-[70px] py-2 px-3 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${filterType === "today"
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                : "bg-background text-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
+                }`}
+            >
+              {t('common.today')}
+            </button>
+            <button
+              onClick={() => setFilterType("week")}
+              className={`flex-1 min-w-[70px] py-2 px-3 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${filterType === "week"
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                : "bg-background text-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
+                }`}
+            >
+              {t('common.week')}
+            </button>
+            <button
+              onClick={() => setFilterType("month")}
+              className={`flex-1 min-w-[70px] py-2 px-3 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${filterType === "month"
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                : "bg-background text-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
+                }`}
+            >
+              {t('common.month')}
+            </button>
+            <button
+              onClick={() => setFilterType("custom")}
+              className={`flex-1 min-w-[70px] py-2 px-3 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${filterType === "custom"
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                : "bg-background text-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
+                }`}
+            >
+              {t('common.other')}
+            </button>
           </div>
 
           {filterType === "custom" && (
-            <div className="grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-top-2 mb-2">
-              <input
-                type="date"
-                value={customStart}
-                onChange={(e) => setCustomStart(e.target.value)}
-                className="h-10 px-3 rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"
-              />
-              <input
-                type="date"
-                value={customEnd}
-                onChange={(e) => setCustomEnd(e.target.value)}
-                className="h-10 px-3 rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"
+            <div className="mt-4 flex justify-center animate-in slide-in-from-top-2 fade-in">
+              <DatePickerWithRange
+                date={dateRange}
+                setDate={setDateRange}
+                className="w-full"
               />
             </div>
           )}

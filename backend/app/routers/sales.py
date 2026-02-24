@@ -202,7 +202,7 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
 from sqlalchemy.orm import joinedload
 
 @router.get("/", response_model=List[SaleResponse])
-def read_sales(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+def read_sales(skip: int = 0, limit: int = 10000, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     # Newest first sorting is critical for the dashboard
     query = db.query(Sale).options(joinedload(Sale.product)).order_by(Sale.date.desc())
     

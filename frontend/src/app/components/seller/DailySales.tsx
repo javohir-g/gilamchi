@@ -11,9 +11,16 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
+const startOfDay = (date: Date) => {
+  const newDate = new Date(date);
+  newDate.setHours(0, 0, 0, 0);
+  return newDate;
+};
+import { DateRange } from "react-day-picker";
 import { useApp, Sale } from "../../context/AppContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { BottomNav } from "../shared/BottomNav";
+import { DatePickerWithRange } from "../ui/date-range-picker";
 
 interface Order {
   orderId: string;
@@ -29,8 +36,7 @@ export function DailySales() {
   const { t } = useLanguage();
 
   const [filterType, setFilterType] = useState<"today" | "week" | "month" | "custom">("today");
-  const [customStart, setCustomStart] = useState("");
-  const [customEnd, setCustomEnd] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
 
   // Filter sales based on period and branch
@@ -46,25 +52,34 @@ export function DailySales() {
 
     switch (filterType) {
       case "today":
-        return branchFiltered.filter((sale) => new Date(sale.date) >= today);
+        return branchFiltered.filter((sale) => {
+          const d = new Date(sale.date);
+          return d.getTime() >= today.getTime();
+        });
       case "week":
         const weekStart = new Date(today);
         const day = today.getDay();
         const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-        weekStart.setDate(diff);
         weekStart.setHours(0, 0, 0, 0);
-        return branchFiltered.filter((sale) => new Date(sale.date) >= weekStart);
+        weekStart.setDate(diff);
+        return branchFiltered.filter((sale) => {
+          const d = new Date(sale.date);
+          return d.getTime() >= weekStart.getTime();
+        });
       case "month":
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-        return branchFiltered.filter((sale) => new Date(sale.date) >= monthStart);
+        return branchFiltered.filter((sale) => {
+          const d = new Date(sale.date);
+          return d.getTime() >= monthStart.getTime();
+        });
       case "custom":
-        if (!customStart || !customEnd) return branchFiltered;
-        const start = new Date(customStart);
-        const end = new Date(customEnd);
+        if (!dateRange?.from) return branchFiltered;
+        const start = startOfDay(dateRange.from);
+        const end = dateRange.to ? new Date(dateRange.to) : new Date(start);
         end.setHours(23, 59, 59, 999);
         return branchFiltered.filter((sale) => {
           const d = new Date(sale.date);
-          return d >= start && d <= end;
+          return d.getTime() >= start.getTime() && d.getTime() <= end.getTime();
         });
       default:
         return branchFiltered;
@@ -153,39 +168,51 @@ export function DailySales() {
 
         {/* Date Filters */}
         <div className="px-4 pb-4">
-          <div className="flex p-1 bg-gray-100 dark:bg-gray-700 rounded-xl mb-3">
-            {[
-              { id: "today", label: t('common.today') },
-              { id: "week", label: t('common.week') },
-              { id: "month", label: t('common.month') },
-              { id: "custom", label: t('common.other') }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setFilterType(tab.id as any)}
-                className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${filterType === tab.id
-                    ? "bg-white dark:bg-gray-600 shadow-sm text-blue-600 dark:text-blue-400"
-                    : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                  }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+          <div className="flex gap-2 w-full overflow-x-auto pb-2 no-scrollbar">
+            <button
+              onClick={() => setFilterType("today")}
+              className={`flex-1 min-w-[70px] py-2 px-3 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${filterType === "today"
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                : "bg-background text-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
+                }`}
+            >
+              {t('common.today')}
+            </button>
+            <button
+              onClick={() => setFilterType("week")}
+              className={`flex-1 min-w-[70px] py-2 px-3 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${filterType === "week"
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                : "bg-background text-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
+                }`}
+            >
+              {t('common.week')}
+            </button>
+            <button
+              onClick={() => setFilterType("month")}
+              className={`flex-1 min-w-[70px] py-2 px-3 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${filterType === "month"
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                : "bg-background text-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
+                }`}
+            >
+              {t('common.month')}
+            </button>
+            <button
+              onClick={() => setFilterType("custom")}
+              className={`flex-1 min-w-[70px] py-2 px-3 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${filterType === "custom"
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                : "bg-background text-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
+                }`}
+            >
+              {t('common.other')}
+            </button>
           </div>
 
           {filterType === "custom" && (
-            <div className="grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-top-2">
-              <input
-                type="date"
-                value={customStart}
-                onChange={(e) => setCustomStart(e.target.value)}
-                className="h-10 px-3 rounded-lg border dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
-              />
-              <input
-                type="date"
-                value={customEnd}
-                onChange={(e) => setCustomEnd(e.target.value)}
-                className="h-10 px-3 rounded-lg border dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
+            <div className="mt-4 flex justify-center animate-in slide-in-from-top-2 fade-in">
+              <DatePickerWithRange
+                date={dateRange}
+                setDate={setDateRange}
+                className="w-full"
               />
             </div>
           )}
@@ -227,6 +254,24 @@ export function DailySales() {
                 </div>
                 <div className="rounded-full bg-emerald-200 dark:bg-emerald-800 p-4">
                   <DollarSign className="h-10 w-10 text-emerald-700 dark:text-emerald-300" />
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {user?.role === "admin" && (
+            <Card className="border-2 border-indigo-200 dark:border-indigo-800 bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-950 dark:to-indigo-900 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="mb-1 text-sm text-indigo-700 dark:text-indigo-300">
+                    {t('admin.myProfit') || 'Mening foydam'}
+                  </div>
+                  <div className="text-3xl text-indigo-900 dark:text-indigo-100">
+                    {formatCurrency(filteredSales.reduce((sum, s) => sum + (s.adminProfit || 0), 0) * exchangeRate)}
+                  </div>
+                </div>
+                <div className="rounded-full bg-indigo-200 dark:bg-indigo-800 p-4">
+                  <DollarSign className="h-10 w-10 text-indigo-700 dark:text-indigo-300" />
                 </div>
               </div>
             </Card>

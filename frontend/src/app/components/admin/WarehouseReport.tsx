@@ -79,22 +79,34 @@ export default function WarehouseReport() {
 
     const collectionBreakdown = branchProducts.reduce((acc, p) => {
         const collName = p.collection || t('seller.withoutCollection');
-        let value = 0;
+        let stockValue = 0;
+        let potentialProfit = 0;
+
         if (p.type === "meter") {
-            value = (p.buyPrice || 0) * (p.remainingLength || 0);
+            const qty = p.remainingLength || 0;
+            stockValue = (p.buyPrice || 0) * qty;
+            const margin = (p.sellPricePerMeter || 0) - (p.buyPrice || 0);
+            potentialProfit = margin * qty;
         } else {
             const qty = p.availableSizes
                 ? p.availableSizes.reduce((s: number, sz: any) => s + (sz.quantity || 0), 0)
                 : (p.quantity || 0);
-            value = (p.buyPrice || 0) * qty;
+            stockValue = (p.buyPrice || 0) * qty;
+            const margin = (p.sellPrice || 0) - (p.buyPrice || 0);
+            potentialProfit = margin * qty;
         }
-        acc[collName] = (acc[collName] || 0) + value;
+
+        if (!acc[collName]) {
+            acc[collName] = { stockValue: 0, potentialProfit: 0 };
+        }
+        acc[collName].stockValue += stockValue;
+        acc[collName].potentialProfit += potentialProfit;
         return acc;
-    }, {} as Record<string, number>);
+    }, {} as Record<string, { stockValue: number; potentialProfit: number }>);
 
     const collections = Object.entries(collectionBreakdown)
-        .map(([name, value]) => ({ name, value }))
-        .sort((a, b) => b.value - a.value);
+        .map(([name, stats]) => ({ name, ...stats }))
+        .sort((a, b) => b.stockValue - a.stockValue);
 
     // Products for specific collection
     const filteredProducts = selectedCollection
@@ -113,6 +125,22 @@ export default function WarehouseReport() {
                 return s + (p.buyPrice || 0) * qty;
             }
         }, 0);
+    }, 0);
+
+    const branchPotentialProfit = branchProducts.reduce((sum, p) => {
+        let potentialProfit = 0;
+        if (p.type === "meter") {
+            const qty = p.remainingLength || 0;
+            const margin = (p.sellPricePerMeter || 0) - (p.buyPrice || 0);
+            potentialProfit = margin * qty;
+        } else {
+            const qty = p.availableSizes
+                ? p.availableSizes.reduce((s: number, sz: any) => s + (sz.quantity || 0), 0)
+                : (p.quantity || 0);
+            const margin = (p.sellPrice || 0) - (p.buyPrice || 0);
+            potentialProfit = margin * qty;
+        }
+        return sum + potentialProfit;
     }, 0);
 
     return (
@@ -173,8 +201,13 @@ export default function WarehouseReport() {
                                 <span className="h-1.5 w-1.5 rounded-full bg-indigo-600"></span>
                                 {branches.find(b => b.id === selectedBranchId)?.name}
                             </div>
-                            <div className="text-sm font-black text-indigo-600">
-                                {formatCurrency(branchStockValue)}
+                            <div className="flex flex-col items-end">
+                                <div className="text-sm font-black text-indigo-600 leading-none">
+                                    {formatCurrency(branchStockValue)}
+                                </div>
+                                <div className="text-[11px] font-bold text-emerald-600 mt-1 leading-none">
+                                    {formatCurrency(branchPotentialProfit)}
+                                </div>
                             </div>
                         </div>
 
@@ -194,14 +227,18 @@ export default function WarehouseReport() {
                                         <div className="p-4 flex items-center gap-4">
                                             <div className="text-4xl">{getCollectionIcon(col.name)}</div>
                                             <div className="flex-1">
-                                                <h3 className="text-lg font-medium text-card-foreground">
+                                                <h3 className="text-lg font-bold text-card-foreground">
                                                     {col.name}
                                                 </h3>
-                                                <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mt-1">
-                                                    {formatCurrency(col.value)}
+                                            </div>
+                                            <div className="text-right flex flex-col items-end">
+                                                <div className="text-lg font-black text-indigo-600 dark:text-indigo-400 leading-none">
+                                                    {formatCurrency(col.stockValue)}
+                                                </div>
+                                                <div className="text-[13px] font-bold text-emerald-600 dark:text-emerald-400 mt-1 leading-none">
+                                                    {formatCurrency(col.potentialProfit)}
                                                 </div>
                                             </div>
-                                            <LayoutGrid className="h-5 w-5 text-muted-foreground opacity-20" />
                                         </div>
                                     </Card>
                                 ))}

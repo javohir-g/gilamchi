@@ -1,3 +1,4 @@
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from './components/ui/sonner';
 import { AppProvider, useApp } from './context/AppContext';
@@ -15,8 +16,6 @@ import { CreateDebt } from './components/seller/CreateDebt';
 import { Debts } from './components/seller/Debts';
 import { DebtDetails } from './components/seller/DebtDetails';
 import { AdminDashboard } from './components/admin/AdminDashboard';
-import { DemoDashboard } from './components/admin/DemoDashboard';
-import { DemoBranchDetail } from './components/admin/DemoBranchDetail';
 import { AdminDebts } from './components/admin/AdminDebts';
 import { Hisob } from './components/admin/Hisob';
 import { BranchDetail } from './components/admin/BranchDetail';
@@ -183,14 +182,6 @@ function AppRoutes() {
           }
         />
         <Route
-          path="/admin/demo_dashboard"
-          element={
-            <ProtectedRoute allowedRole="admin">
-              <DemoDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/admin/debts"
           element={
             <ProtectedRoute allowedRole="admin">
@@ -211,14 +202,6 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRole="admin">
               <BranchDetail />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/demo_branch/:branchId"
-          element={
-            <ProtectedRoute allowedRole="admin">
-              <DemoBranchDetail />
             </ProtectedRoute>
           }
         />
