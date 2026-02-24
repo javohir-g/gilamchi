@@ -438,9 +438,21 @@ export function SellerHome() {
                             </div>
                           </div>
                           {!isMultiProduct && (
-                            <div className="text-sm text-muted-foreground pl-12">
-                              {order.sales[0].quantity}{" "}
-                              {order.sales[0].type === "unit" ? t('common.unit') : t('common.meter')}
+                            <div className="text-sm text-muted-foreground pl-12 flex flex-wrap gap-x-2 gap-y-0.5">
+                              <span>
+                                {order.sales[0].quantity}{" "}
+                                {order.sales[0].type === "unit" ? t('common.unit') : t('common.meter')}
+                              </span>
+                              {order.sales[0].size && (
+                                <span className="bg-secondary/60 px-1.5 py-0.5 rounded text-[11px] font-semibold text-foreground/70">
+                                  📐 {order.sales[0].size}
+                                </span>
+                              )}
+                              {order.sales[0].area != null && order.sales[0].area > 0 && (
+                                <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded text-[11px] font-semibold">
+                                  {order.sales[0].area.toFixed(2)} м²
+                                </span>
+                              )}
                             </div>
                           )}
                         </div>
@@ -513,10 +525,21 @@ export function SellerHome() {
                                 <div className="text-foreground font-bold">
                                   {sale.productName}
                                 </div>
-                                <div className="text-muted-foreground text-xs">
-                                  {sale.quantity}{" "}
-                                  {sale.type === "unit" ? t('common.unit') : t('common.meter')}
-                                  {sale.area && ` • ${sale.area.toFixed(2)} m²`}
+                                <div className="text-muted-foreground text-xs flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5">
+                                  <span>
+                                    {sale.quantity}{" "}
+                                    {sale.type === "unit" ? t('common.unit') : t('common.meter')}
+                                  </span>
+                                  {sale.size && (
+                                    <span className="bg-secondary/60 px-1.5 py-0.5 rounded text-[11px] font-semibold text-foreground/70">
+                                      📐 {sale.size}
+                                    </span>
+                                  )}
+                                  {sale.area != null && sale.area > 0 && (
+                                    <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded text-[11px] font-semibold">
+                                      {sale.area.toFixed(2)} м²
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                               <div className="text-right">
