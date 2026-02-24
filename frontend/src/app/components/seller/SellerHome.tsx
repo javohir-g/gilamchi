@@ -203,55 +203,55 @@ export function SellerHome() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
-      <div className="bg-card border-b border-border">
-        <div className="px-6 py-4 flex justify-between items-center">
+      {/* Header - Sticky like DailySales */}
+      <div className="sticky top-0 z-10 bg-card border-b border-border shadow-sm">
+        <div className="px-4 py-4 flex justify-between items-center">
           <div>
-            <div className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-1">
+            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5">
               {userBranch?.name || t('common.branch')}
             </div>
-            <h1 className="text-2xl font-bold text-foreground">{user?.fullName || user?.name}</h1>
+            <h1 className="text-xl font-black text-foreground">{user?.fullName || user?.name}</h1>
           </div>
-          <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 border-0 px-3 py-1 font-semibold">
+          <Badge className="bg-blue-600/10 text-blue-600 dark:text-blue-400 hover:bg-blue-600/20 border-0 px-3 py-1 font-bold text-[10px] uppercase">
             {t('common.seller')}
           </Badge>
         </div>
 
         {/* Date Filters */}
-        <div className="px-6 pb-4">
+        <div className="px-4 pb-4">
           <div className="flex gap-2 w-full overflow-x-auto pb-2 no-scrollbar">
             <button
               onClick={() => setFilterType("today")}
-              className={`flex-1 min-w-[70px] py-2 px-3 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${filterType === "today"
+              className={`flex-1 min-w-[70px] py-3 px-3 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap ${filterType === "today"
                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                : "bg-background text-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
+                : "bg-card text-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
             >
               {t('common.today')}
             </button>
             <button
               onClick={() => setFilterType("week")}
-              className={`flex-1 min-w-[70px] py-2 px-3 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${filterType === "week"
+              className={`flex-1 min-w-[70px] py-3 px-3 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap ${filterType === "week"
                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                : "bg-background text-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
+                : "bg-card text-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
             >
               {t('common.week')}
             </button>
             <button
               onClick={() => setFilterType("month")}
-              className={`flex-1 min-w-[70px] py-2 px-3 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${filterType === "month"
+              className={`flex-1 min-w-[70px] py-3 px-3 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap ${filterType === "month"
                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                : "bg-background text-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
+                : "bg-card text-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
             >
               {t('common.month')}
             </button>
             <button
               onClick={() => setFilterType("custom")}
-              className={`flex-1 min-w-[70px] py-2 px-3 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${filterType === "custom"
+              className={`flex-1 min-w-[70px] py-3 px-3 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap ${filterType === "custom"
                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                : "bg-background text-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
+                : "bg-card text-foreground border border-border hover:border-blue-300 dark:hover:border-blue-700"
                 }`}
             >
               {t('common.other')}
@@ -270,35 +270,34 @@ export function SellerHome() {
         </div>
       </div>
 
-      <div className="px-4 md:px-6 space-y-3 max-w-4xl mx-auto">
-        {/* Kassa Card (Refined Compact Layout) */}
-        <Card className="p-4 bg-white dark:bg-gray-800 border-0 shadow-lg relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-2 opacity-10">
-            <DollarSign className="h-10 w-10 text-gray-400" />
+      <div className="p-4 md:p-6 space-y-3 max-w-4xl mx-auto">
+        {/* Kassa Card (Matching Admin Dashboard style) */}
+        <Card className="p-5 bg-gradient-to-br from-indigo-600 to-indigo-700 dark:from-indigo-800 dark:to-indigo-900 border-0 shadow-lg shadow-indigo-500/20 relative overflow-hidden group">
+          <div className="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform">
+            <DollarSign className="h-20 w-20 text-white" />
           </div>
 
           <div className="relative z-10 mb-4">
             <div className="flex items-center gap-1.5 mb-1">
-              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">{t('seller.cashRegister')}</span>
+              <span className="text-[10px] font-bold text-indigo-100/80 uppercase tracking-widest">{t('seller.cashRegister')}</span>
             </div>
-            <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 leading-none">
+            <div className="text-2xl font-black text-white leading-none tracking-tight">
               {formatCurrency((cashSales + debtPayments + cardTransferSales) * exchangeRate, "UZS")}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 relative z-10 pt-3 border-t border-gray-100 dark:border-gray-700">
+          <div className="grid grid-cols-2 gap-4 relative z-10 pt-4 border-t border-white/10">
             <div>
-              <div className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">{t('common.cash')}</div>
-              <div className="text-sm font-bold text-gray-900 dark:text-white leading-none">
+              <div className="text-[9px] text-indigo-100/60 font-bold uppercase mb-1">{t('common.cash')}</div>
+              <div className="text-sm font-bold text-white leading-none">
                 {formatCurrency((cashSales + debtPayments) * exchangeRate, "UZS")}
               </div>
-              <div className="text-[8px] text-gray-400 italic mt-1.5 leading-none">{t('seller.salesAndDebt')}</div>
+              <div className="text-[8px] text-indigo-100/40 italic mt-1.5 leading-none">{t('seller.salesAndDebt')}</div>
             </div>
 
             <div>
-              <div className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">{t('seller.cardAndTransfer')}</div>
-              <div className="text-sm font-bold text-blue-600 dark:text-blue-400 leading-none">
+              <div className="text-[9px] text-indigo-100/60 font-bold uppercase mb-1">{t('seller.cardAndTransfer')}</div>
+              <div className="text-sm font-bold text-blue-100 leading-none">
                 {formatCurrency(cardTransferSales * exchangeRate, "UZS")}
               </div>
             </div>
@@ -439,7 +438,7 @@ export function SellerHome() {
                             </div>
                           </div>
                           {!isMultiProduct && (
-                            <div className="text-sm text-muted-foreground ml-13">
+                            <div className="text-sm text-muted-foreground pl-12">
                               {order.sales[0].quantity}{" "}
                               {order.sales[0].type === "unit" ? t('common.unit') : t('common.meter')}
                             </div>
