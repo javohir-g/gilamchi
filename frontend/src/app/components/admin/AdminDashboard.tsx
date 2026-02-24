@@ -15,7 +15,7 @@ import { useApp, Sale } from "../../context/AppContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { BottomNav } from "../shared/BottomNav";
 import { DatePickerWithRange } from "../ui/date-range-picker";
-import { useNavigate } from "react-router-dom";
+import { DateRange } from "react-day-picker";
 
 export function AdminDashboard() {
   const [period, setPeriod] = useState<
@@ -101,7 +101,6 @@ export function AdminDashboard() {
     return total + payments.reduce((sum, p) => sum + p.amount, 0);
   }, 0);
 
-  const { periodSales, start, end } = { ...getFilteredData() };
 
   const formatCurrency = (amount: number, currency: "USD" | "UZS" = "USD") => {
     if (currency === "UZS") {
