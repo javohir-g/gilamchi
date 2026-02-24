@@ -1092,7 +1092,7 @@ export function Inventory() {
                         <div className="pt-1 border-t border-border/50">
                           {(() => {
                             const col = collections.find((c: any) => c.name === product.collection);
-                            const rate = col?.pricePerSqm || col?.price_per_sqm || col?.price_usd_per_sqm;
+                            const rate = col?.pricePerSqm || col?.price_usd_per_sqm;
 
                             if (rate && (product.category === "Gilamlar" || product.category === "Metrajlar")) {
                               return (

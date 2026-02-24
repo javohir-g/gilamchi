@@ -42,7 +42,25 @@ interface Order {
 
 export function SellerHome() {
   const navigate = useNavigate();
-  const { user, sales, branches, isAdminViewingAsSeller, exchangeRate, expenses, debts, staffMembers } = useApp();
+  const { user, sales, products, branches, isAdminViewingAsSeller, exchangeRate, expenses, debts, staffMembers } = useApp();
+
+  // Получить название коллекции по productId
+  const getCollection = (productId: string, fallback: string) => {
+    const product = products.find(p => p.id === productId);
+    return product?.collection || fallback;
+  };
+
+  // Формирует строку размера: "3x5", "2x4" из width/length, или берёт поле size
+  const getSizeLabel = (sale: any): string | null => {
+    if (sale.width != null && sale.length != null && sale.length > 0) {
+      const w = parseFloat(sale.width.toFixed(2)).toString().replace(/\.?0+$/, '');
+      const l = parseFloat(sale.length.toFixed(2)).toString().replace(/\.?0+$/, '');
+      return `${w}x${l}`;
+    }
+    if (sale.size) return sale.size;
+    return null;
+  };
+
   const { t } = useLanguage();
 
   const [filterType, setFilterType] = useState<"today" | "week" | "month" | "custom">("today");
@@ -428,7 +446,7 @@ export function SellerHome() {
                               <span className="font-bold text-lg text-foreground leading-tight">
                                 {isMultiProduct
                                   ? t('seller.productsCount').replace('{count}', order.sales.length.toString())
-                                  : order.sales[0].productName}
+                                  : getCollection(order.sales[0].productId, order.sales[0].productName)}
                               </span>
                               {order.isNasiya && (
                                 <span className="text-[10px] font-black text-orange-600 dark:text-orange-400 uppercase tracking-tighter">
@@ -439,13 +457,9 @@ export function SellerHome() {
                           </div>
                           {!isMultiProduct && (
                             <div className="text-sm text-muted-foreground pl-12 flex flex-wrap gap-x-2 gap-y-0.5">
-                              <span>
-                                {order.sales[0].quantity}{" "}
-                                {order.sales[0].type === "unit" ? t('common.unit') : t('common.meter')}
-                              </span>
-                              {order.sales[0].size && (
-                                <span className="bg-secondary/60 px-1.5 py-0.5 rounded text-[11px] font-semibold text-foreground/70">
-                                  📐 {order.sales[0].size}
+                              {getSizeLabel(order.sales[0]) && (
+                                <span className="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-md text-[12px] font-bold tracking-wide">
+                                  {getSizeLabel(order.sales[0])}
                                 </span>
                               )}
                               {order.sales[0].area != null && order.sales[0].area > 0 && (
@@ -523,16 +537,12 @@ export function SellerHome() {
                             >
                               <div className="flex-1">
                                 <div className="text-foreground font-bold">
-                                  {sale.productName}
+                                  {getCollection(sale.productId, sale.productName)}
                                 </div>
                                 <div className="text-muted-foreground text-xs flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5">
-                                  <span>
-                                    {sale.quantity}{" "}
-                                    {sale.type === "unit" ? t('common.unit') : t('common.meter')}
-                                  </span>
-                                  {sale.size && (
-                                    <span className="bg-secondary/60 px-1.5 py-0.5 rounded text-[11px] font-semibold text-foreground/70">
-                                      📐 {sale.size}
+                                  {getSizeLabel(sale) && (
+                                    <span className="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-md text-[12px] font-bold tracking-wide">
+                                      {getSizeLabel(sale)}
                                     </span>
                                   )}
                                   {sale.area != null && sale.area > 0 && (
