@@ -42,7 +42,7 @@ interface Order {
 
 export function SellerHome() {
   const navigate = useNavigate();
-  const { user, sales, products, branches, isAdminViewingAsSeller, exchangeRate, expenses, debts, staffMembers } = useApp();
+  const { user, sales, products, branches, isAdminViewingAsSeller, exchangeRate, expenses, debts, staffMembers, staff } = useApp();
 
   // Получить название коллекции по productId
   const getCollection = (productId: string, fallback: string) => {
@@ -59,6 +59,15 @@ export function SellerHome() {
     }
     if (sale.size) return sale.size;
     return null;
+  };
+
+  // Получить имя продавца по sellerId
+  const getSellerName = (sellerId: string): string => {
+    const staffUser = staff.find(s => s.id === sellerId);
+    if (staffUser) return staffUser.fullName || staffUser.name;
+    const member = staffMembers.find(m => m.id === sellerId);
+    if (member) return member.name;
+    return '';
   };
 
   const { t } = useLanguage();
@@ -484,16 +493,26 @@ export function SellerHome() {
                       </div>
 
                       <div className="flex items-center justify-between border-t border-border/50 pt-3 mt-2">
-                        <div className="text-xs font-bold text-muted-foreground bg-secondary/50 px-2 py-1 rounded-lg">
-                          {new Date(order.date).toLocaleDateString("uz-UZ", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          })}{" "}
-                          {new Date(order.date).toLocaleTimeString("uz-UZ", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                        <div className="flex flex-col gap-1">
+                          <div className="text-xs font-bold text-muted-foreground bg-secondary/50 px-2 py-1 rounded-lg">
+                            {new Date(order.date).toLocaleDateString("uz-UZ", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                            })}{" "}
+                            {new Date(order.date).toLocaleTimeString("uz-UZ", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </div>
+                          {getSellerName(order.sales[0].sellerId) && (
+                            <div className="flex items-center gap-1 px-2">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>
+                              <span className="text-[11px] text-muted-foreground font-semibold">
+                                {getSellerName(order.sales[0].sellerId)}
+                              </span>
+                            </div>
+                          )}
                         </div>
                         <div className="flex flex-col items-end gap-1">
                           <div className="text-xl font-bold text-foreground">
