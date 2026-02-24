@@ -11,7 +11,6 @@ import {
   ArrowRightLeft,
   Trash2,
   Settings,
-  Ruler,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "../ui/input";
@@ -1169,9 +1168,7 @@ export function Inventory() {
                 <DropdownMenuItem onClick={() => navigate("/admin/manage-collections")}>
                   <Package className="mr-2 h-4 w-4" /> {t('admin.collections')}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/admin/manage-sizes")}>
-                  <Ruler className="mr-2 h-4 w-4" /> {t('admin.sizes')}
-                </DropdownMenuItem>
+
               </DropdownMenuContent>
             </DropdownMenu>
           )}

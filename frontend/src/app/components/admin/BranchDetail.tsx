@@ -487,10 +487,29 @@ function HistoryItem({ item, exchangeRate, staffMembers, products, formatCurrenc
   const getTitle = () => {
     if (isSale) {
       const product = products.find(p => p.id === item.productId);
+      const saleItems = item.items || [item];
+      const totalArea = saleItems.reduce((sum: number, s: any) => sum + (s.area || s.quantity || 0), 0);
+      const isSingle = saleItems.length === 1;
+
       return (
         <div className="flex flex-col">
-          <span className="font-bold text-sm dark:text-white">{product?.collection || t('seller.withoutCollection')}</span>
-          <span className="text-xs text-muted-foreground font-normal">{item.productName}</span>
+          <span className="font-bold text-sm dark:text-white leading-tight">
+            {product?.collection || t('seller.withoutCollection')}
+          </span>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-xs text-muted-foreground font-normal truncate max-w-[120px]">
+              {item.productName}
+            </span>
+            <span className="text-[10px] text-muted-foreground">
+              • {isSingle ? (
+                saleItems[0].type === "unit"
+                  ? `${saleItems[0].quantity} ${t('common.unit')} ${saleItems[0].size ? `(${saleItems[0].size})` : ''}`
+                  : `${(saleItems[0].area || saleItems[0].quantity).toFixed(1)} m² ${saleItems[0].width ? `(${saleItems[0].width}x${((saleItems[0].area || saleItems[0].quantity) / (saleItems[0].width || 1)).toFixed(1)})` : ''}`
+              ) : (
+                `${totalArea.toFixed(1)} ${saleItems[0].type === "unit" ? t('common.unit') : "m²"}`
+              )}
+            </span>
+          </div>
         </div>
       );
     }
