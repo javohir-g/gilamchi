@@ -64,7 +64,8 @@ type ViewMode =
   | "collections"
   | "widths"
   | "heights"
-  | "products";
+  | "products"
+  | "sizes";
 type CategoryType =
   | "Gilamlar"
   | "Metrajlar"
@@ -105,8 +106,10 @@ export function Inventory() {
   } = useApp();
   const { t } = useLanguage();
 
+  const isAdmin = user?.role === "admin";
+
   // Admin / General State
-  const [filterBranch, setFilterBranch] = useState("all");
+  const [filterBranch, setFilterBranch] = useState(isAdmin ? "all" : String(user?.branchId || "all"));
 
   // Seller Workflow State
   const [viewMode, setViewMode] =
@@ -134,8 +137,15 @@ export function Inventory() {
     useState(false);
   const [productToDelete, setProductToDelete] =
     useState<Product | null>(null);
+  const [expandedCollections, setExpandedCollections] = useState<Record<string, boolean>>({});
 
-  const isAdmin = user?.role === "admin";
+  const toggleCollection = (name: string) => {
+    setExpandedCollections(prev => ({
+      ...prev,
+      [name]: !prev[name]
+    }));
+  };
+
 
   // Collection Icons Map
   const collectionIcons: Record<string, string> = {
@@ -189,9 +199,7 @@ export function Inventory() {
   const filteredCollectionNames = useMemo(() => {
     if (!selectedCategoryType) return [];
 
-    const targetBranchId = isAdmin
-      ? filterBranch
-      : user?.branchId;
+    const targetBranchId = filterBranch;
 
     if (!isAdmin && !targetBranchId) return [];
 
@@ -219,17 +227,14 @@ export function Inventory() {
     });
   }, [
     products,
-    user?.branchId,
-    isAdmin,
     filterBranch,
+    isAdmin,
     selectedCategoryType,
   ]);
 
   // Helper to count items in a category
   const getCategoryCount = (categoryType: CategoryType) => {
-    const targetBranchId = isAdmin
-      ? filterBranch
-      : user?.branchId;
+    const targetBranchId = filterBranch;
 
     if (!isAdmin && !targetBranchId) return 0;
 
@@ -248,9 +253,7 @@ export function Inventory() {
   const getCollectionCount = (collectionName: string) => {
     if (!selectedCategoryType) return 0;
 
-    const targetBranchId = isAdmin
-      ? filterBranch
-      : user?.branchId;
+    const targetBranchId = filterBranch;
     return products.filter((p) => {
       const isCorrectBranch =
         targetBranchId === "all" ||
@@ -282,9 +285,7 @@ export function Inventory() {
   const widthsForCollection = useMemo(() => {
     if (!selectedCollection || !selectedCategoryType) return [];
 
-    const targetBranchId = isAdmin
-      ? filterBranch
-      : user?.branchId;
+    const targetBranchId = filterBranch;
     const relevantProducts = products.filter((p) => {
       const isCorrectBranch =
         targetBranchId === "all" ||
@@ -332,10 +333,8 @@ export function Inventory() {
     });
   }, [
     products,
-    user?.branchId,
     selectedCollection,
     selectedCategoryType,
-    isAdmin,
     filterBranch,
   ]);
 
@@ -343,9 +342,7 @@ export function Inventory() {
   const getProductCountForWidth = (width: string) => {
     if (!selectedCollection || !selectedCategoryType) return 0;
 
-    const targetBranchId = isAdmin
-      ? filterBranch
-      : user?.branchId;
+    const targetBranchId = filterBranch;
     return products.filter((p) => {
       const isCorrectBranch =
         targetBranchId === "all" ||
@@ -390,9 +387,7 @@ export function Inventory() {
   const getTotalQuantityForWidth = (width: string) => {
     if (!selectedCollection || !selectedCategoryType) return 0;
 
-    const targetBranchId = isAdmin
-      ? filterBranch
-      : user?.branchId;
+    const targetBranchId = filterBranch;
     const matchingProducts = products.filter((p) => {
       const isCorrectBranch =
         targetBranchId === "all" ||
@@ -445,9 +440,7 @@ export function Inventory() {
   const heightsForWidth = useMemo(() => {
     if (!selectedWidth || !selectedCategoryType) return [];
 
-    const targetBranchId = isAdmin
-      ? filterBranch
-      : user?.branchId;
+    const targetBranchId = filterBranch;
     const relevantProducts = products.filter((p) => {
       const isCorrectBranch =
         targetBranchId === "all" ||
@@ -502,11 +495,9 @@ export function Inventory() {
     });
   }, [
     products,
-    user?.branchId,
     selectedCollection,
     selectedWidth,
     selectedCategoryType,
-    isAdmin,
     filterBranch,
   ]);
 
@@ -514,9 +505,7 @@ export function Inventory() {
   const getTotalQuantityForSize = (size: string) => {
     if (!selectedCollection || !selectedCategoryType) return 0;
 
-    const targetBranchId = isAdmin
-      ? filterBranch
-      : user?.branchId;
+    const targetBranchId = filterBranch;
     const matchingProducts = products.filter((p) => {
       const isCorrectBranch =
         targetBranchId === "all" ||
@@ -559,14 +548,11 @@ export function Inventory() {
     }, 0);
   };
 
-  // 4. Get final products based on selection
   const finalProducts = useMemo(() => {
     if (!selectedCategoryType) return [];
 
     return products.filter((p) => {
-      const targetBranchId = isAdmin
-        ? filterBranch
-        : user?.branchId;
+      const targetBranchId = filterBranch;
       const isCorrectBranch =
         targetBranchId === "all" ||
         String(p.branchId) === String(targetBranchId);
@@ -605,11 +591,9 @@ export function Inventory() {
     });
   }, [
     products,
-    user?.branchId,
     selectedCollection,
     selectedSize,
     selectedCategoryType,
-    isAdmin,
     filterBranch,
     sizeSearchQuery,
   ]);
@@ -652,18 +636,22 @@ export function Inventory() {
     setSelectedWidth(width);
     if (selectedCategoryType === "Metrajlar") {
       // Find the first matching size for metraj
-      const matchingSizes = products.filter(p =>
+      const matchingProducts = products.filter(p =>
         (p.collection || "Kolleksiyasiz") === selectedCollection &&
         p.availableSizes?.some(s => {
           const parts = parseSize(getSizeStr(s));
           return parts && parts.width === width;
         })
-      ).flatMap(p => p.availableSizes || []);
+      );
 
-      const distinctSize = matchingSizes.find(s => {
-        const parts = parseSize(getSizeStr(s));
-        return parts && parts.width === width;
-      });
+      let distinctSize = null;
+      for (const p of matchingProducts) {
+        distinctSize = p.availableSizes?.find(s => {
+          const parts = parseSize(getSizeStr(s));
+          return parts && parts.width === width;
+        });
+        if (distinctSize) break;
+      }
 
       if (distinctSize) {
         setSelectedSize(getSizeStr(distinctSize));
@@ -726,32 +714,164 @@ export function Inventory() {
     setDeleteDialogOpen(true);
   };
 
+  // --- Calculations for Sizes View ---
+
+  const calculateTotalArea = (p: Product) => {
+    let totalArea = 0;
+    if (p.type === "unit") {
+      if (p.availableSizes && p.availableSizes.length > 0) {
+        p.availableSizes.forEach((s: any) => {
+          const sStr = getSizeStr(s);
+          const qty = typeof s === 'object' ? (s.quantity || 0) : (p.quantity || 0);
+          const parts = parseSize(sStr);
+          if (parts) {
+            totalArea += (parseFloat(parts.width) || 0) * (parseFloat(parts.height) || 0) * qty;
+          }
+        });
+      }
+    } else {
+      if (p.availableSizes && p.availableSizes.length > 0) {
+        p.availableSizes.forEach((s: any) => {
+          const sStr = getSizeStr(s);
+          const parts = parseSize(sStr);
+          if (parts) {
+            totalArea += (parseFloat(parts.width) || 0) * (parseFloat(parts.height) || 0);
+          }
+        });
+      } else {
+        totalArea = (p.width || 0) * (p.remainingLength || 0);
+      }
+    }
+    return totalArea;
+  };
+
+  const sizesData = useMemo(() => {
+    const targetBranchId = filterBranch;
+    const relevantProducts = products.filter((p) => {
+      const isCorrectBranch =
+        targetBranchId === "all" ||
+        String(p.branchId) === String(targetBranchId);
+      return isCorrectBranch;
+    });
+
+    const collectionsSummary = new Map<string, { totalSqm: number; items: { code: string; sqm: number }[] }>();
+
+    relevantProducts.forEach((p) => {
+      const colName = p.collection || t('seller.withoutCollection');
+      const area = calculateTotalArea(p);
+
+      if (area <= 0) return;
+
+      if (!collectionsSummary.has(colName)) {
+        collectionsSummary.set(colName, { totalSqm: 0, items: [] });
+      }
+
+      const summary = collectionsSummary.get(colName)!;
+      summary.totalSqm += area;
+      summary.items.push({ code: p.code, sqm: area });
+    });
+
+    return Array.from(collectionsSummary.entries())
+      .map(([name, data]) => ({
+        name,
+        totalSqm: data.totalSqm,
+        items: data.items.sort((a, b) => b.sqm - a.sqm)
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [products, filterBranch, t]);
+
   // --- Render Functions ---
 
-  const renderCategories = () => (
-    <div className="p-4 space-y-4">
-      {isAdmin && (
-        <Select
-          value={filterBranch}
-          onValueChange={setFilterBranch}
-        >
-          <SelectTrigger className="h-12 bg-card border-border">
-            <SelectValue placeholder={t('seller.allBranches')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">
-              {t('seller.allBranches')}
-            </SelectItem>
-            {branches.map((branch) => (
-              <SelectItem key={branch.id} value={String(branch.id)}>
-                {branch.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
+  const renderSizes = () => {
+    return (
+      <div className="flex flex-col min-h-screen bg-background">
+        {/* Branch Selector Slider */}
+        {(isAdmin || user?.role === "seller") && renderBranchFilter()}
 
-      <div className="grid grid-cols-2 gap-3">
+        <div className="p-4 space-y-3 pb-32">
+          {sizesData.map((collection) => {
+            const isExpanded = expandedCollections[collection.name];
+            return (
+              <div key={collection.name} className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm transition-all">
+                <div
+                  className="p-4 flex items-center justify-between cursor-pointer active:bg-muted/50"
+                  onClick={() => toggleCollection(collection.name)}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{getCollectionIcon(collection.name)}</span>
+                    <div>
+                      <h2 className="text-base font-bold text-foreground">
+                        {collection.name}
+                      </h2>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">
+                        {collection.items.length} dona mahsulot
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge variant="secondary" className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-sm font-black px-3 py-1 border-0">
+                      {collection.totalSqm.toFixed(1)} m²
+                    </Badge>
+                    <ChevronLeft className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${isExpanded ? "-rotate-90" : ""}`} />
+                  </div>
+                </div>
+
+                {isExpanded && (
+                  <div className="px-4 pb-4 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="pt-2 border-t border-border/50 grid grid-cols-1 gap-2">
+                      {collection.items.map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center py-2 px-3 rounded-xl bg-muted/30 border border-border/20">
+                          <span className="text-xs font-semibold text-muted-foreground">{item.code}</span>
+                          <span className="text-xs font-bold text-foreground">{item.sqm.toFixed(2)} m²</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {sizesData.length === 0 && (
+            <div className="py-20 text-center text-muted-foreground">
+              <Package className="h-12 w-12 mx-auto mb-4 opacity-20" />
+              <p>{t('messages.noResults')}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderBranchFilter = () => (
+    <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b border-border p-3 flex gap-2 overflow-x-auto scrollbar-hide no-scrollbar">
+      <Button
+        variant={filterBranch === "all" ? "default" : "outline"}
+        size="sm"
+        className={`rounded-full px-5 h-9 font-semibold transition-all shrink-0 ${filterBranch === "all" ? "shadow-md scale-105" : ""}`}
+        onClick={() => setFilterBranch("all")}
+      >
+        {t('common.all')}
+      </Button>
+      {branches.map((branch) => (
+        <Button
+          key={branch.id}
+          variant={filterBranch === String(branch.id) ? "default" : "outline"}
+          size="sm"
+          className={`rounded-full px-5 h-9 font-semibold transition-all shrink-0 ${filterBranch === String(branch.id) ? "shadow-md scale-105" : ""}`}
+          onClick={() => setFilterBranch(String(branch.id))}
+        >
+          {branch.name}
+        </Button>
+      ))}
+    </div>
+  );
+
+  const renderCategories = () => (
+    <div className="space-y-0">
+      {(isAdmin || user?.role === "seller") && renderBranchFilter()}
+
+      <div className="p-4 grid grid-cols-2 gap-3">
         {(
           [
             "Gilamlar",
@@ -1136,20 +1256,43 @@ export function Inventory() {
             </Button>
           )}
           <h1 className="text-xl text-card-foreground flex-1 font-bold">
-            {viewMode === "categories"
-              ? t('product.categories')
-              : viewMode === "collections"
-                ? (selectedCategoryType ? t(`product.${selectedCategoryType.toLowerCase()}` as any) : "")
-                : viewMode === "widths"
-                  ? `${selectedCollection} - ${t('seller.widths')}`
-                  : viewMode === "heights"
-                    ? `${selectedWidth}x - ${t('seller.heights')}`
-                    : (selectedCollection && selectedSize)
-                      ? `${selectedCollection} (${selectedSize})`
-                      : (selectedCollection)
-                        ? selectedCollection
-                        : (selectedCategoryType ? t(`product.${selectedCategoryType.toLowerCase()}` as any) : "")}
+            {viewMode === "sizes"
+              ? "O'lchamlar"
+              : viewMode === "categories"
+                ? t('product.categories')
+                : viewMode === "collections"
+                  ? (selectedCategoryType ? t(`product.${selectedCategoryType.toLowerCase()}` as any) : "")
+                  : viewMode === "widths"
+                    ? `${selectedCollection} - ${t('seller.widths')}`
+                    : viewMode === "heights"
+                      ? `${selectedWidth}x - ${t('seller.heights')}`
+                      : (selectedCollection && selectedSize)
+                        ? `${selectedCollection} (${selectedSize})`
+                        : (selectedCollection)
+                          ? selectedCollection
+                          : (selectedCategoryType ? t(`product.${selectedCategoryType.toLowerCase()}` as any) : "")}
           </h1>
+          {viewMode === "categories" || viewMode === "sizes" ? (
+            <div className="flex bg-muted rounded-lg p-1 mr-2">
+              <Button
+                variant={viewMode === "categories" ? "secondary" : "ghost"}
+                size="sm"
+                className={`px-3 py-1 h-8 text-xs font-semibold rounded-md transition-all ${viewMode === "categories" ? "bg-background shadow-sm" : ""}`}
+                onClick={() => setViewMode("categories")}
+              >
+                Bo'limlar
+              </Button>
+              <Button
+                variant={viewMode === "sizes" ? "secondary" : "ghost"}
+                size="sm"
+                className={`px-3 py-1 h-8 text-xs font-semibold rounded-md transition-all ${viewMode === "sizes" ? "bg-background shadow-sm" : ""}`}
+                onClick={() => setViewMode("sizes")}
+              >
+                O'lchamlar
+              </Button>
+            </div>
+          ) : null}
+
           {isAdmin && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -1190,6 +1333,7 @@ export function Inventory() {
       {viewMode === "widths" && renderWidths()}
       {viewMode === "heights" && renderHeights()}
       {viewMode === "products" && renderProducts()}
+      {viewMode === "sizes" && renderSizes()}
 
       <Dialog open={moveDialogOpen} onOpenChange={setMoveDialogOpen}>
         <DialogContent>
