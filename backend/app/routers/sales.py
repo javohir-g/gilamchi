@@ -140,12 +140,20 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
     qty = Decimal(str(sale.quantity))
 
     if product.type == ProductType.METER:
-        # Metraj products: length is the primary metric for cost and sell_price_per_meter
-        # sell_price_per_meter is stored in USD per linear meter (calculated in AddProduct.tsx)
+        # sell_price_per_meter is stored in USD per LINEAR meter (= pricePerSqm × roll_width).
+        # Frontend calculates: total = area × sellingPrice = (width × length) × (sell_price_per_meter / width)
+        #                            = length × sell_price_per_meter
+        # So metric = length, base_sell_price = sell_price_per_meter (USD per linear meter)
+        # Similarly, buy_price is stored as USD per linear meter (buyPricePerSqm × width, with is_usd_priced=True)
         length_d = Decimal(str(sale.length)) if sale.length else qty
-        metric_for_standard_price = length_d
-        
-        base_sell_price_usd = Decimal(str(product.sell_price_per_meter or product.sell_price or 0))
+        metric_for_standard_price = length_d  # length in linear meters
+
+        raw_sell_price_per_linear_m = Decimal(str(product.sell_price_per_meter or product.sell_price or 0))
+        base_sell_price_usd = raw_sell_price_per_linear_m  # already in USD per linear meter
+
+
+
+
     else:
         # Unit products: quantity (or area) is the metric
         metric_for_standard_price = Decimal(str(sale.area)) if sale.area else qty
