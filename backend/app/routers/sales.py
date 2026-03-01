@@ -155,15 +155,20 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db), current_user = 
 
 
     else:
-        # Unit products: quantity (or area) is the metric
-        metric_for_standard_price = Decimal(str(sale.area)) if sale.area else qty
-        
-        # sell_price can be USD or UZS
+        # Unit products: sell_price is stored as price PER UNIT (e.g., total price for one carpet).
+        # Frontend item.total = qty × sell_price.
+        # IMPORTANT: Do NOT use area as metric — it would multiply price/unit × m², giving wrong result.
+        metric_for_standard_price = qty
+
+        # sell_price can be in USD or UZS depending on is_usd_priced flag
         raw_sell_price = Decimal(str(product.sell_price))
         if product.is_usd_priced:
-            base_sell_price_usd = raw_sell_price
+            base_sell_price_usd = raw_sell_price       # already USD per unit
         else:
-            base_sell_price_usd = raw_sell_price / exchange_rate
+            base_sell_price_usd = raw_sell_price / exchange_rate  # convert UZS/unit → USD/unit
+
+        # Similarly, buy_price is per unit
+        # buy_price_usd is already correct (set above using is_usd_priced)
 
     # Standard costs and sell values in USD
     total_buy_cost_usd = buy_price_usd * metric_for_standard_price
