@@ -12,6 +12,7 @@ import {
 } from "../../context/AppContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { toast } from "sonner";
+import { formatThousands, parseFormattedNumber as parseGlobal } from "../ui/utils";
 
 export function Checkout() {
   const navigate = useNavigate();
@@ -43,22 +44,9 @@ export function Checkout() {
     }
   }, [calculatedTotal, exchangeRate, isNasiya]);
 
-  // Helper function to format number with thousand separators
-  const formatNumber = (value: string): string => {
-    // Remove all non-digit and non-dot characters
-    const cleanedValue = value.replace(/[^\d.]/g, '');
-
-    // Ensure only one dot
-    const parts = cleanedValue.split('.');
-    if (parts.length > 2) {
-      return parts[0] + '.' + parts.slice(1).join('');
-    }
-    return cleanedValue;
-  };
-
   // Helper function to parse formatted number to raw number
   const parseFormattedNumber = (value: string): number => {
-    return parseFloat(value) || 0;
+    return parseGlobal(value);
   };
 
   // Calculate total from cash + card
@@ -207,8 +195,13 @@ export function Checkout() {
                   </Label>
                   <Input
                     type="text"
-                    value={agreedPrice}
-                    onChange={(e) => setAgreedPrice(formatNumber(e.target.value))}
+                    value={formatThousands(agreedPrice)}
+                    onChange={(e) => {
+                      const rawValue = e.target.value.replace(/,/g, "");
+                      if (/^\d*\.?\d*$/.test(rawValue)) {
+                        setAgreedPrice(rawValue);
+                      }
+                    }}
                     className="mt-1 h-10 font-semibold border-2 border-indigo-200 dark:bg-gray-700 focus:border-indigo-400"
                   />
                 </div>
@@ -226,11 +219,15 @@ export function Checkout() {
                   </Label>
                   <Input
                     type="text"
-                    value={cashAmount}
-                    onChange={(e) => setCashAmount(formatNumber(e.target.value))}
+                    value={formatThousands(cashAmount)}
+                    onChange={(e) => {
+                      const rawValue = e.target.value.replace(/,/g, "");
+                      if (/^\d*\.?\d*$/.test(rawValue)) {
+                        setCashAmount(rawValue);
+                      }
+                    }}
                     className="h-16 text-2xl font-semibold dark:bg-gray-700 dark:text-white border-2 border-orange-400 dark:border-orange-600 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-2 focus:ring-orange-200 dark:focus:ring-orange-900"
                     placeholder="0"
-                    min="0"
                   />
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                     {t('debt.remainingDebt')} {formatCurrency(Math.max(0, parseFormattedNumber(agreedPrice) - parseFormattedNumber(cashAmount)))}
@@ -251,13 +248,15 @@ export function Checkout() {
                       </Label>
                       <Input
                         type="text"
-                        value={cashAmount}
-                        onChange={(e) =>
-                          setCashAmount(formatNumber(e.target.value))
-                        }
+                        value={formatThousands(cashAmount)}
+                        onChange={(e) => {
+                          const rawValue = e.target.value.replace(/,/g, "");
+                          if (/^\d*\.?\d*$/.test(rawValue)) {
+                            setCashAmount(rawValue);
+                          }
+                        }}
                         className="h-16 text-2xl font-semibold dark:bg-gray-700 dark:text-white border-2 border-blue-400 dark:border-blue-600 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900"
                         placeholder="0"
-                        min="0"
                       />
                     </div>
 
@@ -268,13 +267,15 @@ export function Checkout() {
                       </Label>
                       <Input
                         type="text"
-                        value={cardAmount}
-                        onChange={(e) =>
-                          setCardAmount(formatNumber(e.target.value))
-                        }
+                        value={formatThousands(cardAmount)}
+                        onChange={(e) => {
+                          const rawValue = e.target.value.replace(/,/g, "");
+                          if (/^\d*\.?\d*$/.test(rawValue)) {
+                            setCardAmount(rawValue);
+                          }
+                        }}
                         className="h-16 text-2xl font-semibold dark:bg-gray-700 dark:text-white border-2 border-blue-400 dark:border-blue-600 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900"
                         placeholder="0"
-                        min="0"
                       />
                     </div>
 

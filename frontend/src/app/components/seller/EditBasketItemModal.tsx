@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { formatThousands, parseFormattedNumber } from '../ui/utils';
 
 interface EditBasketItemModalProps {
   item: BasketItem;
@@ -54,7 +55,7 @@ export function EditBasketItemModal({
   const [width, setWidth] = useState(item.width || "");
   const [height, setHeight] = useState(item.height || "");
   const [area, setArea] = useState(item.area || 0);
-  const [sellingPrice, setSellingPrice] = useState(item.pricePerUnit * exchangeRate);
+  const [sellingPrice, setSellingPrice] = useState((item.pricePerUnit * exchangeRate).toString());
 
   // Initialize quantity for carpets and units
   useEffect(() => {
@@ -121,15 +122,16 @@ export function EditBasketItemModal({
   };
 
   const calculateTotal = () => {
+    const price = parseFloat(sellingPrice) || 0;
     if (isCarpet) {
       // For carpets: total = area × price per m² × number of carpets
-      return area * sellingPrice * quantity;
+      return area * price * quantity;
     }
     if (isMetraj) {
       // For metraj: total = area × price per m² × meters
-      return area * sellingPrice * parseFloat(meters);
+      return area * price * parseFloat(meters);
     }
-    return getQuantityValue() * sellingPrice;
+    return getQuantityValue() * price;
   };
 
   const handleUpdate = () => {
@@ -150,7 +152,7 @@ export function EditBasketItemModal({
     const updatedItem: BasketItem = {
       ...item,
       quantity: qty,
-      pricePerUnit: sellingPrice / exchangeRate,
+      pricePerUnit: (parseFloat(sellingPrice) || 0) / exchangeRate,
       total: calculateTotal() / exchangeRate,
       size: selectedSize || undefined,
       // Carpet-specific fields
@@ -365,13 +367,14 @@ export function EditBasketItemModal({
                 {t('seller.price')} {!isUnit && t('seller.perMeter')}
               </Label>
               <Input
-                type="number"
-                value={sellingPrice}
-                onChange={(e) =>
-                  setSellingPrice(
-                    parseFloat(e.target.value) || 0,
-                  )
-                }
+                type="text"
+                value={formatThousands(sellingPrice)}
+                onChange={(e) => {
+                  const rawValue = e.target.value.replace(/,/g, "");
+                  if (/^\d*\.?\d*$/.test(rawValue)) {
+                    setSellingPrice(rawValue);
+                  }
+                }}
                 className="h-12 text-xl dark:bg-gray-700 dark:text-white"
               />
             </div>

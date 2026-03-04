@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { formatThousands, parseFormattedNumber } from '../ui/utils';
 
 export function SellProductDetail() {
   const { productId } = useParams();
@@ -37,9 +38,10 @@ export function SellProductDetail() {
   const [meters, setMeters] = useState('1');
   const [paymentType, setPaymentType] = useState<PaymentType>('cash');
   const [sellingPrice, setSellingPrice] = useState(
-    isUnit
+    (isUnit
       ? (product?.sellPrice ? product.sellPrice * exchangeRate : 0)
       : (product?.sellPricePerMeter ? product.sellPricePerMeter * exchangeRate : 0)
+    ).toString()
   );
 
   const [selectedSize, setSelectedSize] = useState<string>("");
@@ -52,10 +54,10 @@ export function SellProductDetail() {
   useEffect(() => {
     if (!product) return;
 
-    setSellingPrice(isUnit
+    setSellingPrice((isUnit
       ? (product.sellPrice * exchangeRate)
       : (product.sellPricePerMeter ? product.sellPricePerMeter * exchangeRate : 0)
-    );
+    ).toString());
   }, [product, isUnit, exchangeRate]);
 
   // Parse width and height from selectedSize
@@ -117,14 +119,15 @@ export function SellProductDetail() {
     : product.remainingLength || 0;
 
   const calculateTotal = () => {
+    const price = parseFloat(sellingPrice) || 0;
     if (isCarpetOrMetraj && area > 0) {
       // For carpets and metraj: total = area × price per m² × number of carpets/multiplier
-      return area * sellingPrice * (isUnit ? quantity : parseFloat(meters));
+      return area * price * (isUnit ? quantity : parseFloat(meters));
     }
     if (isUnit) {
-      return quantity * sellingPrice;
+      return quantity * price;
     } else {
-      return parseFloat(meters) * sellingPrice;
+      return parseFloat(meters) * price;
     }
   };
 
@@ -384,9 +387,14 @@ export function SellProductDetail() {
             {t('seller.soldPrice')} {!isUnit && t('seller.perMeter')}
           </Label>
           <Input
-            type="number"
-            value={sellingPrice}
-            onChange={(e) => setSellingPrice(parseFloat(e.target.value) || 0)}
+            type="text"
+            value={formatThousands(sellingPrice)}
+            onChange={(e) => {
+              const rawValue = e.target.value.replace(/,/g, "");
+              if (/^\d*\.?\d*$/.test(rawValue)) {
+                setSellingPrice(rawValue);
+              }
+            }}
             className="h-14 text-2xl"
           />
         </Card>

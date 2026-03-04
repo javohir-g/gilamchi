@@ -26,6 +26,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "../ui/dialog";
+import { formatThousands, parseFormattedNumber } from "../ui/utils";
 
 export function DebtDetails() {
   const navigate = useNavigate();
@@ -96,7 +97,7 @@ export function DebtDetails() {
   };
 
   const handleMakePayment = () => {
-    const amount = parseFloat(paymentAmount);
+    const amount = parseFormattedNumber(paymentAmount);
 
     if (!amount || amount <= 0) {
       toast.error(t('messages.enterPaymentAmount'));
@@ -498,15 +499,16 @@ export function DebtDetails() {
                 <span className="text-red-500">*</span>
               </Label>
               <Input
-                type="number"
-                value={paymentAmount}
-                onChange={(e) =>
-                  setPaymentAmount(e.target.value)
-                }
+                type="text"
+                value={formatThousands(paymentAmount)}
+                onChange={(e) => {
+                  const rawValue = e.target.value.replace(/,/g, "");
+                  if (/^\d*\.?\d*$/.test(rawValue)) {
+                    setPaymentAmount(rawValue);
+                  }
+                }}
                 className="h-14 text-lg font-semibold dark:bg-gray-700 dark:text-white mt-2"
                 placeholder="0"
-                max={debt.remainingAmount}
-                min="0"
                 autoFocus
               />
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">

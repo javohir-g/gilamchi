@@ -9,6 +9,7 @@ import { useApp } from "../../context/AppContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { toast } from "sonner";
 import { BottomNav } from "../shared/BottomNav";
+import { formatThousands } from "../ui/utils";
 
 export function AddExpense() {
   const navigate = useNavigate();
@@ -185,9 +186,14 @@ export function AddExpense() {
             <div>
               <Label className="text-[10px] uppercase font-bold text-muted-foreground mb-1 block">{t('common.price')} (UZS)</Label>
               <Input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                type="text"
+                value={formatThousands(amount)}
+                onChange={(e) => {
+                  const rawValue = e.target.value.replace(/,/g, "");
+                  if (/^\d*\.?\d*$/.test(rawValue)) {
+                    setAmount(rawValue);
+                  }
+                }}
                 placeholder="0"
                 className="h-11 rounded-xl font-bold"
               />

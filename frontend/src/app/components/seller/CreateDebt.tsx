@@ -8,6 +8,7 @@ import { Label } from "../ui/label";
 import { useApp, BasketItem, Debt, Payment } from "../../context/AppContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { toast } from "sonner";
+import { formatThousands, parseFormattedNumber } from "../ui/utils";
 
 interface LocationState {
   basketItems: BasketItem[];
@@ -47,19 +48,9 @@ export function CreateDebt() {
       })
       .join(", ");
   });
-  // Thousand separator helpers
-  const formatNumber = (value: string): string => {
-    const cleanedValue = value.replace(/[^\d.]/g, '');
-    const parts = cleanedValue.split('.');
-    if (parts.length > 2) return parts[0] + '.' + parts.slice(1).join('');
-    return cleanedValue;
-  };
-
-  const parseFormattedNumber = (value: string): number => parseFloat(value) || 0;
   const [isSaving, setIsSaving] = useState(false);
-
   const [customRemainingAmount, setCustomRemainingAmount] = useState(
-    formatNumber((remainingAmount * exchangeRate).toString())
+    (remainingAmount * exchangeRate).toString()
   );
   const [paymentDeadline, setPaymentDeadline] = useState(() => {
     // Default to 7 days from now
@@ -273,8 +264,13 @@ export function CreateDebt() {
               </Label>
               <Input
                 type="text"
-                value={customRemainingAmount}
-                onChange={(e) => setCustomRemainingAmount(formatNumber(e.target.value))}
+                value={formatThousands(customRemainingAmount)}
+                onChange={(e) => {
+                  const rawValue = e.target.value.replace(/,/g, "");
+                  if (/^\d*\.?\d*$/.test(rawValue)) {
+                    setCustomRemainingAmount(rawValue);
+                  }
+                }}
                 className="h-14 text-lg font-semibold dark:bg-gray-700 dark:text-white border-2 border-orange-400 dark:border-orange-600"
                 placeholder="0"
               />
