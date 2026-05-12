@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   db:
@@ -13,7 +13,11 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-secure_password_please_change}
       - POSTGRES_DB=${POSTGRES_DB:-gilamchi_db}
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gilamchi_user} -d ${POSTGRES_DB:-gilamchi_db}" ]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-gilamchi_user} -d ${POSTGRES_DB:-gilamchi_db}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -46,8 +50,11 @@ services:
     depends_on:
       - backend
     volumes:
+      # Certificates from host's Let's Encrypt (run certbot on host first)
       - /etc/letsencrypt:/etc/letsencrypt:ro
+      # Main Nginx configuration with SSL enablement
       - ./frontend/nginx-ssl.conf:/etc/nginx/conf.d/default.conf:ro
+      # Required for Let's Encrypt renewal challenges
       - /var/www/certbot:/var/www/certbot:ro
 
 volumes:
